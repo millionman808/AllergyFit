@@ -1,0 +1,33 @@
+name: AllergyFit
+options:
+  bundleIdPrefix: com.elischafer
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: 2.0.0
+targets:
+  AllergyFit:
+    type: application
+    platform: iOS
+    sources:
+      - AllergyFit
+    dependencies:
+      - package: Supabase
+        product: Supabase
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.elischafer.allergyfit
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        GENERATE_INFOPLIST_FILE: true
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_CFBundleDisplayName: AllergyFit
+        SWIFT_VERSION: 5.9
+        TARGETED_DEVICE_FAMILY: 1
+        ENABLE_USER_SCRIPT_SANDBOXING: true
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: AllergyFit/Resources/AllergyFit.entitlements

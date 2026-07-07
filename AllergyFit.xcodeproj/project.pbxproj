@@ -1,0 +1,527 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01F35C772624406092C554F5 /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0720F266E4BA50D0D73ADAB /* SupabaseClient.swift */; };
+		0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 288435BEE80ED02056790322 /* LogView.swift */; };
+		0E69B9D03E02968533C62DFC /* KitchenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */; };
+		3426164A957614A1BA5EA5F5 /* AIMealLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */; };
+		366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C63BE8C8482C61ACD9CCF8 /* Config.swift */; };
+		37EF3047980F19F78008A831 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5362C1AB2997D74FFD7C7339 /* ProfileView.swift */; };
+		4AA0D4ECCE20E8B41FCADB4E /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D0C41123AB2F3D6474672D84 /* Supabase */; };
+		54C18D4D3C5DD44BEDE2AC5E /* RecipesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECADE9B46A714426CE1D1F29 /* RecipesView.swift */; };
+		566B3F9A15CB1EC222A5C94F /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A697D7A190C05DE6A62107E /* Models.swift */; };
+		8C039AF88FB9F89606CC8BF0 /* TodayStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEB40B07CADF21863ED0324E /* TodayStore.swift */; };
+		8FD41D9A4843A4728E015364 /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8104FB1DADB7B1A3A59180 /* PlanView.swift */; };
+		95E9C3B6B75156D02F97021F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 792FDCDB66B7E209DB4D5832 /* RootView.swift */; };
+		A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DAB4D05FE16724A93EEF2FE /* Theme.swift */; };
+		A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */; };
+		BE6FAD4E24A404232EFF037D /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97EAF00C421B8C1D38B8C78 /* MockData.swift */; };
+		C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */; };
+		CC483688F69F37C1C2DFE555 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */; };
+		E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F527FD29D3656B651EA45656 /* DashboardView.swift */; };
+		F6004B03FC572963AED80E6C /* LabScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0507A56BCFDF2BD045EC66E /* LabScanView.swift */; };
+		F69B9CACF8004643E9CD0C3E /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 435D00CFDC2A3BABE993C79C /* AuthView.swift */; };
+		F69DA229FE445F7A6EC5D599 /* QuickAddMealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1FD5F5554C1673BC732B82 /* QuickAddMealView.swift */; };
+		F94845F6DD0FECFCA22C29CC /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1290F9B93141E82026A592 /* OnboardingView.swift */; };
+		FE3EF2AECF196D5456035554 /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5C81476BF4CBA13F79BA83 /* InsightsView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergyFitApp.swift; sourceTree = "<group>"; };
+		288435BEE80ED02056790322 /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
+		3B5C81476BF4CBA13F79BA83 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
+		3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIMealLogView.swift; sourceTree = "<group>"; };
+		435D00CFDC2A3BABE993C79C /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
+		4DE9B057C1A2F851554C887D /* AllergyFit.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AllergyFit.entitlements; sourceTree = "<group>"; };
+		5362C1AB2997D74FFD7C7339 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		5A697D7A190C05DE6A62107E /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		5E8104FB1DADB7B1A3A59180 /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
+		792FDCDB66B7E209DB4D5832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AllergyFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A1290F9B93141E82026A592 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		9DAB4D05FE16724A93EEF2FE /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		A97EAF00C421B8C1D38B8C78 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
+		B0720F266E4BA50D0D73ADAB /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
+		B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIMealService.swift; sourceTree = "<group>"; };
+		C0507A56BCFDF2BD045EC66E /* LabScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabScanView.swift; sourceTree = "<group>"; };
+		D7C63BE8C8482C61ACD9CCF8 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		DA1FD5F5554C1673BC732B82 /* QuickAddMealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAddMealView.swift; sourceTree = "<group>"; };
+		DEB40B07CADF21863ED0324E /* TodayStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayStore.swift; sourceTree = "<group>"; };
+		ECADE9B46A714426CE1D1F29 /* RecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipesView.swift; sourceTree = "<group>"; };
+		F527FD29D3656B651EA45656 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KitchenView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		82654FA5541F0D5BEDC28D21 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4AA0D4ECCE20E8B41FCADB4E /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		13223DC1369AAED59160036A /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				A97EAF00C421B8C1D38B8C78 /* MockData.swift */,
+				5A697D7A190C05DE6A62107E /* Models.swift */,
+				440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */,
+				B0720F266E4BA50D0D73ADAB /* SupabaseClient.swift */,
+				DEB40B07CADF21863ED0324E /* TodayStore.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		159C8CE4F5200EEFA04427C9 /* Kitchen */ = {
+			isa = PBXGroup;
+			children = (
+				FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */,
+				ECADE9B46A714426CE1D1F29 /* RecipesView.swift */,
+			);
+			path = Kitchen;
+			sourceTree = "<group>";
+		};
+		1C23FDF578115A281272DD2A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		473FBEBC701C9DFE8D16D4F1 /* Insights */ = {
+			isa = PBXGroup;
+			children = (
+				3B5C81476BF4CBA13F79BA83 /* InsightsView.swift */,
+			);
+			path = Insights;
+			sourceTree = "<group>";
+		};
+		53A5E5FAB4F61EE9C52ECEBA /* Plan */ = {
+			isa = PBXGroup;
+			children = (
+				5E8104FB1DADB7B1A3A59180 /* PlanView.swift */,
+			);
+			path = Plan;
+			sourceTree = "<group>";
+		};
+		5EA1504EA2C3336852A26963 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				4DE9B057C1A2F851554C887D /* AllergyFit.entitlements */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		6AAB5DEF3C7442632BD2C73E /* App */ = {
+			isa = PBXGroup;
+			children = (
+				1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */,
+				D7C63BE8C8482C61ACD9CCF8 /* Config.swift */,
+				792FDCDB66B7E209DB4D5832 /* RootView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		750F89CED5115065489F8737 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				C0507A56BCFDF2BD045EC66E /* LabScanView.swift */,
+				5362C1AB2997D74FFD7C7339 /* ProfileView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		824471BC937791EC59085781 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				A4355B00357CB3181717DA2B /* Auth */,
+				A5D667CC2E6E0DD5EA75F849 /* Dashboard */,
+				473FBEBC701C9DFE8D16D4F1 /* Insights */,
+				159C8CE4F5200EEFA04427C9 /* Kitchen */,
+				C715171B69B04C06EA361F38 /* Log */,
+				F6AA27EE44E954A6166BA765 /* Onboarding */,
+				53A5E5FAB4F61EE9C52ECEBA /* Plan */,
+				750F89CED5115065489F8737 /* Profile */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		A4355B00357CB3181717DA2B /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				435D00CFDC2A3BABE993C79C /* AuthView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		A5BADFA0E5D8805158017EC5 = {
+			isa = PBXGroup;
+			children = (
+				BEBFEBAB24221CB90445FFFF /* AllergyFit */,
+				1C23FDF578115A281272DD2A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A5D667CC2E6E0DD5EA75F849 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				F527FD29D3656B651EA45656 /* DashboardView.swift */,
+				DA1FD5F5554C1673BC732B82 /* QuickAddMealView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		BEBFEBAB24221CB90445FFFF /* AllergyFit */ = {
+			isa = PBXGroup;
+			children = (
+				6AAB5DEF3C7442632BD2C73E /* App */,
+				13223DC1369AAED59160036A /* Core */,
+				D71C271D66AF028E70C840BB /* DesignSystem */,
+				824471BC937791EC59085781 /* Features */,
+				5EA1504EA2C3336852A26963 /* Resources */,
+			);
+			path = AllergyFit;
+			sourceTree = "<group>";
+		};
+		C715171B69B04C06EA361F38 /* Log */ = {
+			isa = PBXGroup;
+			children = (
+				3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */,
+				B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */,
+				288435BEE80ED02056790322 /* LogView.swift */,
+			);
+			path = Log;
+			sourceTree = "<group>";
+		};
+		D71C271D66AF028E70C840BB /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				9DAB4D05FE16724A93EEF2FE /* Theme.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		F6AA27EE44E954A6166BA765 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				8A1290F9B93141E82026A592 /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		DFBAC28DD20901260703364D /* AllergyFit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B60F2DC7760F0295E9B89DE8 /* Build configuration list for PBXNativeTarget "AllergyFit" */;
+			buildPhases = (
+				FB957856150CB466DC2B88DD /* Sources */,
+				82654FA5541F0D5BEDC28D21 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AllergyFit;
+			packageProductDependencies = (
+				D0C41123AB2F3D6474672D84 /* Supabase */,
+			);
+			productName = AllergyFit;
+			productReference = 7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		757F270DB6DE9F488EED1B47 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					DFBAC28DD20901260703364D = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 4727A4F853C314598BFBB33C /* Build configuration list for PBXProject "AllergyFit" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = A5BADFA0E5D8805158017EC5;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				BDD2C0FAFA810ADA4807729A /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1C23FDF578115A281272DD2A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DFBAC28DD20901260703364D /* AllergyFit */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FB957856150CB466DC2B88DD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3426164A957614A1BA5EA5F5 /* AIMealLogView.swift in Sources */,
+				C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */,
+				A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */,
+				F69B9CACF8004643E9CD0C3E /* AuthView.swift in Sources */,
+				366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */,
+				E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */,
+				FE3EF2AECF196D5456035554 /* InsightsView.swift in Sources */,
+				0E69B9D03E02968533C62DFC /* KitchenView.swift in Sources */,
+				F6004B03FC572963AED80E6C /* LabScanView.swift in Sources */,
+				0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */,
+				BE6FAD4E24A404232EFF037D /* MockData.swift in Sources */,
+				566B3F9A15CB1EC222A5C94F /* Models.swift in Sources */,
+				F94845F6DD0FECFCA22C29CC /* OnboardingView.swift in Sources */,
+				8FD41D9A4843A4728E015364 /* PlanView.swift in Sources */,
+				37EF3047980F19F78008A831 /* ProfileView.swift in Sources */,
+				F69DA229FE445F7A6EC5D599 /* QuickAddMealView.swift in Sources */,
+				54C18D4D3C5DD44BEDE2AC5E /* RecipesView.swift in Sources */,
+				95E9C3B6B75156D02F97021F /* RootView.swift in Sources */,
+				CC483688F69F37C1C2DFE555 /* SessionStore.swift in Sources */,
+				01F35C772624406092C554F5 /* SupabaseClient.swift in Sources */,
+				A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */,
+				8C039AF88FB9F89606CC8BF0 /* TodayStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		161417730E80D5CD29CA2682 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = AllergyFit;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.elischafer.allergyfit;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		53578BFA4D6A90D75FB141C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9014B37D09B5DFC70E32E6C6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FC88C857C13EBAF1F33B188A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = AllergyFit;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.elischafer.allergyfit;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4727A4F853C314598BFBB33C /* Build configuration list for PBXProject "AllergyFit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9014B37D09B5DFC70E32E6C6 /* Debug */,
+				53578BFA4D6A90D75FB141C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B60F2DC7760F0295E9B89DE8 /* Build configuration list for PBXNativeTarget "AllergyFit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				161417730E80D5CD29CA2682 /* Debug */,
+				FC88C857C13EBAF1F33B188A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BDD2C0FAFA810ADA4807729A /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D0C41123AB2F3D6474672D84 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BDD2C0FAFA810ADA4807729A /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 757F270DB6DE9F488EED1B47 /* Project object */;
+}

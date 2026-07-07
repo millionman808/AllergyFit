@@ -1,0 +1,14 @@
+# Xcode
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+build/
+
+# macOS
+.DS_Store
+
+# Secrets — never commit real keys (edge function secrets live in Supabase)
+.env
+.env.*

@@ -10,8 +10,21 @@ struct OnboardingView: View {
     @State private var weight = 175
     @State private var heightFeet = 5
     @State private var heightInches = 10
+    @State private var age = 25
+    @State private var isSaving = false
+    @State private var saveError: String?
 
     private let totalSteps = 4
+
+    /// Display name → allergens.slug (must match the seeded allergens table).
+    static let slugByName: [String: String] = [
+        "Peanut": "peanut", "Tree Nuts": "tree_nut", "Milk / Dairy": "dairy",
+        "Egg": "egg", "Wheat": "wheat", "Gluten": "gluten", "Soy": "soy",
+        "Fish": "fish", "Shellfish": "shellfish", "Sesame": "sesame",
+        "Corn": "corn", "Nightshades": "nightshade", "Histamine": "histamine",
+        "FODMAPs": "fodmap", "Sulfites": "sulfite", "Mustard": "mustard",
+        "Alpha-gal": "alpha_gal",
+    ]
 
     var body: some View {
         ZStack {
@@ -50,20 +63,124 @@ struct OnboardingView: View {
     }
 
     private var nextButton: some View {
-        Button {
-            if step < totalSteps - 1 {
-                withAnimation { step += 1 }
-            } else {
-                withAnimation { session.demoOnboarded = true }
+        VStack(spacing: 6) {
+            if let saveError {
+                Text(saveError)
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.danger)
             }
-        } label: {
-            Text(step == totalSteps - 1 ? "Start Training" : "Continue")
-                .font(Theme.Fonts.headline)
+            Button {
+                if step < totalSteps - 1 {
+                    withAnimation { step += 1 }
+                } else {
+                    finish()
+                }
+            } label: {
+                Group {
+                    if isSaving {
+                        ProgressView().tint(Theme.Colors.onVolt)
+                    } else {
+                        Text(step == totalSteps - 1 ? "Start Training" : "Continue")
+                            .font(Theme.Fonts.headline)
+                    }
+                }
                 .frame(maxWidth: .infinity)
                 .frame(height: 54)
                 .background(Theme.Colors.volt)
                 .foregroundStyle(Theme.Colors.onVolt)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .disabled(isSaving)
+        }
+    }
+
+    // MARK: - Finish: persist profile + allergens for real accounts
+
+    private func finish() {
+        if session.isDemo {
+            withAnimation { session.demoOnboarded = true }
+            return
+        }
+        guard let userId = session.session?.user.id else { return }
+        isSaving = true
+        saveError = nil
+        Task {
+            do {
+                try await saveProfile(userId: userId)
+                await session.reloadAllergens(userId: userId)
+                withAnimation { session.profileOnboarded = true }
+            } catch {
+                saveError = "Couldn't save: \(error.localizedDescription)"
+            }
+            isSaving = false
+        }
+    }
+
+    private var targets: (calories: Int, protein: Int, carbs: Int, fat: Int) {
+        let kg = Double(weight) * 0.4536
+        let cm = (Double(heightFeet) * 12 + Double(heightInches)) * 2.54
+        // Mifflin-St Jeor, sex-neutral midpoint constant
+        let bmr = 10 * kg + 6.25 * cm - 5 * Double(age) - 78
+        let activity: Double = trainingDays <= 1 ? 1.375 : trainingDays <= 3 ? 1.5 : trainingDays <= 5 ? 1.65 : 1.75
+        var calories = bmr * activity
+        switch goal {
+        case "Cut": calories -= 400
+        case "Build muscle": calories += 300
+        default: break
+        }
+        let protein = Int((kg * 1.9).rounded())
+        let fat = Int((kg * 0.9).rounded())
+        let carbs = Int(((calories - Double(protein * 4) - Double(fat * 9)) / 4).rounded())
+        return (Int(calories.rounded()), protein, max(carbs, 0), fat)
+    }
+
+    private func saveProfile(userId: UUID) async throws {
+        let goalValue = goal == "Cut" ? "cut" : goal == "Build muscle" ? "build" : "maintain"
+        let t = targets
+        struct ProfileUpdate: Codable {
+            let fitness_goal: String
+            let birth_year: Int
+            let height_cm: Double
+            let weight_kg: Double
+            let training_days_per_week: Int
+            let target_calories: Int
+            let target_protein_g: Int
+            let target_carbs_g: Int
+            let target_fat_g: Int
+            let onboarding_completed: Bool
+        }
+        let update = ProfileUpdate(
+            fitness_goal: goalValue,
+            birth_year: Calendar.current.component(.year, from: Date()) - age,
+            height_cm: (Double(heightFeet) * 12 + Double(heightInches)) * 2.54,
+            weight_kg: Double(weight) * 0.4536,
+            training_days_per_week: trainingDays,
+            target_calories: t.calories,
+            target_protein_g: t.protein,
+            target_carbs_g: t.carbs,
+            target_fat_g: t.fat,
+            onboarding_completed: true
+        )
+        try await Backend.client.from("profiles").update(update)
+            .eq("id", value: userId).execute()
+
+        // allergens: resolve slugs → ids, then upsert selections
+        struct ARow: Codable { let id: Int; let slug: String }
+        let known: [ARow] = try await Backend.client
+            .from("allergens").select("id, slug").execute().value
+        let idBySlug = Dictionary(uniqueKeysWithValues: known.map { ($0.slug, $0.id) })
+        struct UAInsert: Codable {
+            let user_id: UUID
+            let allergen_id: Int
+            let severity: String
+        }
+        let rows = selectedAllergens
+            .compactMap { Self.slugByName[$0].flatMap { idBySlug[$0] } }
+            .map { UAInsert(user_id: userId, allergen_id: $0, severity: "moderate") }
+        if !rows.isEmpty {
+            try await Backend.client.from("user_allergens")
+                .upsert(rows, onConflict: "user_id,allergen_id", ignoreDuplicates: true)
+                .execute()
         }
     }
 
@@ -180,6 +297,7 @@ struct OnboardingView: View {
                     } up: {
                         if heightInches == 11 { heightFeet += 1; heightInches = 0 } else { heightInches += 1 }
                     }
+                    stepperRow("Age", "\(age)") { age = max(13, age - 1) } up: { age = min(90, age + 1) }
                 }
             }
             .padding(Theme.Metrics.screenPadding)
@@ -217,14 +335,15 @@ struct OnboardingView: View {
             VStack(spacing: 20) {
                 header("Your daily fuel plan", "Auto-adjusted on training days. Every meal filtered against \(selectedAllergens.count) triggers.")
 
+                let t = targets
                 VStack(spacing: 4) {
-                    Text("2,840")
+                    Text("\(t.calories.formatted())")
                         .font(Theme.Fonts.stat(64))
                         .foregroundStyle(Theme.Colors.volt)
                     Text("calories on training days")
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.textSecondary)
-                    Text("2,540 on rest days")
+                    Text("\((t.calories - 300).formatted()) on rest days")
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.textTertiary)
                 }
@@ -232,9 +351,9 @@ struct OnboardingView: View {
                 .card()
 
                 HStack(spacing: Theme.Metrics.spacing) {
-                    targetPill("Protein", "180g", Theme.Colors.protein)
-                    targetPill("Carbs", "320g", Theme.Colors.carbs)
-                    targetPill("Fat", "84g", Theme.Colors.fat)
+                    targetPill("Protein", "\(t.protein)g", Theme.Colors.protein)
+                    targetPill("Carbs", "\(t.carbs)g", Theme.Colors.carbs)
+                    targetPill("Fat", "\(t.fat)g", Theme.Colors.fat)
                 }
 
                 HStack(spacing: 10) {

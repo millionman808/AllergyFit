@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Kitchen tab — meal plan + recipe discovery in one place.
 struct KitchenView: View {
+    @EnvironmentObject var session: SessionStore
     @State private var segment = UserDefaults.standard.integer(forKey: "kitchenSegment")
     @StateObject private var planStore = PlanStore()
 
@@ -26,6 +27,7 @@ struct KitchenView: View {
                 }
             }
             .navigationTitle("Kitchen")
+            .onAppear { planStore.configure(session: session) }
         }
         .environmentObject(planStore)
     }

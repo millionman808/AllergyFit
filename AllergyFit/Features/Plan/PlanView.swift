@@ -29,9 +29,81 @@ final class PlanStore: ObservableObject {
 
     static let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
+    private var isDemo = true
+    private var userId: UUID?
+    private var configured = false
+    private var syncTask: Task<Void, Never>?
+
     init() {
         load()
         seedForScreenshotsIfRequested()
+    }
+
+    /// Call once with the session; signed-in users load + sync via meal_plans.
+    func configure(session: SessionStore) {
+        guard !configured else { return }
+        configured = true
+        isDemo = session.isDemo
+        userId = session.session?.user.id
+        if !isDemo, userId != nil {
+            Task { await loadFromDatabase() }
+        }
+    }
+
+    /// Monday of the current week, yyyy-MM-dd (matches meal_plans.starts_on).
+    static func weekStart() -> String {
+        var cal = Calendar(identifier: .iso8601)
+        cal.firstWeekday = 2
+        let start = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date())) ?? Date()
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: start)
+    }
+
+    private struct PlanRow: Codable {
+        let user_id: UUID
+        let starts_on: String
+        let days: Int
+        let status: String
+        let plan: [PlannedMeal]
+        let grocery_list: [String]
+    }
+
+    private func loadFromDatabase() async {
+        guard let userId else { return }
+        struct Row: Codable { let plan: [PlannedMeal] }
+        do {
+            let rows: [Row] = try await Backend.client
+                .from("meal_plans")
+                .select("plan")
+                .eq("user_id", value: userId)
+                .eq("starts_on", value: Self.weekStart())
+                .execute().value
+            if let row = rows.first {
+                planned = row.plan
+            }
+        } catch {
+            print("plan load failed: \(error)")
+        }
+    }
+
+    private func syncToDatabase() {
+        guard !isDemo, let userId else { return }
+        syncTask?.cancel()
+        let row = PlanRow(user_id: userId, starts_on: Self.weekStart(), days: 7,
+                          status: "active", plan: planned,
+                          grocery_list: groceries.map(\.text))
+        syncTask = Task {
+            try? await Task.sleep(nanoseconds: 800_000_000) // debounce rapid edits
+            guard !Task.isCancelled else { return }
+            do {
+                try await Backend.client.from("meal_plans")
+                    .upsert(row, onConflict: "user_id,starts_on")
+                    .execute()
+            } catch {
+                print("plan sync failed: \(error)")
+            }
+        }
     }
 
     // MARK: Plan operations
@@ -89,6 +161,7 @@ final class PlanStore: ObservableObject {
         if let data = try? JSONEncoder().encode(planned) {
             UserDefaults.standard.set(data, forKey: "weekPlan")
         }
+        syncToDatabase()
     }
 
     private func persistChecked() {

@@ -9,6 +9,10 @@ struct RootView: View {
                 splash
             } else if session.isDemo && !session.demoOnboarded {
                 OnboardingView()
+            } else if session.session != nil && session.profileOnboarded == nil {
+                splash // profile state loading
+            } else if session.session != nil && session.profileOnboarded == false {
+                OnboardingView()
             } else if session.isSignedIn {
                 MainTabView()
             } else {

@@ -123,9 +123,10 @@ struct RecipesView: View {
     @State private var showFlagged = false
     @State private var selectedRecipe: Recipe?
 
-    // TODO: pull from the signed-in user's profile
-    private let allergenSlugs = ["peanut", "dairy", "sesame"]
-    private let allergenNames = ["Peanut", "Dairy", "Sesame"]
+    private var allergenSlugs: [String] { session.allergenSlugs }
+    private var allergenNames: [String] {
+        session.allergenSlugs.map { $0.replacingOccurrences(of: "_", with: " ").capitalized }
+    }
 
     var body: some View {
         ScrollView {

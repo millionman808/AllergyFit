@@ -22,8 +22,7 @@ struct AIMealLogView: View {
     @State private var editingItem: AnalyzedItem?
     @State private var swappingItemId: Int?
 
-    // TODO: pull from the signed-in user's profile
-    private let allergenSlugs = ["peanut", "dairy", "sesame"]
+    private var allergenSlugs: [String] { session.allergenSlugs }
 
     private let loadingMessages = [
         "Understanding your meal…",

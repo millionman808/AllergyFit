@@ -115,7 +115,9 @@ final class RecipeStore: ObservableObject {
 
 struct RecipesView: View {
     @EnvironmentObject var session: SessionStore
+    @EnvironmentObject var planStore: PlanStore
     @StateObject private var store = RecipeStore()
+    @State private var plannedToast: String?
     @State private var query = ""
     @State private var mode = 0        // 0 = search, 1 = saved
     @State private var showFlagged = false
@@ -205,6 +207,14 @@ struct RecipesView: View {
         }
     }
 
+    private func planToDay(_ recipe: Recipe, _ day: Int) {
+        planStore.add(recipe, to: day)
+        withAnimation { plannedToast = "\(recipe.title) added to \(PlanStore.dayNames[day])" }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            withAnimation { plannedToast = nil }
+        }
+    }
+
     private func chip(_ label: String, active: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
@@ -237,11 +247,19 @@ struct RecipesView: View {
             }
             .padding(.vertical, 50)
         } else {
+            if let plannedToast {
+                Label(plannedToast, systemImage: "calendar.badge.checkmark")
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.safe)
+                    .frame(maxWidth: .infinity)
+            }
             ForEach(visible) { recipe in
                 RecipeCard(recipe: recipe, saved: store.isSaved(recipe)) {
                     selectedRecipe = recipe
                 } onSave: {
                     store.toggleSave(recipe)
+                } onPlan: { day in
+                    planToDay(recipe, day)
                 }
             }
             if !showFlagged {
@@ -273,6 +291,8 @@ struct RecipesView: View {
                     selectedRecipe = recipe
                 } onSave: {
                     store.toggleSave(recipe)
+                } onPlan: { day in
+                    planToDay(recipe, day)
                 }
             }
         }
@@ -286,6 +306,7 @@ struct RecipeCard: View {
     let saved: Bool
     let onTap: () -> Void
     let onSave: () -> Void
+    var onPlan: (Int) -> Void = { _ in }
 
     var body: some View {
         Button(action: onTap) {
@@ -348,6 +369,19 @@ struct RecipeCard: View {
                                 .font(.system(size: 10, weight: .medium, design: .rounded))
                                 .foregroundStyle(Theme.Colors.textTertiary)
                         }
+                    }
+                    Menu {
+                        Section("Add to plan") {
+                            ForEach(0..<7, id: \.self) { day in
+                                Button(PlanStore.dayNames[day]) { onPlan(day) }
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "calendar.badge.plus")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(Theme.Colors.volt)
+                            .padding(8)
+                            .background(Theme.Colors.surfaceRaised, in: Circle())
                     }
                 }
                 .padding(12)

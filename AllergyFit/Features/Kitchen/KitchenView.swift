@@ -3,6 +3,7 @@ import SwiftUI
 /// Kitchen tab — meal plan + recipe discovery in one place.
 struct KitchenView: View {
     @State private var segment = UserDefaults.standard.integer(forKey: "kitchenSegment")
+    @StateObject private var planStore = PlanStore()
 
     var body: some View {
         NavigationStack {
@@ -18,7 +19,7 @@ struct KitchenView: View {
                     .padding(.bottom, 8)
 
                     if segment == 0 {
-                        PlanView()
+                        PlanView(onBrowseRecipes: { segment = 1 })
                     } else {
                         RecipesView()
                     }
@@ -26,5 +27,6 @@ struct KitchenView: View {
             }
             .navigationTitle("Kitchen")
         }
+        .environmentObject(planStore)
     }
 }

@@ -10,7 +10,7 @@ enum Config {
 
     /// RevenueCat PUBLIC SDK key (starts with "appl_"). Safe to ship in the client.
     /// Paste yours from app.revenuecat.com → your app → API Keys.
-    static let revenueCatKey = ""
+    static let revenueCatKey = "appl_jyZGXAMfcVyaPOJIgeRTauJNdzN"
 
     /// RevenueCat entitlement identifier that unlocks Premium.
     static let premiumEntitlement = "premium"

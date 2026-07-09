@@ -1,7 +1,11 @@
 import SwiftUI
 
-/// Reaction-learning insights — the moat, visualized.
+/// Reaction-learning insights — the moat, visualized. Backed by InsightsStore.
 struct InsightsView: View {
+    @EnvironmentObject var session: SessionStore
+    @StateObject private var store = InsightsStore()
+    @State private var toast: String?
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -9,8 +13,19 @@ struct InsightsView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.Metrics.spacing) {
                         headline
-                        ForEach(MockData.patterns) { pattern in
-                            PatternCard(pattern: pattern)
+                        if store.patterns.isEmpty {
+                            emptyState
+                        } else {
+                            ForEach(store.patterns) { pattern in
+                                PatternCard(
+                                    pattern: pattern,
+                                    onRemove: {
+                                        toastThen("We'll keep \(pattern.ingredient.lowercased()) out of your meal plans")
+                                        store.dismiss(pattern)
+                                    },
+                                    onDismiss: { store.dismiss(pattern) }
+                                )
+                            }
                         }
                         nutrientGaps
                         weeklyCard
@@ -18,8 +33,30 @@ struct InsightsView: View {
                     .padding(.horizontal, Theme.Metrics.screenPadding)
                     .padding(.bottom, 24)
                 }
+                .refreshable { await store.refresh() }
+
+                if let toast {
+                    VStack {
+                        Spacer()
+                        Label(toast, systemImage: "checkmark.circle.fill")
+                            .font(Theme.Fonts.caption)
+                            .foregroundStyle(Theme.Colors.onVolt)
+                            .padding(.horizontal, 16).padding(.vertical, 12)
+                            .background(Theme.Colors.volt, in: Capsule())
+                            .padding(.bottom, 24)
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
             .navigationTitle("Insights")
+            .onAppear { store.configure(session: session) }
+        }
+    }
+
+    private func toastThen(_ message: String) {
+        withAnimation { toast = message }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+            withAnimation { toast = nil }
         }
     }
 
@@ -28,11 +65,29 @@ struct InsightsView: View {
             Image(systemName: "waveform.path.ecg")
                 .font(.title3)
                 .foregroundStyle(Theme.Colors.volt)
-            Text("3 patterns detected from 42 meals, 18 workouts, and 9 check-ins")
+            Text("\(store.patterns.count) pattern\(store.patterns.count == 1 ? "" : "s") detected from \(store.mealCount) meals, \(store.workoutCount) workouts, and \(store.checkinCount) check-ins")
                 .font(Theme.Fonts.caption)
                 .foregroundStyle(Theme.Colors.textSecondary)
             Spacer()
         }
+        .card()
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "sparkle.magnifyingglass")
+                .font(.system(size: 40))
+                .foregroundStyle(Theme.Colors.textTertiary)
+            Text("No patterns yet")
+                .font(Theme.Fonts.headline)
+                .foregroundStyle(Theme.Colors.textPrimary)
+            Text("Log meals, workouts, and symptom check-ins — AllergyFit learns what sets you off and surfaces it here.")
+                .font(Theme.Fonts.caption)
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
         .card()
     }
 
@@ -75,9 +130,9 @@ struct InsightsView: View {
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .padding(.top, 8)
             HStack(spacing: Theme.Metrics.spacing) {
-                statBox("5", "workouts", "dumbbell.fill")
+                statBox("\(store.workoutCount)", "workouts", "dumbbell.fill")
                 statBox("92%", "plan adherence", "checkmark.circle.fill")
-                statBox("0", "reactions", "shield.fill")
+                statBox("\(store.checkinCount)", "check-ins", "heart.text.square.fill")
             }
         }
     }
@@ -100,7 +155,9 @@ struct InsightsView: View {
 }
 
 struct PatternCard: View {
-    let pattern: DemoPattern
+    let pattern: InsightPattern
+    let onRemove: () -> Void
+    let onDismiss: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -121,7 +178,7 @@ struct PatternCard: View {
                 }
             }
 
-            Text("You reported \(pattern.symptom.lowercased()) \(pattern.occurrences) of the last \(pattern.exposures) times you ate this \(pattern.windowText).")
+            Text("You reported \(pattern.symptomLabel) \(pattern.occurrences) of the last \(pattern.exposures) times you ate this \(pattern.windowText).")
                 .font(Theme.Fonts.body)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -142,8 +199,7 @@ struct PatternCard: View {
             }
 
             HStack(spacing: 10) {
-                Button {
-                } label: {
+                Button(action: onRemove) {
                     Text("Remove from plans")
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.onVolt)
@@ -151,8 +207,7 @@ struct PatternCard: View {
                         .padding(.vertical, 8)
                         .background(Theme.Colors.volt, in: Capsule())
                 }
-                Button {
-                } label: {
+                Button(action: onDismiss) {
                     Text("Dismiss")
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.textSecondary)

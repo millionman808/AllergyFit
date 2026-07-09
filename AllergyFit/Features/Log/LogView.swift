@@ -175,9 +175,14 @@ struct MealLogView: View {
 // MARK: - Workout logging
 
 struct WorkoutLogView: View {
+    @EnvironmentObject var session: SessionStore
+    @Environment(\.dismiss) private var dismiss
     @State private var type = "Lifting"
     @State private var minutes: Double = 60
     @State private var intensity = "Hard"
+    @State private var isSaving = false
+    @State private var saved = false
+    @State private var errorMessage: String?
     private let types = ["Lifting", "Running", "CrossFit", "Cycling", "Swimming", "HIIT", "Team sport", "Yoga"]
     private let intensities = ["Light", "Moderate", "Hard", "Max"]
 
@@ -242,16 +247,26 @@ struct WorkoutLogView: View {
                     }
                     .card()
 
-                    Button {
-                    } label: {
-                        Text("Save Workout")
-                            .font(Theme.Fonts.headline)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 54)
-                            .background(Theme.Colors.volt)
-                            .foregroundStyle(Theme.Colors.onVolt)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    if let errorMessage {
+                        Text(errorMessage).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.danger)
                     }
+
+                    Button {
+                        Task { await save() }
+                    } label: {
+                        Group {
+                            if isSaving { ProgressView().tint(Theme.Colors.onVolt) }
+                            else if saved { Label("Saved", systemImage: "checkmark") }
+                            else { Text("Save Workout") }
+                        }
+                        .font(Theme.Fonts.headline)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(saved ? Theme.Colors.safe : Theme.Colors.volt)
+                        .foregroundStyle(Theme.Colors.onVolt)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                    .disabled(isSaving || saved)
                 }
                 .padding(Theme.Metrics.screenPadding)
             }
@@ -259,14 +274,36 @@ struct WorkoutLogView: View {
         .navigationTitle("Log a workout")
         .navigationBarTitleDisplayMode(.inline)
     }
+
+    private func save() async {
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
+        if !session.isDemo, let userId = session.session?.user.id {
+            do {
+                try await LogService.saveWorkout(userId: userId, type: type, minutes: Int(minutes), intensity: intensity)
+            } catch {
+                errorMessage = "Couldn't save: \(error.localizedDescription)"
+                return
+            }
+        }
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        withAnimation { saved = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { dismiss() }
+    }
 }
 
 // MARK: - Symptom check-in
 
 struct SymptomLogView: View {
+    @EnvironmentObject var session: SessionStore
+    @Environment(\.dismiss) private var dismiss
     @State private var selected: Set<String> = []
     @State private var severity = "Mild"
     @State private var duringExercise = false
+    @State private var isSaving = false
+    @State private var saved = false
+    @State private var errorMessage: String?
     private let severities = ["Mild", "Moderate", "Severe"]
 
     var body: some View {
@@ -315,17 +352,26 @@ struct SymptomLogView: View {
                     .tint(Theme.Colors.volt)
                     .card()
 
-                    Button {
-                    } label: {
-                        Text("Save Check-in")
-                            .font(Theme.Fonts.headline)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 54)
-                            .background(selected.isEmpty ? Theme.Colors.surfaceRaised : Theme.Colors.volt)
-                            .foregroundStyle(selected.isEmpty ? Theme.Colors.textTertiary : Theme.Colors.onVolt)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    if let errorMessage {
+                        Text(errorMessage).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.danger)
                     }
-                    .disabled(selected.isEmpty)
+
+                    Button {
+                        Task { await save() }
+                    } label: {
+                        Group {
+                            if isSaving { ProgressView().tint(Theme.Colors.onVolt) }
+                            else if saved { Label("Saved", systemImage: "checkmark") }
+                            else { Text("Save Check-in") }
+                        }
+                        .font(Theme.Fonts.headline)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(saved ? Theme.Colors.safe : (selected.isEmpty ? Theme.Colors.surfaceRaised : Theme.Colors.volt))
+                        .foregroundStyle(selected.isEmpty && !saved ? Theme.Colors.textTertiary : Theme.Colors.onVolt)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                    .disabled(selected.isEmpty || isSaving || saved)
 
                     Text("If you're experiencing a severe reaction, use your epinephrine and call emergency services. AllergyFit is not a medical device.")
                         .font(Theme.Fonts.caption)
@@ -336,6 +382,24 @@ struct SymptomLogView: View {
         }
         .navigationTitle("Symptom check-in")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func save() async {
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
+        if !session.isDemo, let userId = session.session?.user.id {
+            do {
+                try await LogService.saveSymptom(userId: userId, symptoms: Array(selected),
+                                                 severity: severity, duringExercise: duringExercise)
+            } catch {
+                errorMessage = "Couldn't save: \(error.localizedDescription)"
+                return
+            }
+        }
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        withAnimation { saved = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { dismiss() }
     }
 
     private func severityColor(_ s: String) -> Color {

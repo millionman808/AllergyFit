@@ -15,8 +15,10 @@
 		366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C63BE8C8482C61ACD9CCF8 /* Config.swift */; };
 		37EF3047980F19F78008A831 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5362C1AB2997D74FFD7C7339 /* ProfileView.swift */; };
 		4AA0D4ECCE20E8B41FCADB4E /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D0C41123AB2F3D6474672D84 /* Supabase */; };
+		53D64F44D171D1360884DF86 /* LogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BF64A56EBFEB046681A669 /* LogService.swift */; };
 		54C18D4D3C5DD44BEDE2AC5E /* RecipesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECADE9B46A714426CE1D1F29 /* RecipesView.swift */; };
 		566B3F9A15CB1EC222A5C94F /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A697D7A190C05DE6A62107E /* Models.swift */; };
+		838DB15D4DDE4CBAD02C854F /* InsightsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E701777BF7009E9C766AF99E /* InsightsStore.swift */; };
 		8C039AF88FB9F89606CC8BF0 /* TodayStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEB40B07CADF21863ED0324E /* TodayStore.swift */; };
 		8FD41D9A4843A4728E015364 /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8104FB1DADB7B1A3A59180 /* PlanView.swift */; };
 		95E9C3B6B75156D02F97021F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 792FDCDB66B7E209DB4D5832 /* RootView.swift */; };
@@ -51,6 +53,7 @@
 		5DB275F388DE7232A4145F13 /* ReminderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderManager.swift; sourceTree = "<group>"; };
 		5E8104FB1DADB7B1A3A59180 /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
 		62AF4EC9F170CBFD837F5677 /* HealthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthManager.swift; sourceTree = "<group>"; };
+		62BF64A56EBFEB046681A669 /* LogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogService.swift; sourceTree = "<group>"; };
 		657934F1F4717B05B3594FE8 /* TargetsCalc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetsCalc.swift; sourceTree = "<group>"; };
 		792FDCDB66B7E209DB4D5832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AllergyFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -63,6 +66,7 @@
 		D7C63BE8C8482C61ACD9CCF8 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		DA1FD5F5554C1673BC732B82 /* QuickAddMealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAddMealView.swift; sourceTree = "<group>"; };
 		DEB40B07CADF21863ED0324E /* TodayStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayStore.swift; sourceTree = "<group>"; };
+		E701777BF7009E9C766AF99E /* InsightsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsStore.swift; sourceTree = "<group>"; };
 		ECADE9B46A714426CE1D1F29 /* RecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipesView.swift; sourceTree = "<group>"; };
 		F527FD29D3656B651EA45656 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KitchenView.swift; sourceTree = "<group>"; };
@@ -116,6 +120,7 @@
 		473FBEBC701C9DFE8D16D4F1 /* Insights */ = {
 			isa = PBXGroup;
 			children = (
+				E701777BF7009E9C766AF99E /* InsightsStore.swift */,
 				3B5C81476BF4CBA13F79BA83 /* InsightsView.swift */,
 			);
 			path = Insights;
@@ -215,6 +220,7 @@
 			children = (
 				3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */,
 				B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */,
+				62BF64A56EBFEB046681A669 /* LogService.swift */,
 				288435BEE80ED02056790322 /* LogView.swift */,
 			);
 			path = Log;
@@ -306,9 +312,11 @@
 				366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */,
 				E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */,
 				9CFFEF6F3A066A304D0F9DC1 /* HealthManager.swift in Sources */,
+				838DB15D4DDE4CBAD02C854F /* InsightsStore.swift in Sources */,
 				FE3EF2AECF196D5456035554 /* InsightsView.swift in Sources */,
 				0E69B9D03E02968533C62DFC /* KitchenView.swift in Sources */,
 				F6004B03FC572963AED80E6C /* LabScanView.swift in Sources */,
+				53D64F44D171D1360884DF86 /* LogService.swift in Sources */,
 				0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */,
 				BE6FAD4E24A404232EFF037D /* MockData.swift in Sources */,
 				566B3F9A15CB1EC222A5C94F /* Models.swift in Sources */,

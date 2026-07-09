@@ -122,6 +122,7 @@ struct RecipesView: View {
     @State private var mode = 0        // 0 = search, 1 = saved
     @State private var showFlagged = false
     @State private var selectedRecipe: Recipe?
+    @State private var showGenerate = false
 
     private var allergenSlugs: [String] { session.allergenSlugs }
     private var allergenNames: [String] {
@@ -132,6 +133,7 @@ struct RecipesView: View {
         ScrollView {
             VStack(spacing: Theme.Metrics.spacing) {
                 searchBar
+                generateBanner
                 filterRow
 
                 if store.isSearching {
@@ -161,6 +163,35 @@ struct RecipesView: View {
         }
         .sheet(item: $selectedRecipe) { recipe in
             RecipeDetailView(recipe: recipe, store: store)
+        }
+        .sheet(isPresented: $showGenerate) {
+            AIRecipeView { saved in
+                if !store.isSaved(saved) { store.toggleSave(saved) }
+            }
+        }
+    }
+
+    private var generateBanner: some View {
+        Button { showGenerate = true } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "bolt.fill")
+                    .font(.title3)
+                    .foregroundStyle(Theme.Colors.onVolt)
+                    .frame(width: 40, height: 40)
+                    .background(Theme.Colors.volt, in: Circle())
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Generate a recipe with Volt")
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text("Safe for your triggers, from a craving or your fridge")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .lineLimit(1)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundStyle(Theme.Colors.textTertiary)
+            }
+            .card()
         }
     }
 

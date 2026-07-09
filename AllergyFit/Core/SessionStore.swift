@@ -35,6 +35,7 @@ final class SessionStore: ObservableObject {
                 self.session = session
                 if let user = session?.user, event == .initialSession || event == .signedIn {
                     Task { await loadProfileState(userId: user.id) }
+                    Task { await PurchasesManager.shared.identify(userId: user.id.uuidString) }
                 }
             case .signedOut, .userDeleted:
                 self.session = nil
@@ -101,6 +102,7 @@ final class SessionStore: ObservableObject {
             allergenSlugs = ["peanut", "dairy", "sesame"]
             return
         }
+        await PurchasesManager.shared.signOut()
         try? await Backend.client.auth.signOut()
     }
 }

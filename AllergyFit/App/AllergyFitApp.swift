@@ -3,12 +3,18 @@ import SwiftUI
 @main
 struct AllergyFitApp: App {
     @StateObject private var session = SessionStore()
+    @StateObject private var purchases = PurchasesManager.shared
     @AppStorage("appearance") private var appearance = "dark"
+
+    init() {
+        PurchasesManager.shared.start()
+    }
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(session)
+                .environmentObject(purchases)
                 .preferredColorScheme(colorScheme)
         }
     }

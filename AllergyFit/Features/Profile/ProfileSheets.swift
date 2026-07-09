@@ -1,6 +1,7 @@
 import SwiftUI
 import Supabase
 import UIKit
+import RevenueCat
 
 // MARK: - Edit triggers
 
@@ -290,40 +291,143 @@ struct NotificationsView: View {
 // MARK: - Manage subscription
 
 struct SubscriptionView: View {
+    @EnvironmentObject var purchases: PurchasesManager
     @Environment(\.openURL) private var openURL
+    @State private var busy = false
+
+    private let perks = [
+        ("infinity", "Unlimited AI meal plans & recipes"),
+        ("arrow.triangle.2.circlepath", "One-Tap ingredient swaps"),
+        ("cart.fill", "Auto grocery lists"),
+        ("barcode.viewfinder", "Barcode safe/unsafe scanning"),
+        ("waveform.path.ecg", "Reaction-learning insights"),
+        ("person.2.fill", "Family profiles"),
+    ]
 
     var body: some View {
         ZStack {
             Theme.Colors.background.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: Theme.Metrics.spacing) {
-                    VStack(spacing: 10) {
-                        Image(systemName: "crown.fill").font(.system(size: 40)).foregroundStyle(Theme.Colors.volt)
-                        Text("AllergyFit Premium").font(Theme.Fonts.title).foregroundStyle(Theme.Colors.textPrimary)
-                        Text("Unlimited AI meal plans, One-Tap Swap, auto grocery lists, barcode scanning, reaction-learning insights, and family profiles.")
-                            .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary).multilineTextAlignment(.center)
-                    }.frame(maxWidth: .infinity).padding(.vertical, 8).card()
+                    header
+                    perksCard
 
-                    priceCard("Annual", "$59 / year", "Best value · under $5/mo", featured: true)
-                    priceCard("Monthly", "$8.99 / month", "Cancel anytime", featured: false)
+                    if purchases.hasPremiumAccess && !purchases.isConfigured {
+                        betaBanner
+                    }
 
-                    Button {
-                        if let url = URL(string: "https://apps.apple.com/account/subscriptions") { openURL(url) }
-                    } label: {
-                        Text("Manage in App Store")
-                            .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
-                    }.padding(.top, 4)
+                    if purchases.isConfigured {
+                        if purchases.isPremium {
+                            activeBanner
+                        } else if purchases.isLoadingOfferings {
+                            ProgressView().tint(Theme.Colors.volt).padding(.vertical, 30)
+                        } else if purchases.packages.isEmpty {
+                            Text("No plans available yet — finish setting up products in App Store Connect and RevenueCat.")
+                                .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
+                                .multilineTextAlignment(.center).padding(.vertical, 20)
+                        } else {
+                            ForEach(purchases.packages, id: \.identifier) { pkg in
+                                packageButton(pkg)
+                            }
+                        }
+                    } else {
+                        // Preview pricing until billing is wired up
+                        previewCard("Annual", "$59 / year", "Best value · under $5/mo", featured: true)
+                        previewCard("Monthly", "$8.99 / month", "Cancel anytime", featured: false)
+                    }
 
-                    Text("Purchases activate once billing is connected. You currently have full access during the beta.")
-                        .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary).multilineTextAlignment(.center)
-                }.padding(Theme.Metrics.screenPadding)
+                    if let err = purchases.purchaseError {
+                        Text(err).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.danger).multilineTextAlignment(.center)
+                    }
+
+                    HStack(spacing: 16) {
+                        Button("Restore purchases") {
+                            busy = true
+                            Task { await purchases.restore(); busy = false }
+                        }
+                        .disabled(!purchases.isConfigured || busy)
+                        Button("Manage in App Store") {
+                            if let url = URL(string: "https://apps.apple.com/account/subscriptions") { openURL(url) }
+                        }
+                    }
+                    .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary).padding(.top, 4)
+
+                    Text("Payment is charged to your Apple ID. Subscriptions renew automatically unless cancelled at least 24 hours before the period ends.")
+                        .font(.system(size: 10, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textTertiary).multilineTextAlignment(.center)
+                }
+                .padding(Theme.Metrics.screenPadding)
+            }
+            if busy {
+                Color.black.opacity(0.35).ignoresSafeArea()
+                ProgressView().tint(Theme.Colors.volt)
             }
         }
         .navigationTitle("Subscription")
         .navigationBarTitleDisplayMode(.inline)
+        .task { await purchases.loadOfferings() }
     }
 
-    private func priceCard(_ name: String, _ price: String, _ note: String, featured: Bool) -> some View {
+    private var header: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "crown.fill").font(.system(size: 40)).foregroundStyle(Theme.Colors.volt)
+            Text("AllergyFit Premium").font(Theme.Fonts.title).foregroundStyle(Theme.Colors.textPrimary)
+            Text("The coach that keeps you safe and on-target — unlocked.")
+                .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary).multilineTextAlignment(.center)
+        }.frame(maxWidth: .infinity).padding(.vertical, 8).card()
+    }
+
+    private var perksCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(perks, id: \.1) { perk in
+                HStack(spacing: 12) {
+                    Image(systemName: perk.0).foregroundStyle(Theme.Colors.volt).frame(width: 26)
+                    Text(perk.1).font(Theme.Fonts.body).foregroundStyle(Theme.Colors.textPrimary)
+                    Spacer()
+                    Image(systemName: "checkmark").font(.caption).foregroundStyle(Theme.Colors.safe)
+                }
+            }
+        }.card()
+    }
+
+    private var betaBanner: some View {
+        Label("You have full access during the beta.", systemImage: "sparkles")
+            .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.volt)
+            .frame(maxWidth: .infinity).padding(.vertical, 12)
+            .background(Theme.Colors.volt.opacity(0.1), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private var activeBanner: some View {
+        Label("Premium active — thank you!", systemImage: "checkmark.seal.fill")
+            .font(Theme.Fonts.headline).foregroundStyle(Theme.Colors.safe)
+            .frame(maxWidth: .infinity).padding(.vertical, 14).card()
+    }
+
+    private func packageButton(_ pkg: Package) -> some View {
+        let annual = pkg.packageType == .annual
+        return Button {
+            busy = true
+            Task { await purchases.purchase(pkg); busy = false }
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(pkg.storeProduct.localizedTitle.isEmpty ? (annual ? "Annual" : "Monthly") : pkg.storeProduct.localizedTitle)
+                        .font(Theme.Fonts.headline).foregroundStyle(Theme.Colors.textPrimary)
+                    if annual { Text("Best value").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.volt) }
+                }
+                Spacer()
+                Text(pkg.storeProduct.localizedPriceString).font(Theme.Fonts.stat(17)).foregroundStyle(Theme.Colors.textPrimary)
+            }
+            .padding(Theme.Metrics.cardPadding)
+            .background(Theme.Colors.surface)
+            .overlay(RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous)
+                .stroke(annual ? Theme.Colors.volt : .clear, lineWidth: 2))
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous))
+        }
+        .disabled(busy)
+    }
+
+    private func previewCard(_ name: String, _ price: String, _ note: String, featured: Bool) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
                 Text(name).font(Theme.Fonts.headline).foregroundStyle(Theme.Colors.textPrimary)

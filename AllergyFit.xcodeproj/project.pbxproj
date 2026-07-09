@@ -11,6 +11,7 @@
 		0C2AD9806B993977C21F04AE /* ProfileSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */; };
 		0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 288435BEE80ED02056790322 /* LogView.swift */; };
 		0E69B9D03E02968533C62DFC /* KitchenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */; };
+		27360A1A1A3C55C2F8D052EF /* PurchasesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */; };
 		3426164A957614A1BA5EA5F5 /* AIMealLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */; };
 		366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C63BE8C8482C61ACD9CCF8 /* Config.swift */; };
 		37EF3047980F19F78008A831 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5362C1AB2997D74FFD7C7339 /* ProfileView.swift */; };
@@ -30,6 +31,7 @@
 		C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */; };
 		C99086EB3F6DBD5E9F838B64 /* TargetsCalc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657934F1F4717B05B3594FE8 /* TargetsCalc.swift */; };
 		CC483688F69F37C1C2DFE555 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */; };
+		D4AC7AD83F9C8D8ED1E06968 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = CF8908F9A809B906D3B24B07 /* RevenueCat */; };
 		D7671D347D0879889C12EDFC /* ReminderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB275F388DE7232A4145F13 /* ReminderManager.swift */; };
 		DC7863094C15E7011C3A45D5 /* RecipeGenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DEF73895F654D9DEAFDA4DB /* RecipeGenService.swift */; };
 		E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F527FD29D3656B651EA45656 /* DashboardView.swift */; };
@@ -65,6 +67,7 @@
 		792FDCDB66B7E209DB4D5832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AllergyFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		804C128508222131CC8A9491 /* AIRecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIRecipeView.swift; sourceTree = "<group>"; };
+		865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchasesManager.swift; sourceTree = "<group>"; };
 		8A1290F9B93141E82026A592 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		9DAB4D05FE16724A93EEF2FE /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		A97EAF00C421B8C1D38B8C78 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
@@ -87,6 +90,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4AA0D4ECCE20E8B41FCADB4E /* Supabase in Frameworks */,
+				D4AC7AD83F9C8D8ED1E06968 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -99,6 +103,7 @@
 				62AF4EC9F170CBFD837F5677 /* HealthManager.swift */,
 				A97EAF00C421B8C1D38B8C78 /* MockData.swift */,
 				5A697D7A190C05DE6A62107E /* Models.swift */,
+				865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */,
 				5DB275F388DE7232A4145F13 /* ReminderManager.swift */,
 				440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */,
 				B0720F266E4BA50D0D73ADAB /* SupabaseClient.swift */,
@@ -279,6 +284,7 @@
 			name = AllergyFit;
 			packageProductDependencies = (
 				D0C41123AB2F3D6474672D84 /* Supabase */,
+				CF8908F9A809B906D3B24B07 /* RevenueCat */,
 			);
 			productName = AllergyFit;
 			productReference = 7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */;
@@ -308,6 +314,7 @@
 			mainGroup = A5BADFA0E5D8805158017EC5;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				C17130ABC303EE3F53B5E957 /* XCRemoteSwiftPackageReference "purchases-ios" */,
 				BDD2C0FAFA810ADA4807729A /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -348,6 +355,7 @@
 				0C2AD9806B993977C21F04AE /* ProfileSheets.swift in Sources */,
 				EF89115C95A61DE67114E10C /* ProfileStore.swift in Sources */,
 				37EF3047980F19F78008A831 /* ProfileView.swift in Sources */,
+				27360A1A1A3C55C2F8D052EF /* PurchasesManager.swift in Sources */,
 				F69DA229FE445F7A6EC5D599 /* QuickAddMealView.swift in Sources */,
 				DC7863094C15E7011C3A45D5 /* RecipeGenService.swift in Sources */,
 				54C18D4D3C5DD44BEDE2AC5E /* RecipesView.swift in Sources */,
@@ -573,9 +581,22 @@
 				minimumVersion = 2.0.0;
 			};
 		};
+		C17130ABC303EE3F53B5E957 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		CF8908F9A809B906D3B24B07 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C17130ABC303EE3F53B5E957 /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
+		};
 		D0C41123AB2F3D6474672D84 /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = BDD2C0FAFA810ADA4807729A /* XCRemoteSwiftPackageReference "supabase-swift" */;

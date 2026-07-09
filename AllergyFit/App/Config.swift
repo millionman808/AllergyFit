@@ -7,4 +7,11 @@ import Foundation
 enum Config {
     static let supabaseURL = URL(string: "https://aamwutlbnrkymtovkucz.supabase.co")!
     static let supabasePublishableKey = "sb_publishable_xwuj3ZlSDj4zvw2OTDqwyw_MXiq3IbV"
+
+    /// RevenueCat PUBLIC SDK key (starts with "appl_"). Safe to ship in the client.
+    /// Paste yours from app.revenuecat.com → your app → API Keys.
+    static let revenueCatKey = ""
+
+    /// RevenueCat entitlement identifier that unlocks Premium.
+    static let premiumEntitlement = "premium"
 }

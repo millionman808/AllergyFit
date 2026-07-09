@@ -22,6 +22,9 @@ struct LogView: View {
                         NavigationLink(value: "symptom") {
                             logButton("Symptom check-in", subtitle: "30 seconds. Feeds your patterns.", icon: "heart.text.square.fill", color: Theme.Colors.danger)
                         }
+                        NavigationLink(value: "barcode") {
+                            logButton("Scan a product", subtitle: "Instant safe/unsafe verdict + macros", icon: "barcode.viewfinder", color: Theme.Colors.caution)
+                        }
 
                         quickAdd
                     }
@@ -33,6 +36,7 @@ struct LogView: View {
                 switch screen {
                 case "meal": AIMealLogView()
                 case "workout": WorkoutLogView()
+                case "barcode": BarcodeScannerView()
                 default: SymptomLogView()
                 }
             }

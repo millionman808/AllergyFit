@@ -31,7 +31,9 @@
 		CC483688F69F37C1C2DFE555 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */; };
 		D7671D347D0879889C12EDFC /* ReminderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB275F388DE7232A4145F13 /* ReminderManager.swift */; };
 		E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F527FD29D3656B651EA45656 /* DashboardView.swift */; };
+		ECDC65A210B2BA6CE22A6D8F /* BarcodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256B3452AAC3E00918051DEE /* BarcodeScannerView.swift */; };
 		EF89115C95A61DE67114E10C /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB23C130F988B920D45F1B18 /* ProfileStore.swift */; };
+		F5D23EA1C97019CA9F806FCB /* BarcodeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200FA7100116F8B798CEBA44 /* BarcodeService.swift */; };
 		F6004B03FC572963AED80E6C /* LabScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0507A56BCFDF2BD045EC66E /* LabScanView.swift */; };
 		F69B9CACF8004643E9CD0C3E /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 435D00CFDC2A3BABE993C79C /* AuthView.swift */; };
 		F69DA229FE445F7A6EC5D599 /* QuickAddMealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1FD5F5554C1673BC732B82 /* QuickAddMealView.swift */; };
@@ -41,6 +43,8 @@
 
 /* Begin PBXFileReference section */
 		1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergyFitApp.swift; sourceTree = "<group>"; };
+		200FA7100116F8B798CEBA44 /* BarcodeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeService.swift; sourceTree = "<group>"; };
+		256B3452AAC3E00918051DEE /* BarcodeScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerView.swift; sourceTree = "<group>"; };
 		288435BEE80ED02056790322 /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		3B5C81476BF4CBA13F79BA83 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
 		3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIMealLogView.swift; sourceTree = "<group>"; };
@@ -167,6 +171,7 @@
 			isa = PBXGroup;
 			children = (
 				A4355B00357CB3181717DA2B /* Auth */,
+				CF49210443EB801A592920C3 /* Barcode */,
 				A5D667CC2E6E0DD5EA75F849 /* Dashboard */,
 				473FBEBC701C9DFE8D16D4F1 /* Insights */,
 				159C8CE4F5200EEFA04427C9 /* Kitchen */,
@@ -224,6 +229,15 @@
 				288435BEE80ED02056790322 /* LogView.swift */,
 			);
 			path = Log;
+			sourceTree = "<group>";
+		};
+		CF49210443EB801A592920C3 /* Barcode */ = {
+			isa = PBXGroup;
+			children = (
+				256B3452AAC3E00918051DEE /* BarcodeScannerView.swift */,
+				200FA7100116F8B798CEBA44 /* BarcodeService.swift */,
+			);
+			path = Barcode;
 			sourceTree = "<group>";
 		};
 		D71C271D66AF028E70C840BB /* DesignSystem */ = {
@@ -309,6 +323,8 @@
 				C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */,
 				A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */,
 				F69B9CACF8004643E9CD0C3E /* AuthView.swift in Sources */,
+				ECDC65A210B2BA6CE22A6D8F /* BarcodeScannerView.swift in Sources */,
+				F5D23EA1C97019CA9F806FCB /* BarcodeService.swift in Sources */,
 				366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */,
 				E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */,
 				9CFFEF6F3A066A304D0F9DC1 /* HealthManager.swift in Sources */,
@@ -351,6 +367,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = AllergyFit;
+				INFOPLIST_KEY_NSCameraUsageDescription = "AllergyFit uses the camera to scan product barcodes and check them against your allergen profile.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "AllergyFit reads your workouts and active energy to tune your daily nutrition targets on training days.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "AllergyFit uses your photos to read blood allergy test results you choose to scan.";
@@ -498,6 +515,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = AllergyFit;
+				INFOPLIST_KEY_NSCameraUsageDescription = "AllergyFit uses the camera to scan product barcodes and check them against your allergen profile.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "AllergyFit reads your workouts and active energy to tune your daily nutrition targets on training days.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "AllergyFit uses your photos to read blood allergy test results you choose to scan.";

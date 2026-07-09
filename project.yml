@@ -26,6 +26,9 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_CFBundleDisplayName: AllergyFit
+        INFOPLIST_KEY_NSHealthShareUsageDescription: AllergyFit reads your workouts and active energy to tune your daily nutrition targets on training days.
+        INFOPLIST_KEY_NSHealthUpdateUsageDescription: AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: AllergyFit uses your photos to read blood allergy test results you choose to scan.
         SWIFT_VERSION: 5.9
         TARGETED_DEVICE_FAMILY: 1
         ENABLE_USER_SCRIPT_SANDBOXING: true

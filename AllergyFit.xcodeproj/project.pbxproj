@@ -27,6 +27,7 @@
 		9CFFEF6F3A066A304D0F9DC1 /* HealthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62AF4EC9F170CBFD837F5677 /* HealthManager.swift */; };
 		A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DAB4D05FE16724A93EEF2FE /* Theme.swift */; };
 		A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */; };
+		BAE85554D15597AD58224A29 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 71A272564201D4B8EE1BC16C /* Assets.xcassets */; };
 		BE6FAD4E24A404232EFF037D /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97EAF00C421B8C1D38B8C78 /* MockData.swift */; };
 		C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */; };
 		C99086EB3F6DBD5E9F838B64 /* TargetsCalc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657934F1F4717B05B3594FE8 /* TargetsCalc.swift */; };
@@ -64,6 +65,7 @@
 		62AF4EC9F170CBFD837F5677 /* HealthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthManager.swift; sourceTree = "<group>"; };
 		62BF64A56EBFEB046681A669 /* LogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogService.swift; sourceTree = "<group>"; };
 		657934F1F4717B05B3594FE8 /* TargetsCalc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetsCalc.swift; sourceTree = "<group>"; };
+		71A272564201D4B8EE1BC16C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		792FDCDB66B7E209DB4D5832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AllergyFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		804C128508222131CC8A9491 /* AIRecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIRecipeView.swift; sourceTree = "<group>"; };
@@ -153,6 +155,7 @@
 			isa = PBXGroup;
 			children = (
 				4DE9B057C1A2F851554C887D /* AllergyFit.entitlements */,
+				71A272564201D4B8EE1BC16C /* Assets.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -275,6 +278,7 @@
 			buildConfigurationList = B60F2DC7760F0295E9B89DE8 /* Build configuration list for PBXNativeTarget "AllergyFit" */;
 			buildPhases = (
 				FB957856150CB466DC2B88DD /* Sources */,
+				96F954ACFB14BDB5C5BC6656 /* Resources */,
 				82654FA5541F0D5BEDC28D21 /* Frameworks */,
 			);
 			buildRules = (
@@ -326,6 +330,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		96F954ACFB14BDB5C5BC6656 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BAE85554D15597AD58224A29 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		FB957856150CB466DC2B88DD /* Sources */ = {

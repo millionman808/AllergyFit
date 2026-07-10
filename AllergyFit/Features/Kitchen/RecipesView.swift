@@ -27,15 +27,24 @@ final class RecipeStore: ObservableObject {
 
     private var isDemo = true
     private var userId: UUID?
-    private var loadedSaved = false
+    private var configured = false
+
+    /// Local cache key — separate buckets for demo and each signed-in user.
+    private var storageKey: String {
+        isDemo ? "savedRecipes.demo" : "savedRecipes.\(userId?.uuidString ?? "anon")"
+    }
 
     func configure(session: SessionStore) {
-        isDemo = session.isDemo
-        userId = session.session?.user.id
-        if !loadedSaved {
-            loadedSaved = true
-            Task { await loadSaved() }
-        }
+        let newDemo = session.isDemo
+        let newUser = session.session?.user.id
+        // Re-run whenever identity changes (e.g. the session finishes loading
+        // after the view first appears), not just once.
+        guard !configured || newDemo != isDemo || newUser != userId else { return }
+        configured = true
+        isDemo = newDemo
+        userId = newUser
+        loadLocal()                                                  // instant, survives relaunch
+        if !isDemo, userId != nil { Task { await loadSaved() } }     // merge cross-device rows
     }
 
     func search(_ query: String, allergens: [String]) async {
@@ -66,32 +75,59 @@ final class RecipeStore: ObservableObject {
         saved.contains { $0.url == recipe.url }
     }
 
+    private struct SavedRow: Codable {
+        let user_id: UUID, title: String, url: String
+        let image_url: String, ingredients: [String], calories: Int?
+    }
+
     func toggleSave(_ recipe: Recipe) {
         if isSaved(recipe) {
             saved.removeAll { $0.url == recipe.url }
+            persistLocal()
             if !isDemo, userId != nil {
                 Task {
-                    try? await Backend.client.from("saved_recipes")
-                        .delete().eq("url", value: recipe.url).execute()
+                    do {
+                        try await Backend.client.from("saved_recipes")
+                            .delete().eq("url", value: recipe.url).execute()
+                    } catch { print("saved_recipes delete failed: \(error)") }
                 }
             }
         } else {
             saved.insert(recipe, at: 0)
+            persistLocal()
             if !isDemo, let userId {
-                struct Row: Codable {
-                    let user_id: UUID, title: String, url: String
-                    let image_url: String, ingredients: [String], calories: Int?
+                let row = SavedRow(user_id: userId, title: recipe.title, url: recipe.url,
+                                   image_url: recipe.image, ingredients: recipe.ingredients,
+                                   calories: recipe.calories)
+                Task {
+                    do {
+                        try await Backend.client.from("saved_recipes")
+                            .upsert(row, onConflict: "user_id,url").execute()
+                    } catch { print("saved_recipes save failed: \(error)") }
                 }
-                let row = Row(user_id: userId, title: recipe.title, url: recipe.url,
-                              image_url: recipe.image, ingredients: recipe.ingredients,
-                              calories: recipe.calories)
-                Task { try? await Backend.client.from("saved_recipes").insert(row).execute() }
             }
         }
     }
 
+    // MARK: Local cache (survives relaunch regardless of auth/network)
+
+    private func loadLocal() {
+        if let data = UserDefaults.standard.data(forKey: storageKey),
+           let recipes = try? JSONDecoder().decode([Recipe].self, from: data) {
+            saved = recipes
+        } else {
+            saved = []
+        }
+    }
+
+    private func persistLocal() {
+        if let data = try? JSONEncoder().encode(saved) {
+            UserDefaults.standard.set(data, forKey: storageKey)
+        }
+    }
+
     private func loadSaved() async {
-        guard !isDemo, userId != nil else { return }
+        guard !isDemo, let userId else { return }
         struct Row: Codable {
             let title: String, url: String, image_url: String?
             let ingredients: [String]?, calories: Int?
@@ -101,12 +137,28 @@ final class RecipeStore: ObservableObject {
                 .select("title, url, image_url, ingredients, calories")
                 .order("created_at", ascending: false)
                 .execute().value
-            saved = rows.map {
+            let remote = rows.map {
                 Recipe(title: $0.title, url: $0.url, image: $0.image_url ?? "",
                        calories: $0.calories, ingredients: $0.ingredients ?? [], flagged: [])
             }
+            // Union remote + local by url (remote first) so nothing is dropped.
+            var merged = remote
+            for local in saved where !merged.contains(where: { $0.url == local.url }) {
+                merged.append(local)
+            }
+            saved = merged
+            persistLocal()
+            // Back-fill any local-only saves that never reached the DB (self-heal).
+            let remoteURLs = Set(remote.map { $0.url })
+            for r in merged where !remoteURLs.contains(r.url) {
+                let row = SavedRow(user_id: userId, title: r.title, url: r.url,
+                                   image_url: r.image, ingredients: r.ingredients,
+                                   calories: r.calories)
+                try? await Backend.client.from("saved_recipes")
+                    .upsert(row, onConflict: "user_id,url").execute()
+            }
         } catch {
-            print("load saved failed: \(error)")
+            print("load saved failed: \(error)")   // keep local cache on failure
         }
     }
 }

@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
 
     // --- Stage 1: parse the meal (no nutrition) ---
     const parseResp = await anthropic.messages.create({
-      model: "claude-opus-4-8",
+      model: "claude-haiku-4-5",
       max_tokens: 4096,
       system: PARSE_SYSTEM,
       messages,
@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
       })),
     };
     const composeResp = await anthropic.messages.create({
-      model: "claude-opus-4-8",
+      model: "claude-haiku-4-5",
       max_tokens: 4096,
       system: COMPOSE_SYSTEM,
       messages: [{ role: "user", content: JSON.stringify(composeInput) }],

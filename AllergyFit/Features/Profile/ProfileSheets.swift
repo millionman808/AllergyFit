@@ -332,7 +332,7 @@ struct SubscriptionView: View {
                         }
                     } else {
                         // Preview pricing until billing is wired up
-                        previewCard("Annual", "$39.99 / year", "Best value · 3-week free trial", featured: true)
+                        previewCard("Annual", "$39.99 / year", "Best value · 3-day free trial", featured: true)
                         previewCard("Monthly", "$7.99 / month", "Cancel anytime", featured: false)
                         previewCard("Lifetime", "$99 once", "Founder deal · limited time", featured: false)
                     }

@@ -332,8 +332,9 @@ struct SubscriptionView: View {
                         }
                     } else {
                         // Preview pricing until billing is wired up
-                        previewCard("Annual", "$59 / year", "Best value · under $5/mo", featured: true)
-                        previewCard("Monthly", "$8.99 / month", "Cancel anytime", featured: false)
+                        previewCard("Annual", "$39.99 / year", "Best value · 3-week free trial", featured: true)
+                        previewCard("Monthly", "$7.99 / month", "Cancel anytime", featured: false)
+                        previewCard("Lifetime", "$99 once", "Founder deal · limited time", featured: false)
                     }
 
                     if let err = purchases.purchaseError {
@@ -405,15 +406,22 @@ struct SubscriptionView: View {
 
     private func packageButton(_ pkg: Package) -> some View {
         let annual = pkg.packageType == .annual
+        let lifetime = pkg.packageType == .lifetime
+        // Prefer the real free-trial length from the App Store product; fall back to
+        // "Best value" on annual / "Founder deal" on lifetime.
+        let subtitle = trialText(pkg)
+            ?? (annual ? "Best value" : (lifetime ? "Founder deal — limited time" : nil))
         return Button {
             busy = true
             Task { await purchases.purchase(pkg); busy = false }
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(pkg.storeProduct.localizedTitle.isEmpty ? (annual ? "Annual" : "Monthly") : pkg.storeProduct.localizedTitle)
+                    Text(pkg.storeProduct.localizedTitle.isEmpty
+                         ? (annual ? "Annual" : lifetime ? "Lifetime" : "Monthly")
+                         : pkg.storeProduct.localizedTitle)
                         .font(Theme.Fonts.headline).foregroundStyle(Theme.Colors.textPrimary)
-                    if annual { Text("Best value").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.volt) }
+                    if let subtitle { Text(subtitle).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.volt) }
                 }
                 Spacer()
                 Text(pkg.storeProduct.localizedPriceString).font(Theme.Fonts.stat(17)).foregroundStyle(Theme.Colors.textPrimary)
@@ -425,6 +433,24 @@ struct SubscriptionView: View {
             .clipShape(RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous))
         }
         .disabled(busy)
+    }
+
+    /// Reads the free-trial length from the product's intro offer (e.g. "3-week free trial"),
+    /// so the paywall always matches whatever is configured in App Store Connect.
+    private func trialText(_ pkg: Package) -> String? {
+        guard let intro = pkg.storeProduct.introductoryDiscount,
+              intro.paymentMode == .freeTrial else { return nil }
+        let period = intro.subscriptionPeriod
+        let n = period.value
+        let unit: String
+        switch period.unit {
+        case .day:   unit = n == 1 ? "day" : "days"
+        case .week:  unit = n == 1 ? "week" : "weeks"
+        case .month: unit = n == 1 ? "month" : "months"
+        case .year:  unit = n == 1 ? "year" : "years"
+        @unknown default: unit = "days"
+        }
+        return "\(n)-\(unit) free trial"
     }
 
     private func previewCard(_ name: String, _ price: String, _ note: String, featured: Bool) -> some View {

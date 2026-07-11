@@ -55,6 +55,13 @@ Accuracy over speed. If essential information is missing — portion size, count
 
 If the user has already answered clarifying questions in the conversation, incorporate those answers and only ask about what is still genuinely missing.`;
 
+// Recipe mode: estimate the whole ingredient list, never stop to ask questions.
+const PARSE_SYSTEM_ESTIMATE = `You are an expert nutrition estimator for whole recipes. Extract every ingredient from the list.
+
+For every item return: food name, quantity, measurement unit, preparation method, and confidence (0-1). Use "" for unknown string fields.
+
+This is an automated best-effort estimate. Do NOT ask clarifying questions — ALWAYS set needs_clarification=false. When an amount is ambiguous, assume the most common cooking default (e.g. "1 chicken" ≈ one whole 1.4 kg chicken, "1 onion" ≈ 1 medium ~110 g, "oil" with no amount ≈ 1 tbsp, "salt to taste" ≈ a small pinch). Estimate reasonable standard amounts and proceed.`;
+
 // ---------- Claude call 2: match + portions + allergens (nutrition comes from DB) ----------
 
 const COMPOSE_SCHEMA = {
@@ -150,7 +157,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
-    const { messages, allergens = [] } = await req.json();
+    const { messages, allergens = [], estimate_only = false } = await req.json();
     if (!Array.isArray(messages) || messages.length === 0) {
       return json({ error: "messages array required" }, 400);
     }
@@ -159,7 +166,7 @@ Deno.serve(async (req) => {
     const parseResp = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 4096,
-      system: PARSE_SYSTEM,
+      system: estimate_only ? PARSE_SYSTEM_ESTIMATE : PARSE_SYSTEM,
       messages,
       output_config: { format: { type: "json_schema", schema: PARSE_SCHEMA } },
     });
@@ -167,7 +174,8 @@ Deno.serve(async (req) => {
       needs_clarification: boolean; questions: string[]; foods: ParsedFood[];
     };
 
-    if (parsed.needs_clarification && parsed.questions.length > 0) {
+    // Recipe estimate mode never bounces back with questions.
+    if (!estimate_only && parsed.needs_clarification && parsed.questions.length > 0) {
       return json({ needs_clarification: true, questions: parsed.questions });
     }
     if (parsed.foods.length === 0) {

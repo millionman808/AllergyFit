@@ -12,6 +12,8 @@
 		0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 288435BEE80ED02056790322 /* LogView.swift */; };
 		0E69B9D03E02968533C62DFC /* KitchenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */; };
 		27360A1A1A3C55C2F8D052EF /* PurchasesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */; };
+		2BC10D6940F27F748FF1E61C /* DayPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC8C220F0DF2B9C47CBF7DD /* DayPlanView.swift */; };
+		3056E89959AC282A2DF57D3E /* RecipeNutritionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C50E9A26E5B9682FDB837B /* RecipeNutritionService.swift */; };
 		3426164A957614A1BA5EA5F5 /* AIMealLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */; };
 		366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C63BE8C8482C61ACD9CCF8 /* Config.swift */; };
 		37EF3047980F19F78008A831 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5362C1AB2997D74FFD7C7339 /* ProfileView.swift */; };
@@ -19,11 +21,14 @@
 		53D64F44D171D1360884DF86 /* LogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BF64A56EBFEB046681A669 /* LogService.swift */; };
 		54C18D4D3C5DD44BEDE2AC5E /* RecipesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECADE9B46A714426CE1D1F29 /* RecipesView.swift */; };
 		566B3F9A15CB1EC222A5C94F /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A697D7A190C05DE6A62107E /* Models.swift */; };
+		6C8341B7CC36C859EA6ED4A4 /* Sensitivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25739FFCCB4C82B4E1BA28DA /* Sensitivity.swift */; };
 		838DB15D4DDE4CBAD02C854F /* InsightsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E701777BF7009E9C766AF99E /* InsightsStore.swift */; };
+		894A499DE984F20BB56F485E /* AllergenKeywords.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */; };
 		8C039AF88FB9F89606CC8BF0 /* TodayStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEB40B07CADF21863ED0324E /* TodayStore.swift */; };
 		8FD41D9A4843A4728E015364 /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8104FB1DADB7B1A3A59180 /* PlanView.swift */; };
 		95E9C3B6B75156D02F97021F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 792FDCDB66B7E209DB4D5832 /* RootView.swift */; };
 		9787A90913EC5DBD3A9F76B1 /* AIRecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804C128508222131CC8A9491 /* AIRecipeView.swift */; };
+		9976C58153C1C451F1895485 /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 185FD671A9C3E4B68037D2A8 /* TrendsView.swift */; };
 		9CFFEF6F3A066A304D0F9DC1 /* HealthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62AF4EC9F170CBFD837F5677 /* HealthManager.swift */; };
 		A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DAB4D05FE16724A93EEF2FE /* Theme.swift */; };
 		A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */; };
@@ -47,9 +52,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		185FD671A9C3E4B68037D2A8 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
+		1AC8C220F0DF2B9C47CBF7DD /* DayPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayPlanView.swift; sourceTree = "<group>"; };
 		1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergyFitApp.swift; sourceTree = "<group>"; };
 		200FA7100116F8B798CEBA44 /* BarcodeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeService.swift; sourceTree = "<group>"; };
+		21C23F92E8134BABAEA6365A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		256B3452AAC3E00918051DEE /* BarcodeScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerView.swift; sourceTree = "<group>"; };
+		25739FFCCB4C82B4E1BA28DA /* Sensitivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sensitivity.swift; sourceTree = "<group>"; };
 		288435BEE80ED02056790322 /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		2DEF73895F654D9DEAFDA4DB /* RecipeGenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGenService.swift; sourceTree = "<group>"; };
 		3B5C81476BF4CBA13F79BA83 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
@@ -62,6 +71,7 @@
 		5A697D7A190C05DE6A62107E /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		5DB275F388DE7232A4145F13 /* ReminderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderManager.swift; sourceTree = "<group>"; };
 		5E8104FB1DADB7B1A3A59180 /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
+		61C50E9A26E5B9682FDB837B /* RecipeNutritionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeNutritionService.swift; sourceTree = "<group>"; };
 		62AF4EC9F170CBFD837F5677 /* HealthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthManager.swift; sourceTree = "<group>"; };
 		62BF64A56EBFEB046681A669 /* LogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogService.swift; sourceTree = "<group>"; };
 		657934F1F4717B05B3594FE8 /* TargetsCalc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetsCalc.swift; sourceTree = "<group>"; };
@@ -69,6 +79,7 @@
 		792FDCDB66B7E209DB4D5832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AllergyFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		804C128508222131CC8A9491 /* AIRecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIRecipeView.swift; sourceTree = "<group>"; };
+		80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergenKeywords.swift; sourceTree = "<group>"; };
 		865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchasesManager.swift; sourceTree = "<group>"; };
 		8A1290F9B93141E82026A592 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		9DAB4D05FE16724A93EEF2FE /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -102,11 +113,13 @@
 		13223DC1369AAED59160036A /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */,
 				62AF4EC9F170CBFD837F5677 /* HealthManager.swift */,
 				A97EAF00C421B8C1D38B8C78 /* MockData.swift */,
 				5A697D7A190C05DE6A62107E /* Models.swift */,
 				865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */,
 				5DB275F388DE7232A4145F13 /* ReminderManager.swift */,
+				25739FFCCB4C82B4E1BA28DA /* Sensitivity.swift */,
 				440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */,
 				B0720F266E4BA50D0D73ADAB /* SupabaseClient.swift */,
 				657934F1F4717B05B3594FE8 /* TargetsCalc.swift */,
@@ -121,6 +134,7 @@
 				804C128508222131CC8A9491 /* AIRecipeView.swift */,
 				FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */,
 				2DEF73895F654D9DEAFDA4DB /* RecipeGenService.swift */,
+				61C50E9A26E5B9682FDB837B /* RecipeNutritionService.swift */,
 				ECADE9B46A714426CE1D1F29 /* RecipesView.swift */,
 			);
 			path = Kitchen;
@@ -146,6 +160,7 @@
 		53A5E5FAB4F61EE9C52ECEBA /* Plan */ = {
 			isa = PBXGroup;
 			children = (
+				1AC8C220F0DF2B9C47CBF7DD /* DayPlanView.swift */,
 				5E8104FB1DADB7B1A3A59180 /* PlanView.swift */,
 			);
 			path = Plan;
@@ -156,6 +171,7 @@
 			children = (
 				4DE9B057C1A2F851554C887D /* AllergyFit.entitlements */,
 				71A272564201D4B8EE1BC16C /* Assets.xcassets */,
+				21C23F92E8134BABAEA6365A /* Info.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -218,6 +234,7 @@
 			children = (
 				F527FD29D3656B651EA45656 /* DashboardView.swift */,
 				DA1FD5F5554C1673BC732B82 /* QuickAddMealView.swift */,
+				185FD671A9C3E4B68037D2A8 /* TrendsView.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -350,12 +367,14 @@
 				3426164A957614A1BA5EA5F5 /* AIMealLogView.swift in Sources */,
 				C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */,
 				9787A90913EC5DBD3A9F76B1 /* AIRecipeView.swift in Sources */,
+				894A499DE984F20BB56F485E /* AllergenKeywords.swift in Sources */,
 				A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */,
 				F69B9CACF8004643E9CD0C3E /* AuthView.swift in Sources */,
 				ECDC65A210B2BA6CE22A6D8F /* BarcodeScannerView.swift in Sources */,
 				F5D23EA1C97019CA9F806FCB /* BarcodeService.swift in Sources */,
 				366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */,
 				E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */,
+				2BC10D6940F27F748FF1E61C /* DayPlanView.swift in Sources */,
 				9CFFEF6F3A066A304D0F9DC1 /* HealthManager.swift in Sources */,
 				838DB15D4DDE4CBAD02C854F /* InsightsStore.swift in Sources */,
 				FE3EF2AECF196D5456035554 /* InsightsView.swift in Sources */,
@@ -373,14 +392,17 @@
 				27360A1A1A3C55C2F8D052EF /* PurchasesManager.swift in Sources */,
 				F69DA229FE445F7A6EC5D599 /* QuickAddMealView.swift in Sources */,
 				DC7863094C15E7011C3A45D5 /* RecipeGenService.swift in Sources */,
+				3056E89959AC282A2DF57D3E /* RecipeNutritionService.swift in Sources */,
 				54C18D4D3C5DD44BEDE2AC5E /* RecipesView.swift in Sources */,
 				D7671D347D0879889C12EDFC /* ReminderManager.swift in Sources */,
 				95E9C3B6B75156D02F97021F /* RootView.swift in Sources */,
+				6C8341B7CC36C859EA6ED4A4 /* Sensitivity.swift in Sources */,
 				CC483688F69F37C1C2DFE555 /* SessionStore.swift in Sources */,
 				01F35C772624406092C554F5 /* SupabaseClient.swift in Sources */,
 				C99086EB3F6DBD5E9F838B64 /* TargetsCalc.swift in Sources */,
 				A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */,
 				8C039AF88FB9F89606CC8BF0 /* TodayStore.swift in Sources */,
+				9976C58153C1C451F1895485 /* TrendsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -397,6 +419,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AllergyFit/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = AllergyFit;
 				INFOPLIST_KEY_NSCameraUsageDescription = "AllergyFit uses the camera to scan product barcodes and check them against your allergen profile.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "AllergyFit reads your workouts and active energy to tune your daily nutrition targets on training days.";
@@ -545,6 +568,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AllergyFit/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = AllergyFit;
 				INFOPLIST_KEY_NSCameraUsageDescription = "AllergyFit uses the camera to scan product barcodes and check them against your allergen profile.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "AllergyFit reads your workouts and active energy to tune your daily nutrition targets on training days.";

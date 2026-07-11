@@ -51,6 +51,7 @@ struct LabScanView: View {
     @State private var photoItem: PhotosPickerItem?
     @State private var result: LabResult?
     @State private var enabled: Set<String> = []
+    @State private var severityByAllergen: [String: Sensitivity] = [:]
     @State private var errorMessage: String?
 
     var body: some View {
@@ -160,26 +161,52 @@ struct LabScanView: View {
                 .foregroundStyle(Theme.Colors.textSecondary)
 
             ForEach(result.tests) { test in
-                HStack(spacing: 12) {
-                    Image(systemName: test.positive ? "exclamationmark.shield.fill" : "checkmark.shield")
-                        .foregroundStyle(test.positive ? Theme.Colors.danger : Theme.Colors.safe)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(test.allergen)
-                            .font(Theme.Fonts.headline)
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                        Text("\(test.value) \(test.unit) · \(test.level)")
-                            .font(Theme.Fonts.caption)
-                            .foregroundStyle(Theme.Colors.textSecondary)
-                    }
-                    Spacer()
-                    Toggle("", isOn: Binding(
-                        get: { enabled.contains(test.allergen) },
-                        set: { on in
-                            if on { enabled.insert(test.allergen) } else { enabled.remove(test.allergen) }
+                let isOn = enabled.contains(test.allergen)
+                let sev = severityByAllergen[test.allergen] ?? .moderate
+                VStack(spacing: 10) {
+                    HStack(spacing: 12) {
+                        Image(systemName: test.positive ? "exclamationmark.shield.fill" : "checkmark.shield")
+                            .foregroundStyle(test.positive ? Theme.Colors.danger : Theme.Colors.safe)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(test.allergen)
+                                .font(Theme.Fonts.headline)
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                            Text("\(test.value) \(test.unit) · \(test.level)")
+                                .font(Theme.Fonts.caption)
+                                .foregroundStyle(Theme.Colors.textSecondary)
                         }
-                    ))
-                    .labelsHidden()
-                    .tint(Theme.Colors.volt)
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { enabled.contains(test.allergen) },
+                            set: { on in
+                                if on { enabled.insert(test.allergen) } else { enabled.remove(test.allergen) }
+                            }
+                        ))
+                        .labelsHidden()
+                        .tint(Theme.Colors.volt)
+                    }
+                    if isOn {
+                        HStack {
+                            Text("Sensitivity")
+                                .font(Theme.Fonts.caption)
+                                .foregroundStyle(Theme.Colors.textTertiary)
+                            Spacer()
+                            Menu {
+                                ForEach(Sensitivity.allCases) { s in
+                                    Button(s.label) { severityByAllergen[test.allergen] = s }
+                                }
+                            } label: {
+                                HStack(spacing: 5) {
+                                    Image(systemName: sev.icon).font(.caption2)
+                                    Text(sev.label).font(Theme.Fonts.caption)
+                                    Image(systemName: "chevron.up.chevron.down").font(.caption2)
+                                }
+                                .foregroundStyle(sev.color)
+                                .padding(.horizontal, 10).padding(.vertical, 6)
+                                .background(sev.color.opacity(0.14), in: Capsule())
+                            }
+                        }
+                    }
                 }
                 .card()
             }
@@ -242,6 +269,10 @@ struct LabScanView: View {
             }
             result = decoded
             enabled = Set(decoded.tests.filter(\.positive).map(\.allergen))
+            severityByAllergen = Dictionary(
+                decoded.tests.map { ($0.allergen, Sensitivity.fromLabLevel($0.level, positive: $0.positive)) },
+                uniquingKeysWith: { a, _ in a }
+            )
             withAnimation { phase = .review }
         } catch {
             withAnimation {
@@ -272,14 +303,22 @@ struct LabScanView: View {
                             user_id: userId,
                             allergen_id: slugToId[test.matchedSlug],
                             custom_name: slugToId[test.matchedSlug] == nil ? test.allergen : nil,
-                            severity: "moderate"
+                            severity: (severityByAllergen[test.allergen] ?? .moderate).rawValue
                         )
                     }
-                if !rows.isEmpty {
+                // Replace any existing rows for these known allergens, then insert
+                // (the unique index on allergen_id is partial, so a plain upsert
+                // can't reliably infer the conflict target — delete + insert is safe).
+                let knownIds = rows.compactMap { $0.allergen_id }
+                if !knownIds.isEmpty {
                     try await Backend.client.from("user_allergens")
-                        .upsert(rows, onConflict: "user_id,allergen_id", ignoreDuplicates: true)
+                        .delete().eq("user_id", value: userId).in("allergen_id", values: knownIds)
                         .execute()
                 }
+                if !rows.isEmpty {
+                    try await Backend.client.from("user_allergens").insert(rows).execute()
+                }
+                await session.reloadAllergens(userId: userId)
             } catch {
                 errorMessage = "Save failed: \(error.localizedDescription)"
                 return

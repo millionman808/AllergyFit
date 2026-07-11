@@ -14,6 +14,10 @@ final class TodayStore: ObservableObject {
     @Published var targetCarbs = 320
     @Published var targetFat = 84
     @Published var isLoading = false
+    /// Days since the user's most recent symptom check-in (or since they started
+    /// logging, if they've never logged a reaction).
+    @Published var reactionFreeStreak = 0
+    @Published var hasReactionHistory = false
 
     private var isDemo = false
     private var userId: UUID?
@@ -42,6 +46,8 @@ final class TodayStore: ObservableObject {
                           calories: $0.calories, protein: $0.protein, carbs: $0.carbs, fat: $0.fat, icon: $0.icon)
             }
             waterGlasses = 5
+            reactionFreeStreak = 12
+            hasReactionHistory = true
         } else {
             Task { await refresh() }
         }
@@ -121,6 +127,54 @@ final class TodayStore: ObservableObject {
             }
         } catch {
             print("water fetch failed: \(error)")
+        }
+
+        await loadStreak(userId: userId)
+    }
+
+    /// Real reaction-free streak: whole days since the last symptom check-in.
+    /// If the user has never logged a reaction, count days since their first meal log.
+    private func loadStreak(userId: UUID) async {
+        let cal = Calendar.current
+        func wholeDays(since date: Date) -> Int {
+            max(0, cal.dateComponents([.day], from: cal.startOfDay(for: date),
+                                      to: cal.startOfDay(for: Date())).day ?? 0)
+        }
+        do {
+            struct SymptomRow: Codable {
+                let occurredAt: Date
+                enum CodingKeys: String, CodingKey { case occurredAt = "occurred_at" }
+            }
+            let last: [SymptomRow] = try await Backend.client
+                .from("symptom_logs")
+                .select("occurred_at")
+                .eq("user_id", value: userId)
+                .order("occurred_at", ascending: false)
+                .limit(1)
+                .execute()
+                .value
+            if let lastReaction = last.first?.occurredAt {
+                reactionFreeStreak = wholeDays(since: lastReaction)
+                hasReactionHistory = true
+                return
+            }
+            // No reactions ever — measure from their first logged meal.
+            struct MealRow: Codable {
+                let eatenAt: Date
+                enum CodingKeys: String, CodingKey { case eatenAt = "eaten_at" }
+            }
+            let first: [MealRow] = try await Backend.client
+                .from("meal_logs")
+                .select("eaten_at")
+                .eq("user_id", value: userId)
+                .order("eaten_at", ascending: true)
+                .limit(1)
+                .execute()
+                .value
+            reactionFreeStreak = first.first.map { wholeDays(since: $0.eatenAt) } ?? 0
+            hasReactionHistory = false
+        } catch {
+            print("streak fetch failed: \(error)")
         }
     }
 

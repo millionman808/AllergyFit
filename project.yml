@@ -17,6 +17,13 @@ targets:
     platform: iOS
     sources:
       - AllergyFit
+    info:
+      path: AllergyFit/Resources/Info.plist
+      properties:
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.elischafer.allergyfit
+            CFBundleURLSchemes: [allergyfit]
     dependencies:
       - package: Supabase
         product: Supabase

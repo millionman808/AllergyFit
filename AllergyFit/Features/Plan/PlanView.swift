@@ -6,6 +6,7 @@ struct PlannedMeal: Codable, Identifiable, Equatable {
     let id: UUID
     var day: Int          // 0 = Monday … 6 = Sunday
     var recipe: Recipe
+    var mealType: String? = nil   // "Breakfast" / "Lunch" / "Dinner" / "Snack"
 }
 
 struct GroceryLine: Identifiable {
@@ -114,6 +115,20 @@ final class PlanStore: ObservableObject {
         }
     }
 
+    func add(_ recipe: Recipe, mealType: String, to day: Int) {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            planned.append(PlannedMeal(id: UUID(), day: day, recipe: recipe, mealType: mealType))
+        }
+    }
+
+    /// Replace every meal on a day (used when Volt plans the whole day).
+    func setDay(_ meals: [PlannedMeal], day: Int) {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            planned.removeAll { $0.day == day }
+            planned.append(contentsOf: meals)
+        }
+    }
+
     func remove(_ meal: PlannedMeal) {
         withAnimation { planned.removeAll { $0.id == meal.id } }
     }
@@ -196,21 +211,23 @@ final class PlanStore: ObservableObject {
 // MARK: - Plan view
 
 struct PlanView: View {
+    @EnvironmentObject var session: SessionStore
     @EnvironmentObject var planStore: PlanStore
     @State private var selectedDay: Int = {
         // default to today (Mon = 0)
         (Calendar.current.component(.weekday, from: Date()) + 5) % 7
     }()
     @State private var showGroceries = false
+    @State private var showDayPlan = false
+    @State private var dailyTarget = 2840
     var onBrowseRecipes: () -> Void = {}
-
-    private let dailyTarget = 2840   // TODO: pull from profile targets
 
     var body: some View {
         ScrollView {
             VStack(spacing: Theme.Metrics.spacing) {
                 dayStrip
                 daySummary
+                planWithVoltButton
 
                 let meals = planStore.meals(for: selectedDay)
                 if meals.isEmpty {
@@ -226,7 +243,40 @@ struct PlanView: View {
             .padding(.horizontal, Theme.Metrics.screenPadding)
             .padding(.bottom, 24)
         }
+        .task {
+            let t = await DayTargets.load(session: session)
+            dailyTarget = t.calories
+        }
         .sheet(isPresented: $showGroceries) { GroceryListView() }
+        .sheet(isPresented: $showDayPlan) {
+            DayPlanView(day: selectedDay)
+                .environmentObject(session)
+                .environmentObject(planStore)
+        }
+    }
+
+    private var planWithVoltButton: some View {
+        Button { showDayPlan = true } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "bolt.fill")
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.Colors.onVolt)
+                    .frame(width: 34, height: 34)
+                    .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Plan \(PlanStore.dayNames[selectedDay]) with Volt")
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text("A full day around \(dailyTarget) kcal, safe for your triggers")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .lineLimit(1)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundStyle(Theme.Colors.textTertiary)
+            }
+            .card()
+        }
     }
 
     private var dayStrip: some View {
@@ -352,6 +402,11 @@ struct PlannedMealRow: View {
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
             VStack(alignment: .leading, spacing: 3) {
+                if let type = meal.mealType {
+                    Text(type.uppercased())
+                        .font(.system(size: 9, weight: .bold, design: .rounded))
+                        .foregroundStyle(Theme.Colors.volt)
+                }
                 Text(meal.recipe.title)
                     .font(Theme.Fonts.headline)
                     .foregroundStyle(Theme.Colors.textPrimary)

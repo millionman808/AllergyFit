@@ -9,6 +9,8 @@ struct GeneratedRecipe: Codable, Equatable {
     var ingredients: [Ingredient]
     var steps: [String]
     var nutritionPerServing: Nutrition
+    /// Triggers the server safety-net still detected (empty when clean).
+    var flagged: [String]? = nil
 
     struct Ingredient: Codable, Equatable, Hashable {
         var amount: String
@@ -22,21 +24,34 @@ struct GeneratedRecipe: Codable, Equatable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case title, description, servings, ingredients, steps
+        case title, description, servings, ingredients, steps, flagged
         case safeNote = "safe_note"
         case totalTimeMinutes = "total_time_minutes"
         case nutritionPerServing = "nutrition_per_serving"
     }
 
+    /// Combine the server verdict with a local keyword scan against the user's triggers.
+    func flags(for allergens: [String]) -> [String] {
+        var set = flagged ?? []
+        let local = AllergenKeywords.flagged(in: ingredients.map(\.name), allergens: allergens)
+        for f in local where !set.contains(f) { set.append(f) }
+        return set
+    }
+
     /// Convert to a plannable/savable Recipe (no photo — AI-generated).
-    func asRecipe() -> Recipe {
+    func asRecipe(flagged flags: [String] = []) -> Recipe {
         Recipe(
             title: title,
             url: "ai://\(UUID().uuidString)",
             image: "",
             calories: nutritionPerServing.calories,
             ingredients: ingredients.map { "\($0.amount) \($0.name)" },
-            flagged: []
+            flagged: flags,
+            directions: steps,
+            protein: nutritionPerServing.protein,
+            carbs: nutritionPerServing.carbs,
+            fat: nutritionPerServing.fat,
+            servings: servings
         )
     }
 }

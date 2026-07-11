@@ -11,9 +11,23 @@ struct Recipe: Codable, Identifiable, Equatable {
     var calories: Int?
     var ingredients: [String]
     var flagged: [String]
+    // Optional so older cached saves / older API responses still decode cleanly.
+    var directions: [String]? = nil
+    var protein: Int? = nil
+    var carbs: Int? = nil
+    var fat: Int? = nil
+    var servings: Int? = nil
 
     var isSafe: Bool { flagged.isEmpty }
     var isUnverified: Bool { flagged.contains("__unverified__") }
+    var steps: [String] { directions ?? [] }
+    var hasNutrition: Bool { calories != nil || protein != nil || carbs != nil || fat != nil }
+    var hasMacros: Bool { protein != nil || carbs != nil || fat != nil }
+    /// Calorie estimate from macros (Atwater): 4·protein + 4·carbs + 9·fat.
+    var atwaterCalories: Int? {
+        guard let p = protein, let c = carbs, let f = fat else { return nil }
+        return p * 4 + c * 4 + f * 9
+    }
 }
 
 // MARK: - Store
@@ -78,6 +92,13 @@ final class RecipeStore: ObservableObject {
     private struct SavedRow: Codable {
         let user_id: UUID, title: String, url: String
         let image_url: String, ingredients: [String], calories: Int?
+        let directions: [String], protein: Int?, carbs: Int?, fat: Int?
+    }
+
+    private func savedRow(_ r: Recipe, _ userId: UUID) -> SavedRow {
+        SavedRow(user_id: userId, title: r.title, url: r.url,
+                 image_url: r.image, ingredients: r.ingredients, calories: r.calories,
+                 directions: r.directions ?? [], protein: r.protein, carbs: r.carbs, fat: r.fat)
     }
 
     func toggleSave(_ recipe: Recipe) {
@@ -96,9 +117,7 @@ final class RecipeStore: ObservableObject {
             saved.insert(recipe, at: 0)
             persistLocal()
             if !isDemo, let userId {
-                let row = SavedRow(user_id: userId, title: recipe.title, url: recipe.url,
-                                   image_url: recipe.image, ingredients: recipe.ingredients,
-                                   calories: recipe.calories)
+                let row = savedRow(recipe, userId)
                 Task {
                     do {
                         try await Backend.client.from("saved_recipes")
@@ -106,6 +125,21 @@ final class RecipeStore: ObservableObject {
                     } catch { print("saved_recipes save failed: \(error)") }
                 }
             }
+        }
+    }
+
+    /// Replace a saved recipe in place (e.g. after filling in computed nutrition).
+    func updateSaved(_ recipe: Recipe) {
+        guard let idx = saved.firstIndex(where: { $0.url == recipe.url }) else { return }
+        saved[idx] = recipe
+        persistLocal()
+        guard !isDemo, let userId else { return }
+        let row = savedRow(recipe, userId)
+        Task {
+            do {
+                try await Backend.client.from("saved_recipes")
+                    .upsert(row, onConflict: "user_id,url").execute()
+            } catch { print("saved_recipes nutrition update failed: \(error)") }
         }
     }
 
@@ -131,31 +165,31 @@ final class RecipeStore: ObservableObject {
         struct Row: Codable {
             let title: String, url: String, image_url: String?
             let ingredients: [String]?, calories: Int?
+            let directions: [String]?, protein: Int?, carbs: Int?, fat: Int?
         }
         do {
             let rows: [Row] = try await Backend.client.from("saved_recipes")
-                .select("title, url, image_url, ingredients, calories")
+                .select("title, url, image_url, ingredients, calories, directions, protein, carbs, fat")
                 .order("created_at", ascending: false)
                 .execute().value
             let remote = rows.map {
                 Recipe(title: $0.title, url: $0.url, image: $0.image_url ?? "",
-                       calories: $0.calories, ingredients: $0.ingredients ?? [], flagged: [])
+                       calories: $0.calories, ingredients: $0.ingredients ?? [], flagged: [],
+                       directions: $0.directions, protein: $0.protein, carbs: $0.carbs, fat: $0.fat)
             }
-            // Union remote + local by url (remote first) so nothing is dropped.
-            var merged = remote
-            for local in saved where !merged.contains(where: { $0.url == local.url }) {
-                merged.append(local)
-            }
+            // Merge remote + local by url. Local is kept when present (it carries the
+            // richest copy — directions/macros captured at save time); remote-only rows
+            // are appended so nothing is dropped.
+            let localByURL = Dictionary(saved.map { ($0.url, $0) }, uniquingKeysWith: { a, _ in a })
+            var merged = saved
+            for r in remote where localByURL[r.url] == nil { merged.append(r) }
             saved = merged
             persistLocal()
-            // Back-fill any local-only saves that never reached the DB (self-heal).
-            let remoteURLs = Set(remote.map { $0.url })
-            for r in merged where !remoteURLs.contains(r.url) {
-                let row = SavedRow(user_id: userId, title: r.title, url: r.url,
-                                   image_url: r.image, ingredients: r.ingredients,
-                                   calories: r.calories)
+            // Back-fill any local-only saves that never reached the DB (self-heal),
+            // and refresh rows that gained directions/macros locally.
+            for r in merged {
                 try? await Backend.client.from("saved_recipes")
-                    .upsert(row, onConflict: "user_id,url").execute()
+                    .upsert(savedRow(r, userId), onConflict: "user_id,url").execute()
             }
         } catch {
             print("load saved failed: \(error)")   // keep local cache on failure
@@ -480,8 +514,17 @@ struct RecipeCard: View {
 
 struct RecipeDetailView: View {
     @Environment(\.dismiss) private var dismiss
-    let recipe: Recipe
+    @State private var recipe: Recipe
     @ObservedObject var store: RecipeStore
+    @State private var calculating = false
+    @State private var calcError: String?
+    @State private var justEstimated = false
+    @State private var autoAttempted = false
+
+    init(recipe: Recipe, store: RecipeStore) {
+        _recipe = State(initialValue: recipe)
+        self.store = store
+    }
 
     var body: some View {
         NavigationStack {
@@ -512,6 +555,19 @@ struct RecipeDetailView: View {
                                 .card()
                         }
 
+                        if recipe.hasNutrition || !recipe.ingredients.isEmpty {
+                            Text("Nutrition")
+                                .font(Theme.Fonts.headline)
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                            HStack(spacing: 10) {
+                                nutritionStat("Calories", recipe.calories, "")
+                                nutritionStat("Protein", recipe.protein, "g")
+                                nutritionStat("Carbs", recipe.carbs, "g")
+                                nutritionStat("Fat", recipe.fat, "g")
+                            }
+                            nutritionFooter
+                        }
+
                         Text("Ingredients")
                             .font(Theme.Fonts.headline)
                             .foregroundStyle(Theme.Colors.textPrimary)
@@ -530,6 +586,28 @@ struct RecipeDetailView: View {
                         }
                         .card()
 
+                        if !recipe.steps.isEmpty {
+                            Text("Directions")
+                                .font(Theme.Fonts.headline)
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                            VStack(alignment: .leading, spacing: 12) {
+                                ForEach(Array(recipe.steps.enumerated()), id: \.offset) { idx, step in
+                                    HStack(alignment: .top, spacing: 12) {
+                                        Text("\(idx + 1)")
+                                            .font(Theme.Fonts.caption.bold())
+                                            .foregroundStyle(Theme.Colors.onVolt)
+                                            .frame(width: 24, height: 24)
+                                            .background(Theme.Colors.volt, in: Circle())
+                                        Text(step)
+                                            .font(Theme.Fonts.body)
+                                            .foregroundStyle(Theme.Colors.textSecondary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                }
+                            }
+                            .card()
+                        }
+
                         Text("Always verify ingredient labels when you shop — recipes and products change.")
                             .font(Theme.Fonts.caption)
                             .foregroundStyle(Theme.Colors.textTertiary)
@@ -547,7 +625,7 @@ struct RecipeDetailView: View {
                                     .foregroundStyle(Theme.Colors.onVolt)
                                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                             }
-                            if let url = URL(string: recipe.url) {
+                            if !recipe.url.hasPrefix("ai://"), let url = URL(string: recipe.url) {
                                 Link(destination: url) {
                                     Image(systemName: "safari")
                                         .font(.title3)
@@ -570,6 +648,99 @@ struct RecipeDetailView: View {
                         .foregroundStyle(Theme.Colors.volt)
                 }
             }
+            .task {
+                // Auto-fill missing macros from USDA the moment the recipe opens.
+                guard !autoAttempted, !recipe.hasMacros, !recipe.ingredients.isEmpty else { return }
+                autoAttempted = true
+                await calculate()
+            }
         }
+    }
+
+    @ViewBuilder
+    private var nutritionFooter: some View {
+        if !recipe.hasMacros && !recipe.ingredients.isEmpty {
+            if calculating {
+                HStack(spacing: 8) {
+                    ProgressView().tint(Theme.Colors.volt)
+                    Text("Estimating from ingredients…")
+                        .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
+                }
+            } else {
+                Button { Task { await calculate() } } label: {
+                    Label("Calculate protein, carbs & fat", systemImage: "function")
+                        .font(Theme.Fonts.caption.weight(.semibold))
+                        .foregroundStyle(Theme.Colors.volt)
+                }
+            }
+            if let calcError {
+                Text(calcError).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.danger)
+            }
+        } else if let atw = recipe.atwaterCalories {
+            HStack(spacing: 6) {
+                if let cals = recipe.calories {
+                    let ok = abs(atw - cals) <= max(60, Int(Double(cals) * 0.15))
+                    Image(systemName: ok ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+                        .font(.caption2)
+                        .foregroundStyle(ok ? Theme.Colors.safe : Theme.Colors.caution)
+                    Text("Macros add up to ≈\(atw) kcal vs \(cals) listed")
+                        .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
+                } else {
+                    Text("≈\(atw) kcal from these macros")
+                        .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
+                }
+            }
+            if justEstimated {
+                Text("Verified from your ingredients via USDA FoodData Central.")
+                    .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
+            } else if !recipe.ingredients.isEmpty {
+                if calculating {
+                    HStack(spacing: 8) {
+                        ProgressView().tint(Theme.Colors.volt)
+                        Text("Verifying with USDA…")
+                            .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
+                    }
+                } else {
+                    Button { Task { await calculate(replaceCalories: true) } } label: {
+                        Label("Verify nutrition with USDA", systemImage: "checkmark.seal")
+                            .font(Theme.Fonts.caption.weight(.semibold))
+                            .foregroundStyle(Theme.Colors.volt)
+                    }
+                }
+                if let calcError {
+                    Text(calcError).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.danger)
+                }
+            }
+        }
+    }
+
+    private func calculate(replaceCalories: Bool = false) async {
+        calculating = true
+        calcError = nil
+        defer { calculating = false }
+        do {
+            let updated = try await RecipeNutritionService.fill(recipe, replaceCalories: replaceCalories)
+            withAnimation { recipe = updated; justEstimated = true }
+            store.updateSaved(updated)   // no-op if this recipe isn't saved
+        } catch {
+            calcError = error.localizedDescription
+        }
+    }
+
+    @ViewBuilder
+    private func nutritionStat(_ label: String, _ value: Int?, _ unit: String) -> some View {
+        VStack(spacing: 4) {
+            Text(value.map { "\($0)\(unit)" } ?? "—")
+                .font(Theme.Fonts.headline)
+                .foregroundStyle(Theme.Colors.textPrimary)
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
+            Text(label)
+                .font(Theme.Fonts.caption)
+                .foregroundStyle(Theme.Colors.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }

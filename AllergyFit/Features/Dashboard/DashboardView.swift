@@ -4,7 +4,9 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject var session: SessionStore
     @StateObject private var store = TodayStore()
+    @StateObject private var trends = TrendsStore()
     @State private var showQuickAdd = false
+    @State private var showTrends = false
 
     var body: some View {
         NavigationStack {
@@ -15,6 +17,7 @@ struct DashboardView: View {
                         safetyBanner
                         calorieCard
                         macroRow
+                        TrendsCard(store: trends) { showTrends = true }
                         streakCard
                         mealsSection
                         waterCard
@@ -25,11 +28,17 @@ struct DashboardView: View {
                 .refreshable { await store.refresh() }
             }
             .navigationTitle("Today")
-            .onAppear { store.configure(session: session) }
+            .onAppear {
+                store.configure(session: session)
+                trends.configure(session: session, targetCalories: store.targetCalories)
+            }
             .sheet(isPresented: $showQuickAdd) {
                 QuickAddMealView { name, type, cal, p, c, f in
                     store.addMeal(name: name, mealType: type, calories: cal, protein: p, carbs: c, fat: f)
                 }
+            }
+            .sheet(isPresented: $showTrends) {
+                TrendsView(store: trends)
             }
         }
     }
@@ -111,16 +120,17 @@ struct DashboardView: View {
                 Text("Reaction-free streak")
                     .font(Theme.Fonts.headline)
                     .foregroundStyle(Theme.Colors.textPrimary)
-                Text("Personal best: 21 days")
+                Text(store.hasReactionHistory ? "Since your last symptom check-in" : "No reactions logged — keep it up")
                     .font(Theme.Fonts.caption)
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             Spacer()
             HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text("12")
+                Text("\(store.reactionFreeStreak)")
                     .font(Theme.Fonts.stat(36))
                     .foregroundStyle(Theme.Colors.volt)
-                Text("days")
+                    .contentTransition(.numericText())
+                Text(store.reactionFreeStreak == 1 ? "day" : "days")
                     .font(Theme.Fonts.caption)
                     .foregroundStyle(Theme.Colors.textSecondary)
             }

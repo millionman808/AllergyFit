@@ -34,6 +34,11 @@ interface RecipeResult {
   calories: number | null;
   ingredients: string[];
   flagged: string[];
+  directions: string[];
+  protein: number | null;
+  carbs: number | null;
+  fat: number | null;
+  servings: number | null;
 }
 
 async function fetchPage(url: string): Promise<string> {
@@ -117,15 +122,25 @@ async function searchSpoonacular(query: string, allergens: string[]): Promise<Re
     const ext = (r.extendedIngredients ?? (r.nutrition as Record<string, unknown>)?.ingredients ?? []) as Record<string, unknown>[];
     const ingredients = ext.map((i) => (i.original ?? i.name) as string).filter(Boolean);
     const nutrients = ((r.nutrition as Record<string, unknown>)?.nutrients ?? []) as { name: string; amount: number }[];
-    const cal = nutrients.find((n) => n.name === "Calories")?.amount;
+    const macro = (name: string) => {
+      const v = nutrients.find((n) => n.name === name)?.amount;
+      return v != null ? Math.round(v) : null;
+    };
+    const steps = (((r.analyzedInstructions as Record<string, unknown>[])?.[0]?.steps ?? []) as { step: string }[])
+      .map((s) => s.step?.trim()).filter(Boolean) as string[];
     return {
       title: r.title as string,
       url: (r.sourceUrl as string) || `https://spoonacular.com/recipes/x-${r.id}`,
       image: (r.image as string) ?? "",
-      calories: cal ? Math.round(cal) : null,
+      calories: macro("Calories"),
       ingredients,
       // second safety layer: keyword-check even though Spoonacular pre-filters
       flagged: flagAllergens(ingredients, allergens),
+      directions: steps,
+      protein: macro("Protein"),
+      carbs: macro("Carbohydrates"),
+      fat: macro("Fat"),
+      servings: typeof r.servings === "number" ? r.servings : null,
     };
   });
 }
@@ -144,6 +159,11 @@ async function searchMealDb(query: string, allergens: string[]): Promise<RecipeR
       const measure = m[`strMeasure${i}`]?.trim() ?? "";
       ingredients.push([measure, ing].filter(Boolean).join(" "));
     }
+    const directions = (m.strInstructions ?? "")
+      .split(/\r?\n+/)
+      .flatMap((p) => p.split(/(?<=\.)\s+(?=[A-Z0-9])/))
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
     return {
       title: m.strMeal,
       url: m.strSource || `https://www.themealdb.com/meal/${m.idMeal}`,
@@ -151,6 +171,11 @@ async function searchMealDb(query: string, allergens: string[]): Promise<RecipeR
       calories: null,
       ingredients,
       flagged: flagAllergens(ingredients, allergens),
+      directions,
+      protein: null,
+      carbs: null,
+      fat: null,
+      servings: null,
     };
   });
 }
@@ -171,9 +196,14 @@ async function searchAllrecipes(query: string, allergens: string[]): Promise<Rec
           calories: detail.calories,
           ingredients: detail.ingredients,
           flagged: flagAllergens(detail.ingredients, allergens),
+          directions: [],
+          protein: null,
+          carbs: null,
+          fat: null,
+          servings: null,
         };
       } catch {
-        return { title: card.title, url: card.url, image: card.image, calories: null, ingredients: [], flagged: ["__unverified__"] };
+        return { title: card.title, url: card.url, image: card.image, calories: null, ingredients: [], flagged: ["__unverified__"], directions: [], protein: null, carbs: null, fat: null, servings: null };
       }
     }),
   );

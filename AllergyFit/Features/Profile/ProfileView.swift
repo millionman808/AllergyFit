@@ -41,7 +41,7 @@ struct ProfileView: View {
                 }
             }
             .sheet(isPresented: $showTriggers) {
-                EditTriggersView(currentSlugs: session.allergenSlugs)
+                EditTriggersView(currentSlugs: session.allergenSlugs, severity: session.severityBySlug)
             }
             .sheet(isPresented: $showGoals) { GoalsEditorView(store: store) }
             .sheet(isPresented: $showDietary) { DietaryPrefsView(store: store) }
@@ -97,8 +97,23 @@ struct ProfileView: View {
                 Text("No triggers set — tap Edit to add them.")
                     .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
             } else {
-                FlowTags(items: AllergenCatalog.names(for: session.allergenSlugs),
-                         icon: "xmark.shield.fill", color: Theme.Colors.danger)
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 128), spacing: 8)], spacing: 8) {
+                    ForEach(session.allergenSlugs, id: \.self) { slug in
+                        let sev = session.severityBySlug[slug] ?? .moderate
+                        HStack(spacing: 5) {
+                            Image(systemName: sev.icon).font(.caption2)
+                            Text(AllergenCatalog.nameBySlug[slug] ?? slug)
+                                .font(Theme.Fonts.caption).lineLimit(1).minimumScaleFactor(0.8)
+                            Text(sev.short)
+                                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                .opacity(0.85)
+                        }
+                        .foregroundStyle(sev.color)
+                        .padding(.horizontal, 10).padding(.vertical, 7)
+                        .frame(maxWidth: .infinity)
+                        .background(sev.color.opacity(0.14), in: Capsule())
+                    }
+                }
             }
         }
         .card()

@@ -39,6 +39,25 @@ struct AuthView: View {
                     .frame(height: 52)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
+                    // Continue with Google
+                    Button {
+                        Task { await handleGoogle() }
+                    } label: {
+                        HStack(spacing: 10) {
+                            GoogleGlyph()
+                                .frame(width: 20, height: 20)
+                            Text("Continue with Google")
+                                .font(Theme.Fonts.headline)
+                                .foregroundStyle(Color(hex: 0x1F1F1F))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .disabled(isBusy)
+                    .opacity(isBusy ? 0.6 : 1)
+
                     divider
 
                     TextField("Email", text: $email)
@@ -122,6 +141,25 @@ struct AuthView: View {
         }
     }
 
+    private func handleGoogle() async {
+        isBusy = true
+        defer { isBusy = false }
+        errorMessage = nil
+        do {
+            try await Backend.client.auth.signInWithOAuth(
+                provider: .google,
+                redirectTo: URL(string: "allergyfit://login-callback")
+            )
+        } catch {
+            // User dismissing the web sheet isn't an error worth showing.
+            let ns = error as NSError
+            if ns.domain == ASWebAuthenticationSessionError.errorDomain,
+               ns.code == ASWebAuthenticationSessionError.canceledLogin.rawValue { return }
+            if error is CancellationError { return }
+            errorMessage = error.localizedDescription
+        }
+    }
+
     private func submitEmail() async {
         isBusy = true
         defer { isBusy = false }
@@ -135,6 +173,37 @@ struct AuthView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+}
+
+/// Google's four-color "G", drawn so we don't need to bundle the brand asset.
+struct GoogleGlyph: View {
+    var body: some View {
+        GeometryReader { geo in
+            let s = min(geo.size.width, geo.size.height)
+            let lw = s * 0.22
+            ZStack {
+                Circle()
+                    .trim(from: 0.0, to: 0.25)
+                    .stroke(Color(hex: 0x4285F4), style: .init(lineWidth: lw))   // blue
+                Circle()
+                    .trim(from: 0.25, to: 0.5)
+                    .stroke(Color(hex: 0x34A853), style: .init(lineWidth: lw))   // green
+                Circle()
+                    .trim(from: 0.5, to: 0.75)
+                    .stroke(Color(hex: 0xFBBC05), style: .init(lineWidth: lw))   // yellow
+                Circle()
+                    .trim(from: 0.75, to: 1.0)
+                    .stroke(Color(hex: 0xEA4335), style: .init(lineWidth: lw))   // red
+                // The horizontal bar of the "G"
+                Rectangle()
+                    .fill(Color(hex: 0x4285F4))
+                    .frame(width: s * 0.5, height: lw)
+                    .offset(x: s * 0.25, y: 0)
+            }
+            .rotationEffect(.degrees(-45))
+        }
+        .aspectRatio(1, contentMode: .fit)
     }
 }
 

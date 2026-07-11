@@ -5,19 +5,34 @@ import RevenueCat
 
 // MARK: - Edit triggers
 
+struct TriggerItem: Identifiable {
+    let slug: String
+    var sensitivity: Sensitivity
+    var isIntolerance: Bool
+    var id: String { slug }
+}
+
 struct EditTriggersView: View {
     @EnvironmentObject var session: SessionStore
     @Environment(\.dismiss) private var dismiss
-    @State private var selected: Set<String>          // slugs
+    @State private var items: [TriggerItem]
     @State private var isSaving = false
+    @State private var loaded = false
     @State private var errorMessage: String?
 
     private let allSlugs = ["peanut", "tree_nut", "dairy", "egg", "wheat", "gluten",
                             "soy", "fish", "shellfish", "sesame", "corn", "nightshade",
                             "histamine", "fodmap", "sulfite", "mustard", "celery", "alpha_gal"]
 
-    init(currentSlugs: [String]) {
-        _selected = State(initialValue: Set(currentSlugs))
+    init(currentSlugs: [String], severity: [String: Sensitivity]) {
+        _items = State(initialValue: currentSlugs.map {
+            TriggerItem(slug: $0, sensitivity: severity[$0] ?? .moderate, isIntolerance: false)
+        })
+    }
+
+    private var available: [String] {
+        let have = Set(items.map(\.slug))
+        return allSlugs.filter { !have.contains($0) }
     }
 
     var body: some View {
@@ -26,25 +41,50 @@ struct EditTriggersView: View {
                 Theme.Colors.background.ignoresSafeArea()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Tap the foods you react to. Every meal, recipe, and swap is filtered against this list.")
+                        Text("Set how strongly you react to each trigger. Anaphylaxis flags the hardest; mild means small amounts may be OK.")
                             .font(Theme.Fonts.caption)
                             .foregroundStyle(Theme.Colors.textSecondary)
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 8)], spacing: 8) {
-                            ForEach(allSlugs, id: \.self) { slug in
-                                let on = selected.contains(slug)
-                                Button {
-                                    if on { selected.remove(slug) } else { selected.insert(slug) }
-                                } label: {
-                                    Text(AllergenCatalog.nameBySlug[slug] ?? slug)
+
+                        if items.isEmpty {
+                            Text("No triggers yet — add one below.")
+                                .font(Theme.Fonts.caption)
+                                .foregroundStyle(Theme.Colors.textTertiary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 20)
+                                .card()
+                        } else {
+                            ForEach($items) { $item in
+                                triggerCard($item)
+                            }
+                        }
+
+                        if !available.isEmpty {
+                            Text("Add a trigger")
+                                .font(Theme.Fonts.headline)
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                                .padding(.top, 4)
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 8)], spacing: 8) {
+                                ForEach(available, id: \.self) { slug in
+                                    Button {
+                                        withAnimation {
+                                            items.append(TriggerItem(slug: slug, sensitivity: .moderate, isIntolerance: false))
+                                        }
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "plus").font(.caption2)
+                                            Text(AllergenCatalog.nameBySlug[slug] ?? slug)
+                                                .lineLimit(1).minimumScaleFactor(0.8)
+                                        }
                                         .font(Theme.Fonts.caption)
-                                        .lineLimit(1).minimumScaleFactor(0.8)
                                         .frame(maxWidth: .infinity).frame(height: 40)
-                                        .background(on ? Theme.Colors.volt : Theme.Colors.surface)
-                                        .foregroundStyle(on ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
+                                        .background(Theme.Colors.surface)
+                                        .foregroundStyle(Theme.Colors.textSecondary)
                                         .clipShape(Capsule())
+                                    }
                                 }
                             }
                         }
+
                         if let errorMessage {
                             Text(errorMessage).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.danger)
                         }
@@ -66,12 +106,91 @@ struct EditTriggersView: View {
                     .disabled(isSaving)
                 }
             }
+            .task { await loadDetails() }
         }
         .preferredColorScheme(nil)
     }
 
+    private func triggerCard(_ item: Binding<TriggerItem>) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(AllergenCatalog.nameBySlug[item.wrappedValue.slug] ?? item.wrappedValue.slug)
+                    .font(Theme.Fonts.headline)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Spacer()
+                Button {
+                    withAnimation { items.removeAll { $0.slug == item.wrappedValue.slug } }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                }
+            }
+
+            Picker("Sensitivity", selection: item.sensitivity) {
+                ForEach(Sensitivity.allCases) { s in
+                    Text(s.short).tag(s)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            HStack(spacing: 6) {
+                Image(systemName: item.wrappedValue.sensitivity.icon)
+                    .font(.caption2)
+                    .foregroundStyle(item.wrappedValue.sensitivity.color)
+                Text(item.wrappedValue.sensitivity.blurb)
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
+
+            Toggle(isOn: item.isIntolerance) {
+                Text("Intolerance, not a true allergy")
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
+            .tint(Theme.Colors.volt)
+        }
+        .card()
+    }
+
+    /// Pull existing severity + intolerance from the DB so the pickers open on real values.
+    private func loadDetails() async {
+        guard !loaded else { return }
+        loaded = true
+        guard !session.isDemo, let userId = session.session?.user.id else { return }
+        do {
+            struct ARow: Codable { let id: Int; let slug: String }
+            struct UARow: Codable {
+                let allergenId: Int?; let severity: String?; let isIntolerance: Bool?
+                enum CodingKeys: String, CodingKey {
+                    case allergenId = "allergen_id"; case severity
+                    case isIntolerance = "is_intolerance"
+                }
+            }
+            let known: [ARow] = try await Backend.client.from("allergens").select("id, slug").execute().value
+            let idToSlug = Dictionary(uniqueKeysWithValues: known.map { ($0.id, $0.slug) })
+            let mine: [UARow] = try await Backend.client
+                .from("user_allergens").select("allergen_id, severity, is_intolerance")
+                .eq("user_id", value: userId).execute().value
+            var sevBySlug: [String: (Sensitivity, Bool)] = [:]
+            for row in mine {
+                if let id = row.allergenId, let slug = idToSlug[id] {
+                    sevBySlug[slug] = (Sensitivity.from(row.severity), row.isIntolerance ?? false)
+                }
+            }
+            for i in items.indices {
+                if let (sev, intol) = sevBySlug[items[i].slug] {
+                    items[i].sensitivity = sev
+                    items[i].isIntolerance = intol
+                }
+            }
+        } catch {
+            print("trigger detail load failed: \(error)")
+        }
+    }
+
     private func save() async {
-        session.allergenSlugs = selected.isEmpty ? [] : Array(selected)
+        session.allergenSlugs = items.map(\.slug)
+        session.severityBySlug = Dictionary(items.map { ($0.slug, $0.sensitivity) }, uniquingKeysWith: { a, _ in a })
         guard !session.isDemo, let userId = session.session?.user.id else { dismiss(); return }
         isSaving = true
         defer { isSaving = false }
@@ -79,10 +198,17 @@ struct EditTriggersView: View {
             struct ARow: Codable { let id: Int; let slug: String }
             let known: [ARow] = try await Backend.client.from("allergens").select("id, slug").execute().value
             let idBySlug = Dictionary(uniqueKeysWithValues: known.map { ($0.slug, $0.id) })
-            // replace the set: delete existing, insert selected
+            // replace the set: delete existing, insert current items with their levels
             try await Backend.client.from("user_allergens").delete().eq("user_id", value: userId).execute()
-            struct Ins: Codable { let user_id: UUID; let allergen_id: Int; let severity: String }
-            let rows = selected.compactMap { idBySlug[$0] }.map { Ins(user_id: userId, allergen_id: $0, severity: "moderate") }
+            struct Ins: Codable {
+                let user_id: UUID; let allergen_id: Int
+                let severity: String; let is_intolerance: Bool
+            }
+            let rows = items.compactMap { item -> Ins? in
+                guard let id = idBySlug[item.slug] else { return nil }
+                return Ins(user_id: userId, allergen_id: id,
+                           severity: item.sensitivity.rawValue, is_intolerance: item.isIntolerance)
+            }
             if !rows.isEmpty { try await Backend.client.from("user_allergens").insert(rows).execute() }
             await session.reloadAllergens(userId: userId)
             dismiss()

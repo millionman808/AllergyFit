@@ -7,16 +7,18 @@ enum Theme {
 
     // MARK: - Colors
     enum Colors {
-        static let background = Color.dyn(0xF3F4EF, 0x0D0F12)
-        static let surface = Color.dyn(0xFFFFFF, 0x16191F)
-        static let surfaceRaised = Color.dyn(0xE6E9DF, 0x1E222B)
+        static let background = Color.dyn(0xF3F5EE, 0x0B0D10)
+        static let surface = Color.dyn(0xFFFFFF, 0x15181E)
+        static let surfaceRaised = Color.dyn(0xE7EADF, 0x222833)
 
-        /// Signature accent: electric volt green (deeper in light mode for contrast).
-        static let volt = Color.dyn(0x7E9E22, 0xC8F04A)
-        /// Text/icons placed ON a volt-filled control — always near-black.
-        static let onVolt = Color(hex: 0x1C2306)
+        /// Signature accent: neon mint (bright on dark, deepened in light mode for contrast).
+        static let volt = Color.dyn(0x0FA57E, 0x5FF2C2)
+        /// Text/icons placed ON a mint-filled control — white on the deep light-mode
+        /// mint, near-black on the bright dark-mode mint (best contrast in each).
+        static let onVolt = Color.dyn(0xFFFFFF, 0x062018)
 
-        static let safe = Color.dyn(0x0E9F6E, 0x34D399)
+        /// Allergy-safe status: distinct grass green so it never reads as the mint accent.
+        static let safe = Color.dyn(0x17913F, 0x3BE06B)
         static let caution = Color.dyn(0xB45309, 0xFBBF24)
         static let danger = Color.dyn(0xDC2626, 0xF87171)
 

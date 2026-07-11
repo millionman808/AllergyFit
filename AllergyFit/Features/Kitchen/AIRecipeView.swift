@@ -145,13 +145,24 @@ struct AIRecipeView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .card()
 
-        // Safe note
-        HStack(spacing: 10) {
-            Image(systemName: "checkmark.shield.fill").foregroundStyle(Theme.Colors.safe)
-            Text(r.safeNote).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
+        // Safety verdict — keyword safety-net against the user's triggers
+        let flags = r.flags(for: session.allergenSlugs)
+        if flags.isEmpty {
+            HStack(spacing: 10) {
+                Image(systemName: "checkmark.shield.fill").foregroundStyle(Theme.Colors.safe)
+                Text(r.safeNote).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .card()
+        } else {
+            HStack(spacing: 10) {
+                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.Colors.danger)
+                Text("Heads up — this may contain \(flags.joined(separator: ", ")). Double-check the ingredients before eating.")
+                    .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.danger)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .card()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .card()
 
         // Nutrition
         VStack(alignment: .leading, spacing: 8) {
@@ -199,7 +210,7 @@ struct AIRecipeView: View {
         // Actions
         HStack(spacing: 10) {
             Button {
-                let saved = r.asRecipe()
+                let saved = r.asRecipe(flagged: flags)
                 savedRecipe = saved
                 onSave(saved)
                 showToast("Saved to your recipes")
@@ -213,7 +224,7 @@ struct AIRecipeView: View {
                 Section("Add to plan") {
                     ForEach(0..<7, id: \.self) { day in
                         Button(PlanStore.dayNames[day]) {
-                            planStore.add(savedRecipe ?? r.asRecipe(), to: day)
+                            planStore.add(savedRecipe ?? r.asRecipe(flagged: flags), to: day)
                             showToast("Added to \(PlanStore.dayNames[day])")
                         }
                     }
@@ -247,9 +258,11 @@ struct AIRecipeView: View {
         Task {
             defer { isGenerating = false }
             do {
-                let goal = session.isDemo ? "build" : ""
+                // Pull the user's real goal + dietary prefs so recipes match their profile.
+                let targets = await DayTargets.load(session: session)
                 recipe = try await RecipeGenService.generate(
-                    request: request, allergens: session.allergenSlugs, dietary: [], goal: goal)
+                    request: request, allergens: session.allergenSlugs,
+                    dietary: targets.dietary, goal: targets.goal)
             } catch {
                 errorMessage = "Couldn't generate: \(error.localizedDescription)"
             }

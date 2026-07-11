@@ -138,7 +138,7 @@ enum AIMealService {
         let content: String
     }
 
-    static func analyze(messages: [ChatMessage], allergens: [String] = []) async throws -> AnalyzeMealResponse {
+    static func analyze(messages: [ChatMessage], allergens: [String] = [], estimateOnly: Bool = false) async throws -> AnalyzeMealResponse {
         let url = Config.supabaseURL.appendingPathComponent("functions/v1/analyze-meal")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -151,8 +151,9 @@ enum AIMealService {
         struct Payload: Codable {
             let messages: [ChatMessage]
             let allergens: [String]
+            let estimate_only: Bool
         }
-        request.httpBody = try JSONEncoder().encode(Payload(messages: messages, allergens: allergens))
+        request.httpBody = try JSONEncoder().encode(Payload(messages: messages, allergens: allergens, estimate_only: estimateOnly))
 
         let (data, response) = try await URLSession.shared.data(for: request)
         let decoded = try JSONDecoder().decode(AnalyzeMealResponse.self, from: data)

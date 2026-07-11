@@ -15,6 +15,10 @@ final class SessionStore: ObservableObject {
     /// Allergen slugs powering recipes, meal analysis, and swaps.
     /// Demo default matches the mock profile; replaced by DB values on sign-in.
     @Published var allergenSlugs: [String] = ["peanut", "dairy", "sesame"]
+    /// Sensitivity level per allergen slug (drives how strongly items are flagged).
+    @Published var severityBySlug: [String: Sensitivity] = [
+        "peanut": .anaphylaxis, "dairy": .moderate, "sesame": .severe,
+    ]
 
     var isSignedIn: Bool { session != nil || isDemo }
 
@@ -73,15 +77,17 @@ final class SessionStore: ObservableObject {
         struct UARow: Codable {
             let allergenId: Int?
             let customName: String?
+            let severity: String?
             enum CodingKeys: String, CodingKey {
                 case allergenId = "allergen_id"
                 case customName = "custom_name"
+                case severity
             }
         }
         struct ARow: Codable { let id: Int; let slug: String }
         do {
             let mine: [UARow] = try await Backend.client
-                .from("user_allergens").select("allergen_id, custom_name")
+                .from("user_allergens").select("allergen_id, custom_name, severity")
                 .eq("user_id", value: userId)
                 .execute().value
             let known: [ARow] = try await Backend.client
@@ -90,6 +96,13 @@ final class SessionStore: ObservableObject {
             let idToSlug = Dictionary(uniqueKeysWithValues: known.map { ($0.id, $0.slug) })
             let slugs = mine.compactMap { $0.allergenId.flatMap { idToSlug[$0] } }
             if !slugs.isEmpty { allergenSlugs = slugs }
+            var sevMap: [String: Sensitivity] = [:]
+            for row in mine {
+                if let id = row.allergenId, let slug = idToSlug[id] {
+                    sevMap[slug] = Sensitivity.from(row.severity)
+                }
+            }
+            if !sevMap.isEmpty { severityBySlug = sevMap }
         } catch {
             print("allergen load failed: \(error)")
         }

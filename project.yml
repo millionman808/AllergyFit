@@ -23,14 +23,14 @@ targets:
     info:
       path: AllergyFit/Resources/Info.plist
       properties:
-        GIDClientID: 266455817037-q97kor8ck9revo2iq5l7sdl6drpkusdd.apps.googleusercontent.com
+        GIDClientID: 774051386593-n8fe3bpri3tkr7gdb30av32afvg9kssq.apps.googleusercontent.com
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: com.elischafer.allergyfit
             CFBundleURLSchemes: [allergyfit]
           - CFBundleTypeRole: Editor
             CFBundleURLName: google-signin
-            CFBundleURLSchemes: [com.googleusercontent.apps.266455817037-q97kor8ck9revo2iq5l7sdl6drpkusdd]
+            CFBundleURLSchemes: [com.googleusercontent.apps.774051386593-n8fe3bpri3tkr7gdb30av32afvg9kssq]
     dependencies:
       - package: Supabase
         product: Supabase

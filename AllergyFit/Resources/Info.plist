@@ -35,13 +35,13 @@
 			<string>google-signin</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.266455817037-q97kor8ck9revo2iq5l7sdl6drpkusdd</string>
+				<string>com.googleusercontent.apps.774051386593-n8fe3bpri3tkr7gdb30av32afvg9kssq</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>GIDClientID</key>
-	<string>266455817037-q97kor8ck9revo2iq5l7sdl6drpkusdd.apps.googleusercontent.com</string>
+	<string>774051386593-n8fe3bpri3tkr7gdb30av32afvg9kssq.apps.googleusercontent.com</string>
 </dict>
 </plist>

@@ -1,6 +1,7 @@
 import SwiftUI
 import AuthenticationServices
 import Supabase
+import GoogleSignIn
 
 struct AuthView: View {
     @EnvironmentObject var session: SessionStore
@@ -141,23 +142,44 @@ struct AuthView: View {
         }
     }
 
+    /// Native Google Sign-In: Google's own sheet (no "supabase.co" browser prompt),
+    /// then the resulting ID token is exchanged with Supabase.
+    @MainActor
     private func handleGoogle() async {
+        guard let root = Self.rootViewController else {
+            errorMessage = "Couldn't start Google sign-in. Try again."
+            return
+        }
         isBusy = true
         defer { isBusy = false }
         errorMessage = nil
         do {
-            try await Backend.client.auth.signInWithOAuth(
-                provider: .google,
-                redirectTo: URL(string: "allergyfit://login-callback")
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: root)
+            guard let idToken = result.user.idToken?.tokenString else {
+                errorMessage = "Google didn't return a sign-in token. Try again."
+                return
+            }
+            try await Backend.client.auth.signInWithIdToken(
+                credentials: .init(
+                    provider: .google,
+                    idToken: idToken,
+                    accessToken: result.user.accessToken.tokenString
+                )
             )
         } catch {
-            // User dismissing the web sheet isn't an error worth showing.
+            // User closing Google's sheet isn't an error worth showing.
             let ns = error as NSError
-            if ns.domain == ASWebAuthenticationSessionError.errorDomain,
-               ns.code == ASWebAuthenticationSessionError.canceledLogin.rawValue { return }
-            if error is CancellationError { return }
+            if ns.domain == kGIDSignInErrorDomain, ns.code == GIDSignInError.canceled.rawValue { return }
             errorMessage = error.localizedDescription
         }
+    }
+
+    private static var rootViewController: UIViewController? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)?
+            .rootViewController
     }
 
     private func submitEmail() async {

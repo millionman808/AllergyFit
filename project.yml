@@ -11,6 +11,9 @@ packages:
   RevenueCat:
     url: https://github.com/RevenueCat/purchases-ios
     from: 5.0.0
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: 8.0.0
 targets:
   AllergyFit:
     type: application
@@ -20,15 +23,21 @@ targets:
     info:
       path: AllergyFit/Resources/Info.plist
       properties:
+        GIDClientID: 266455817037-q97kor8ck9revo2iq5l7sdl6drpkusdd.apps.googleusercontent.com
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: com.elischafer.allergyfit
             CFBundleURLSchemes: [allergyfit]
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: google-signin
+            CFBundleURLSchemes: [com.googleusercontent.apps.266455817037-q97kor8ck9revo2iq5l7sdl6drpkusdd]
     dependencies:
       - package: Supabase
         product: Supabase
       - package: RevenueCat
         product: RevenueCat
+      - package: GoogleSignIn
+        product: GoogleSignIn
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.elischafer.allergyfit

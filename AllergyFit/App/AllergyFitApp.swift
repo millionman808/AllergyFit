@@ -1,4 +1,5 @@
 import SwiftUI
+import GoogleSignIn
 
 @main
 struct AllergyFitApp: App {
@@ -16,6 +17,9 @@ struct AllergyFitApp: App {
                 .environmentObject(session)
                 .environmentObject(purchases)
                 .preferredColorScheme(colorScheme)
+                .onOpenURL { url in
+                    GIDSignIn.sharedInstance.handle(url)
+                }
         }
     }
 

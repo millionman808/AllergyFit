@@ -32,6 +32,7 @@
 		9CFFEF6F3A066A304D0F9DC1 /* HealthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62AF4EC9F170CBFD837F5677 /* HealthManager.swift */; };
 		A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DAB4D05FE16724A93EEF2FE /* Theme.swift */; };
 		A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */; };
+		B1E2CB180B0E64154364515D /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 5721EC0D9A2599DDB87B397C /* GoogleSignIn */; };
 		BAE85554D15597AD58224A29 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 71A272564201D4B8EE1BC16C /* Assets.xcassets */; };
 		BE6FAD4E24A404232EFF037D /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97EAF00C421B8C1D38B8C78 /* MockData.swift */; };
 		C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */; };
@@ -104,6 +105,7 @@
 			files = (
 				4AA0D4ECCE20E8B41FCADB4E /* Supabase in Frameworks */,
 				D4AC7AD83F9C8D8ED1E06968 /* RevenueCat in Frameworks */,
+				B1E2CB180B0E64154364515D /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -306,6 +308,7 @@
 			packageProductDependencies = (
 				D0C41123AB2F3D6474672D84 /* Supabase */,
 				CF8908F9A809B906D3B24B07 /* RevenueCat */,
+				5721EC0D9A2599DDB87B397C /* GoogleSignIn */,
 			);
 			productName = AllergyFit;
 			productReference = 7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */;
@@ -335,6 +338,7 @@
 			mainGroup = A5BADFA0E5D8805158017EC5;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				280F0F5250E5C20181641E54 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				C17130ABC303EE3F53B5E957 /* XCRemoteSwiftPackageReference "purchases-ios" */,
 				BDD2C0FAFA810ADA4807729A /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
@@ -612,6 +616,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		280F0F5250E5C20181641E54 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		BDD2C0FAFA810ADA4807729A /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift";
@@ -631,6 +643,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5721EC0D9A2599DDB87B397C /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 280F0F5250E5C20181641E54 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
 		CF8908F9A809B906D3B24B07 /* RevenueCat */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C17130ABC303EE3F53B5E957 /* XCRemoteSwiftPackageReference "purchases-ios" */;

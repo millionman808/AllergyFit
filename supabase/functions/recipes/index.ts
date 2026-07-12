@@ -111,6 +111,7 @@ async function searchSpoonacular(query: string, allergens: string[]): Promise<Re
   url.searchParams.set("query", query);
   url.searchParams.set("number", "12");
   url.searchParams.set("addRecipeInformation", "true");
+  url.searchParams.set("addRecipeInstructions", "true");
   url.searchParams.set("addRecipeNutrition", "true");
   url.searchParams.set("fillIngredients", "true");
   const intolerances = allergens.map((s) => SPOON_INTOLERANCES[s]).filter(Boolean).join(",");
@@ -126,8 +127,17 @@ async function searchSpoonacular(query: string, allergens: string[]): Promise<Re
       const v = nutrients.find((n) => n.name === name)?.amount;
       return v != null ? Math.round(v) : null;
     };
-    const steps = (((r.analyzedInstructions as Record<string, unknown>[])?.[0]?.steps ?? []) as { step: string }[])
+    let steps = (((r.analyzedInstructions as Record<string, unknown>[])?.[0]?.steps ?? []) as { step: string }[])
       .map((s) => s.step?.trim()).filter(Boolean) as string[];
+    // Some recipes only ship instructions as raw text/HTML — parse those too.
+    if (!steps.length && typeof r.instructions === "string" && r.instructions.trim()) {
+      steps = r.instructions
+        .replace(/<li[^>]*>/gi, "\n")
+        .replace(/<[^>]+>/g, " ")
+        .split(/\r?\n+|(?<=\.)\s+(?=[A-Z0-9])/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 2);
+    }
     return {
       title: r.title as string,
       url: (r.sourceUrl as string) || `https://spoonacular.com/recipes/x-${r.id}`,

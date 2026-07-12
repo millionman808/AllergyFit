@@ -198,32 +198,61 @@ struct AuthView: View {
     }
 }
 
-/// Google's four-color "G", drawn so we don't need to bundle the brand asset.
+/// Google's four-color "G" — traced from the official 18×18 logo paths so it
+/// matches the real brand mark without bundling an image asset.
 struct GoogleGlyph: View {
     var body: some View {
-        GeometryReader { geo in
-            let s = min(geo.size.width, geo.size.height)
-            let lw = s * 0.22
-            ZStack {
-                Circle()
-                    .trim(from: 0.0, to: 0.25)
-                    .stroke(Color(hex: 0x4285F4), style: .init(lineWidth: lw))   // blue
-                Circle()
-                    .trim(from: 0.25, to: 0.5)
-                    .stroke(Color(hex: 0x34A853), style: .init(lineWidth: lw))   // green
-                Circle()
-                    .trim(from: 0.5, to: 0.75)
-                    .stroke(Color(hex: 0xFBBC05), style: .init(lineWidth: lw))   // yellow
-                Circle()
-                    .trim(from: 0.75, to: 1.0)
-                    .stroke(Color(hex: 0xEA4335), style: .init(lineWidth: lw))   // red
-                // The horizontal bar of the "G"
-                Rectangle()
-                    .fill(Color(hex: 0x4285F4))
-                    .frame(width: s * 0.5, height: lw)
-                    .offset(x: s * 0.25, y: 0)
-            }
-            .rotationEffect(.degrees(-45))
+        Canvas { context, size in
+            let s = min(size.width, size.height) / 18
+            func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: x * s, y: y * s) }
+
+            var blue = Path()
+            blue.move(to: p(17.64, 9.2045))
+            blue.addCurve(to: p(17.4764, 7.3636), control1: p(17.64, 8.5664), control2: p(17.5827, 7.9527))
+            blue.addLine(to: p(9, 7.3636))
+            blue.addLine(to: p(9, 10.845))
+            blue.addLine(to: p(13.8436, 10.845))
+            blue.addCurve(to: p(12.0477, 13.5614), control1: p(13.635, 11.97), control2: p(13.0009, 12.9232))
+            blue.addLine(to: p(12.0477, 15.8195))
+            blue.addLine(to: p(14.9564, 15.8195))
+            blue.addCurve(to: p(17.64, 9.2045), control1: p(16.6582, 14.2527), control2: p(17.64, 11.9455))
+            blue.closeSubpath()
+
+            var green = Path()
+            green.move(to: p(9, 18))
+            green.addCurve(to: p(14.9564, 15.8195), control1: p(11.43, 18), control2: p(13.4673, 17.1941))
+            green.addLine(to: p(12.0477, 13.5614))
+            green.addCurve(to: p(9, 14.4205), control1: p(11.2418, 14.1014), control2: p(10.2109, 14.4205))
+            green.addCurve(to: p(3.9641, 10.71), control1: p(6.6559, 14.4205), control2: p(4.6718, 12.8373))
+            green.addLine(to: p(0.9573, 10.71))
+            green.addLine(to: p(0.9573, 13.0418))
+            green.addCurve(to: p(9, 18), control1: p(2.4382, 15.9832), control2: p(5.4818, 18))
+            green.closeSubpath()
+
+            var yellow = Path()
+            yellow.move(to: p(3.9641, 10.71))
+            yellow.addCurve(to: p(3.6818, 9), control1: p(3.7841, 10.17), control2: p(3.6818, 9.5932))
+            yellow.addCurve(to: p(3.9641, 7.29), control1: p(3.6818, 8.4068), control2: p(3.7841, 7.83))
+            yellow.addLine(to: p(3.9641, 4.9582))
+            yellow.addLine(to: p(0.9573, 4.9582))
+            yellow.addCurve(to: p(0, 9), control1: p(0.3477, 6.1732), control2: p(0, 7.5477))
+            yellow.addCurve(to: p(0.9573, 13.0418), control1: p(0, 10.4523), control2: p(0.3477, 11.8268))
+            yellow.closeSubpath()
+
+            var red = Path()
+            red.move(to: p(9, 3.5795))
+            red.addCurve(to: p(12.4405, 4.9255), control1: p(10.3214, 3.5795), control2: p(11.5077, 4.0336))
+            red.addLine(to: p(15.0218, 2.3441))
+            red.addCurve(to: p(9, 0), control1: p(13.4632, 0.8918), control2: p(11.4259, 0))
+            red.addCurve(to: p(0.9573, 4.9582), control1: p(5.4818, 0), control2: p(2.4382, 2.0168))
+            red.addLine(to: p(3.9641, 7.29))
+            red.addCurve(to: p(9, 3.5795), control1: p(4.6718, 5.1627), control2: p(6.6559, 3.5795))
+            red.closeSubpath()
+
+            context.fill(blue, with: .color(Color(hex: 0x4285F4)))
+            context.fill(green, with: .color(Color(hex: 0x34A853)))
+            context.fill(yellow, with: .color(Color(hex: 0xFBBC05)))
+            context.fill(red, with: .color(Color(hex: 0xEA4335)))
         }
         .aspectRatio(1, contentMode: .fit)
     }

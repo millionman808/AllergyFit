@@ -219,6 +219,50 @@ async function searchAllrecipes(query: string, allergens: string[]): Promise<Rec
   );
 }
 
+// ---------- Search cache (repeat searches cost zero API points) ----------
+
+const CACHE_TTL_DAYS = 7;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+function cacheKey(query: string, allergens: string[]): string {
+  return `${query.trim().toLowerCase()}|${[...allergens].sort().join(",")}`;
+}
+
+async function cacheGet(key: string): Promise<RecipeResult[] | null> {
+  if (!SUPABASE_URL || !SERVICE_KEY) return null;
+  try {
+    const since = new Date(Date.now() - CACHE_TTL_DAYS * 86400_000).toISOString();
+    const url = `${SUPABASE_URL}/rest/v1/recipe_search_cache?key=eq.${encodeURIComponent(key)}&created_at=gte.${since}&select=results`;
+    const res = await fetch(url, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return rows?.[0]?.results ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function cachePut(key: string, query: string, allergens: string[], results: RecipeResult[]) {
+  if (!SUPABASE_URL || !SERVICE_KEY) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/recipe_search_cache`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({ key, query, allergens, results, created_at: new Date().toISOString() }),
+    });
+  } catch {
+    // cache write failures never break search
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
@@ -227,9 +271,17 @@ Deno.serve(async (req) => {
       return json({ error: "query required" }, 400);
     }
 
+    const key = cacheKey(query, allergens);
+    const cached = await cacheGet(key);
+    if (cached && cached.length > 0) {
+      return json({ results: cached, cached: true });
+    }
+
     let results: RecipeResult[] = [];
+    let fromSpoonacular = false;
     try {
       results = await searchSpoonacular(query, allergens);
+      fromSpoonacular = results.length > 0;
     } catch (_err) {
       // key missing/quota hit — fall through
     }
@@ -246,6 +298,12 @@ Deno.serve(async (req) => {
 
     // safe recipes first, flagged after
     results.sort((a, b) => a.flagged.length - b.flagged.length);
+
+    // Only cache full-quality (Spoonacular) results, so a quota-exhausted
+    // fallback response never poisons the cache for a week.
+    if (fromSpoonacular) {
+      await cachePut(key, query, allergens, results);
+    }
     return json({ results });
   } catch (err) {
     console.error(err);

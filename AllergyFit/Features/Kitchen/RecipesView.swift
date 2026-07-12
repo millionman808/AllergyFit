@@ -660,57 +660,20 @@ struct RecipeDetailView: View {
     @ViewBuilder
     private var nutritionFooter: some View {
         if !recipe.hasMacros && !recipe.ingredients.isEmpty {
+            // Auto-calc runs on open; this is just its progress/error state.
             if calculating {
                 HStack(spacing: 8) {
                     ProgressView().tint(Theme.Colors.volt)
-                    Text("Estimating from ingredients…")
+                    Text("Calculating nutrition…")
                         .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
                 }
-            } else {
-                Button { Task { await calculate() } } label: {
-                    Label("Calculate protein, carbs & fat", systemImage: "function")
-                        .font(Theme.Fonts.caption.weight(.semibold))
-                        .foregroundStyle(Theme.Colors.volt)
-                }
-            }
-            if let calcError {
-                Text(calcError).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.danger)
-            }
-        } else if let atw = recipe.atwaterCalories {
-            HStack(spacing: 6) {
-                if let cals = recipe.calories {
-                    let ok = abs(atw - cals) <= max(60, Int(Double(cals) * 0.15))
-                    Image(systemName: ok ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
-                        .font(.caption2)
-                        .foregroundStyle(ok ? Theme.Colors.safe : Theme.Colors.caution)
-                    Text("Macros add up to ≈\(atw) kcal vs \(cals) listed")
-                        .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
-                } else {
-                    Text("≈\(atw) kcal from these macros")
-                        .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
-                }
-            }
-            if justEstimated {
-                Text("Verified from your ingredients via USDA FoodData Central.")
+            } else if calcError != nil {
+                Text("Couldn't calculate nutrition for this recipe.")
                     .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
-            } else if !recipe.ingredients.isEmpty {
-                if calculating {
-                    HStack(spacing: 8) {
-                        ProgressView().tint(Theme.Colors.volt)
-                        Text("Verifying with USDA…")
-                            .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
-                    }
-                } else {
-                    Button { Task { await calculate(replaceCalories: true) } } label: {
-                        Label("Verify nutrition with USDA", systemImage: "checkmark.seal")
-                            .font(Theme.Fonts.caption.weight(.semibold))
-                            .foregroundStyle(Theme.Colors.volt)
-                    }
-                }
-                if let calcError {
-                    Text(calcError).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.danger)
-                }
             }
+        } else if justEstimated {
+            Text("Calculated from your ingredients via USDA FoodData Central.")
+                .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
         }
     }
 

@@ -155,6 +155,60 @@ async function searchSpoonacular(query: string, allergens: string[]): Promise<Re
   });
 }
 
+// ---------- Edamam (second full-size source, merged with Spoonacular) ----------
+
+const EDAMAM_APP_ID = Deno.env.get("EDAMAM_APP_ID");
+const EDAMAM_APP_KEY = Deno.env.get("EDAMAM_APP_KEY");
+const EDAMAM_HEALTH: Record<string, string> = {
+  peanut: "peanut-free", tree_nut: "tree-nut-free", dairy: "dairy-free",
+  egg: "egg-free", wheat: "wheat-free", gluten: "gluten-free", soy: "soy-free",
+  fish: "fish-free", shellfish: "shellfish-free", sesame: "sesame-free",
+  sulfite: "sulfite-free", celery: "celery-free", mustard: "mustard-free",
+};
+
+async function searchEdamam(query: string, allergens: string[]): Promise<RecipeResult[]> {
+  if (!EDAMAM_APP_ID || !EDAMAM_APP_KEY) return [];
+  const url = new URL("https://api.edamam.com/api/recipes/v2");
+  url.searchParams.set("type", "public");
+  url.searchParams.set("q", query);
+  url.searchParams.set("app_id", EDAMAM_APP_ID);
+  url.searchParams.set("app_key", EDAMAM_APP_KEY);
+  url.searchParams.set("field", "label");
+  for (const f of ["url", "image", "ingredientLines", "yield", "totalNutrients", "source"]) {
+    url.searchParams.append("field", f);
+  }
+  for (const slug of allergens) {
+    const h = EDAMAM_HEALTH[slug];
+    if (h) url.searchParams.append("health", h);
+  }
+  const res = await fetch(url, { headers: { "Edamam-Account-User": EDAMAM_APP_ID } });
+  if (!res.ok) throw new Error("edamam -> " + res.status);
+  const data = await res.json();
+  return ((data.hits ?? []) as Record<string, unknown>[]).slice(0, 12).map((hit) => {
+    const r = hit.recipe as Record<string, unknown>;
+    const servings = Math.max(1, Math.round((r.yield as number) || 1));
+    const nut = (r.totalNutrients ?? {}) as Record<string, { quantity?: number }>;
+    const per = (k: string) => {
+      const q = nut[k]?.quantity;
+      return q != null ? Math.round(q / servings) : null;
+    };
+    const ingredients = ((r.ingredientLines ?? []) as string[]).filter(Boolean);
+    return {
+      title: r.label as string,
+      url: (r.url as string) ?? "",
+      image: (r.image as string) ?? "",
+      calories: per("ENERC_KCAL"),
+      ingredients,
+      flagged: flagAllergens(ingredients, allergens),
+      directions: [],            // Edamam links out to the source recipe
+      protein: per("PROCNT"),
+      carbs: per("CHOCDF"),
+      fat: per("FAT"),
+      servings,
+    };
+  });
+}
+
 // TheMealDB fallback — free API, reliable from datacenter IPs.
 async function searchMealDb(query: string, allergens: string[]): Promise<RecipeResult[]> {
   const res = await fetch(
@@ -277,14 +331,25 @@ Deno.serve(async (req) => {
       return json({ results: cached, cached: true });
     }
 
+    // Query every configured full-size source at once and merge — more recipes
+    // per search. Each provider is independent (no key rotation).
+    const [spoon, edamam] = await Promise.all([
+      searchSpoonacular(query, allergens).catch(() => [] as RecipeResult[]),
+      searchEdamam(query, allergens).catch(() => [] as RecipeResult[]),
+    ]);
+
+    // Dedupe by normalized title (same recipe rarely appears in both, but guard).
+    const seen = new Set<string>();
     let results: RecipeResult[] = [];
-    let fromSpoonacular = false;
-    try {
-      results = await searchSpoonacular(query, allergens);
-      fromSpoonacular = results.length > 0;
-    } catch (_err) {
-      // key missing/quota hit — fall through
+    for (const r of [...spoon, ...edamam]) {
+      const k = r.title.trim().toLowerCase();
+      if (!k || seen.has(k)) continue;
+      seen.add(k);
+      results.push(r);
     }
+    const fromApi = results.length > 0;
+
+    // Only fall back to scraping/TheMealDB when the real APIs came up empty.
     if (results.length === 0) {
       try {
         results = await searchAllrecipes(query, allergens);
@@ -299,9 +364,9 @@ Deno.serve(async (req) => {
     // safe recipes first, flagged after
     results.sort((a, b) => a.flagged.length - b.flagged.length);
 
-    // Only cache full-quality (Spoonacular) results, so a quota-exhausted
-    // fallback response never poisons the cache for a week.
-    if (fromSpoonacular) {
+    // Only cache full-quality API results, so a quota-exhausted fallback
+    // response never poisons the cache for a week.
+    if (fromApi) {
       await cachePut(key, query, allergens, results);
     }
     return json({ results });

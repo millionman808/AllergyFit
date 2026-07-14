@@ -109,6 +109,7 @@ struct DayPlanView: View {
     @State private var regenerating: Set<MealSlot> = []
     @State private var phase: Phase = .loading
     @State private var errorMessage: String?
+    @State private var showConfetti = false
 
     enum Phase { case loading, ready, failed }
 
@@ -135,6 +136,10 @@ struct DayPlanView: View {
                     }
                     .padding(.horizontal, Theme.Metrics.screenPadding)
                     .padding(.vertical, 12)
+                }
+
+                if showConfetti {
+                    ConfettiView()
                 }
             }
             .navigationTitle("Plan \(PlanStore.dayNames[day])")
@@ -314,6 +319,10 @@ struct DayPlanView: View {
         }
         planStore.setDay(planned, day: day)
         Haptics.success()
-        dismiss()
+        showConfetti = true
+        Task {
+            try? await Task.sleep(nanoseconds: 1_400_000_000)
+            dismiss()
+        }
     }
 }

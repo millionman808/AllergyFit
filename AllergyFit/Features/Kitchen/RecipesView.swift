@@ -396,11 +396,28 @@ struct RecipesView: View {
                 Image(systemName: "heart")
                     .font(.system(size: 40))
                     .foregroundStyle(Theme.Colors.textTertiary)
-                Text("Recipes you save show up here")
+                Text("No saved recipes yet")
+                    .font(Theme.Fonts.headline)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Text("Tap the ♥ on any recipe to keep it here — or let Volt write one just for you.")
                     .font(Theme.Fonts.caption)
                     .foregroundStyle(Theme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+                Button {
+                    mode = 0
+                } label: {
+                    Text("Browse recipes")
+                        .font(Theme.Fonts.headline)
+                        .padding(.horizontal, 22)
+                        .frame(height: 44)
+                        .background(Theme.Colors.volt)
+                        .foregroundStyle(Theme.Colors.onVolt)
+                        .clipShape(Capsule())
+                }
+                .pressable()
+                .padding(.top, 4)
             }
-            .padding(.vertical, 50)
+            .padding(.vertical, 40)
         } else {
             ForEach(store.saved) { recipe in
                 RecipeCard(recipe: recipe, saved: true) {

@@ -4,7 +4,10 @@ import Supabase
 /// Loads and edits the signed-in user's profile. Demo mode uses in-memory values.
 @MainActor
 final class ProfileStore: ObservableObject {
-    @Published var displayName = ""
+    @Published var displayName = "" {
+        // Cached so the dashboard greeting can say "Good morning, Eli" (#25).
+        didSet { UserDefaults.standard.set(displayName, forKey: "displayName") }
+    }
     @Published var email: String?
     @Published var goal = "build"                 // cut | build | maintain
     @Published var age = 25

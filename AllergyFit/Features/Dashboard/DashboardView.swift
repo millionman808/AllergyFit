@@ -14,6 +14,7 @@ struct DashboardView: View {
                 Theme.Colors.background.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: Theme.Metrics.spacing) {
+                        greetingRow
                         safetyBanner
                         calorieCard
                         macroRow
@@ -45,6 +46,32 @@ struct DashboardView: View {
                 TrendsView(store: trends)
             }
         }
+    }
+
+    /// Time-aware personal greeting (#25 Delight).
+    private var greetingRow: some View {
+        HStack {
+            Text(greeting)
+                .font(Theme.Fonts.caption)
+                .foregroundStyle(Theme.Colors.textSecondary)
+            Spacer()
+        }
+        .padding(.top, 2)
+    }
+
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        let base: String
+        switch hour {
+        case 5..<12: base = "Good morning"
+        case 12..<17: base = "Good afternoon"
+        default: base = "Good evening"
+        }
+        let name = session.isDemo
+            ? MockData.userName
+            : (UserDefaults.standard.string(forKey: "displayName") ?? "")
+        let first = name.split(separator: " ").first.map(String.init) ?? ""
+        return first.isEmpty ? "\(base) — let's eat safe today" : "\(base), \(first) — let's eat safe today"
     }
 
     private func undoSnackbar(_ meal: TodayMeal) -> some View {

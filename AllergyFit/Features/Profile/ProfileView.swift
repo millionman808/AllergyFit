@@ -226,19 +226,37 @@ struct ProfileView: View {
 
     // MARK: Settings rows
 
+    /// Settings chunked into labeled groups (#24) — spacing over borders (#18).
     private var settingsRows: some View {
-        VStack(spacing: 2) {
-            NavigationLink(value: "labscan") { settingsRow("Scan blood test results", "doc.text.viewfinder") }
-            appearanceRow
-            Button { showGoals = true } label: { settingsRow("Goals & targets", "target") }
-            Button { showDietary = true } label: { settingsRow("Dietary preferences", "leaf.fill") }
-            NavigationLink(value: "notifications") { settingsRow("Notifications", "bell.fill") }
-            healthRow
-            Button { exportReport() } label: { settingsRow("Export for your allergist", "square.and.arrow.up.fill") }
-            NavigationLink(value: "subscription") { settingsRow("Manage subscription", "crown.fill") }
+        VStack(alignment: .leading, spacing: Theme.Metrics.spacing) {
+            settingsGroup("Health") {
+                NavigationLink(value: "labscan") { settingsRow("Scan blood test results", "doc.text.viewfinder") }
+                healthRow
+                Button { exportReport() } label: { settingsRow("Export for your allergist", "square.and.arrow.up.fill") }
+            }
+            settingsGroup("Nutrition") {
+                Button { showGoals = true } label: { settingsRow("Goals & targets", "target") }
+                Button { showDietary = true } label: { settingsRow("Dietary preferences", "leaf.fill") }
+            }
+            settingsGroup("App") {
+                appearanceRow
+                NavigationLink(value: "notifications") { settingsRow("Notifications", "bell.fill") }
+                NavigationLink(value: "subscription") { settingsRow("Manage subscription", "crown.fill") }
+            }
         }
-        .background(Theme.Colors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous))
+    }
+
+    private func settingsGroup<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title.uppercased())
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(Theme.Colors.textTertiary)
+                .padding(.leading, 6)
+            VStack(spacing: 2, content: content)
+                .background(Theme.Colors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous))
+        }
+        .padding(.top, 4)
     }
 
     private var healthRow: some View {

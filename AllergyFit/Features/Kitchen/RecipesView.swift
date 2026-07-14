@@ -225,13 +225,9 @@ struct RecipesView: View {
                 filterRow
 
                 if store.isSearching {
-                    VStack(spacing: 12) {
-                        ProgressView().tint(Theme.Colors.volt)
-                        Text("Finding recipes safe for you…")
-                            .font(Theme.Fonts.caption)
-                            .foregroundStyle(Theme.Colors.textSecondary)
+                    VStack(spacing: Theme.Metrics.spacing) {
+                        ForEach(0..<4, id: \.self) { _ in SkeletonRecipeCard() }
                     }
-                    .padding(.vertical, 60)
                 } else if mode == 1 {
                     savedList
                 } else {

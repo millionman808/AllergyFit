@@ -11,6 +11,7 @@
 		0C2AD9806B993977C21F04AE /* ProfileSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */; };
 		0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 288435BEE80ED02056790322 /* LogView.swift */; };
 		0E69B9D03E02968533C62DFC /* KitchenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */; };
+		1B38CFAB4165A5C14EF11E83 /* Skeleton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328186B207C708F97059BB8F /* Skeleton.swift */; };
 		27360A1A1A3C55C2F8D052EF /* PurchasesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */; };
 		2BC10D6940F27F748FF1E61C /* DayPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC8C220F0DF2B9C47CBF7DD /* DayPlanView.swift */; };
 		3056E89959AC282A2DF57D3E /* RecipeNutritionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C50E9A26E5B9682FDB837B /* RecipeNutritionService.swift */; };
@@ -63,6 +64,7 @@
 		25739FFCCB4C82B4E1BA28DA /* Sensitivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sensitivity.swift; sourceTree = "<group>"; };
 		288435BEE80ED02056790322 /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		2DEF73895F654D9DEAFDA4DB /* RecipeGenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGenService.swift; sourceTree = "<group>"; };
+		328186B207C708F97059BB8F /* Skeleton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skeleton.swift; sourceTree = "<group>"; };
 		3B5C81476BF4CBA13F79BA83 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
 		3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIMealLogView.swift; sourceTree = "<group>"; };
 		41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSheets.swift; sourceTree = "<group>"; };
@@ -279,6 +281,7 @@
 		D71C271D66AF028E70C840BB /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
+				328186B207C708F97059BB8F /* Skeleton.swift */,
 				9DAB4D05FE16724A93EEF2FE /* Theme.swift */,
 			);
 			path = DesignSystem;
@@ -406,6 +409,7 @@
 				95E9C3B6B75156D02F97021F /* RootView.swift in Sources */,
 				6C8341B7CC36C859EA6ED4A4 /* Sensitivity.swift in Sources */,
 				CC483688F69F37C1C2DFE555 /* SessionStore.swift in Sources */,
+				1B38CFAB4165A5C14EF11E83 /* Skeleton.swift in Sources */,
 				01F35C772624406092C554F5 /* SupabaseClient.swift in Sources */,
 				C99086EB3F6DBD5E9F838B64 /* TargetsCalc.swift in Sources */,
 				A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */,

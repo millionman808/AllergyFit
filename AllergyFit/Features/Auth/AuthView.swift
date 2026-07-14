@@ -56,6 +56,7 @@ struct AuthView: View {
                         .background(Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
+                    .pressable()
                     .disabled(isBusy)
                     .opacity(isBusy ? 0.6 : 1)
 
@@ -87,6 +88,7 @@ struct AuthView: View {
                             .foregroundStyle(Theme.Colors.onVolt)
                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
+                    .pressable()
                     .disabled(isBusy || email.isEmpty || password.isEmpty)
                     .opacity(isBusy ? 0.6 : 1)
 

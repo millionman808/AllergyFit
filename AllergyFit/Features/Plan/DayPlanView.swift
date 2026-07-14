@@ -272,6 +272,7 @@ struct DayPlanView: View {
                 .foregroundStyle(Theme.Colors.onVolt)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
+        .pressable()
         .padding(.top, 4)
     }
 
@@ -312,6 +313,7 @@ struct DayPlanView: View {
             return PlannedMeal(id: UUID(), day: day, recipe: recipe.asRecipe(flagged: flags), mealType: slot.title)
         }
         planStore.setDay(planned, day: day)
+        Haptics.success()
         dismiss()
     }
 }

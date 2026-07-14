@@ -31,6 +31,7 @@
 		9976C58153C1C451F1895485 /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 185FD671A9C3E4B68037D2A8 /* TrendsView.swift */; };
 		9CFFEF6F3A066A304D0F9DC1 /* HealthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62AF4EC9F170CBFD837F5677 /* HealthManager.swift */; };
 		A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DAB4D05FE16724A93EEF2FE /* Theme.swift */; };
+		A472F5802CA033B55A7B1E0C /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F12C9AFA9A9B34DB6B5EC4D /* Haptics.swift */; };
 		A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */; };
 		B1E2CB180B0E64154364515D /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 5721EC0D9A2599DDB87B397C /* GoogleSignIn */; };
 		BAE85554D15597AD58224A29 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 71A272564201D4B8EE1BC16C /* Assets.xcassets */; };
@@ -76,6 +77,7 @@
 		62AF4EC9F170CBFD837F5677 /* HealthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthManager.swift; sourceTree = "<group>"; };
 		62BF64A56EBFEB046681A669 /* LogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogService.swift; sourceTree = "<group>"; };
 		657934F1F4717B05B3594FE8 /* TargetsCalc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetsCalc.swift; sourceTree = "<group>"; };
+		6F12C9AFA9A9B34DB6B5EC4D /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		71A272564201D4B8EE1BC16C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		792FDCDB66B7E209DB4D5832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AllergyFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -116,6 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */,
+				6F12C9AFA9A9B34DB6B5EC4D /* Haptics.swift */,
 				62AF4EC9F170CBFD837F5677 /* HealthManager.swift */,
 				A97EAF00C421B8C1D38B8C78 /* MockData.swift */,
 				5A697D7A190C05DE6A62107E /* Models.swift */,
@@ -379,6 +382,7 @@
 				366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */,
 				E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */,
 				2BC10D6940F27F748FF1E61C /* DayPlanView.swift in Sources */,
+				A472F5802CA033B55A7B1E0C /* Haptics.swift in Sources */,
 				9CFFEF6F3A066A304D0F9DC1 /* HealthManager.swift in Sources */,
 				838DB15D4DDE4CBAD02C854F /* InsightsStore.swift in Sources */,
 				FE3EF2AECF196D5456035554 /* InsightsView.swift in Sources */,

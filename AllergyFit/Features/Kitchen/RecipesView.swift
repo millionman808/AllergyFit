@@ -103,6 +103,7 @@ final class RecipeStore: ObservableObject {
 
     func toggleSave(_ recipe: Recipe) {
         if isSaved(recipe) {
+            Haptics.tap()
             saved.removeAll { $0.url == recipe.url }
             persistLocal()
             if !isDemo, userId != nil {
@@ -114,6 +115,7 @@ final class RecipeStore: ObservableObject {
                 }
             }
         } else {
+            Haptics.success()
             saved.insert(recipe, at: 0)
             persistLocal()
             if !isDemo, let userId {
@@ -625,6 +627,7 @@ struct RecipeDetailView: View {
                                     .foregroundStyle(Theme.Colors.onVolt)
                                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                             }
+                            .pressable()
                             if !recipe.url.hasPrefix("ai://"), let url = URL(string: recipe.url) {
                                 Link(destination: url) {
                                     Image(systemName: "safari")

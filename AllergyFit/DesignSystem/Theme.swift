@@ -85,3 +85,19 @@ struct CardBackground: ViewModifier {
 extension View {
     func card() -> some View { modifier(CardBackground()) }
 }
+
+// MARK: - Press microinteraction (#23)
+/// Subtle shrink on tap so every button feels alive. ~200ms, springy.
+struct PressableButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.9 : 1)
+            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
+    }
+}
+
+extension View {
+    /// Apply the springy press animation to a primary button.
+    func pressable() -> some View { buttonStyle(PressableButtonStyle()) }
+}

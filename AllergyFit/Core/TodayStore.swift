@@ -18,6 +18,10 @@ final class TodayStore: ObservableObject {
     /// logging, if they've never logged a reaction).
     @Published var reactionFreeStreak = 0
     @Published var hasReactionHistory = false
+    /// A meal pending permanent deletion — drives the Undo snackbar.
+    @Published var recentlyDeleted: TodayMeal?
+    private var deletedIndex: Int?
+    private var deleteCommit: Task<Void, Never>?
 
     private var isDemo = false
     private var userId: UUID?
@@ -181,7 +185,9 @@ final class TodayStore: ObservableObject {
     // MARK: - Mutations
 
     func setWater(_ glasses: Int) {
-        waterGlasses = max(0, min(waterGoal, glasses))
+        let clamped = max(0, min(waterGoal, glasses))
+        if clamped != waterGlasses { Haptics.tap() }
+        waterGlasses = clamped
         guard !isDemo, let userId else { return }
         let record = DailyMetricsRecord(userId: userId, date: Self.todayString(),
                                         waterMl: waterGlasses * 250, isTrainingDay: isTrainingDay)
@@ -206,6 +212,7 @@ final class TodayStore: ObservableObject {
         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
             meals.append(meal)
         }
+        Haptics.success()
         guard !isDemo, let userId else { return }
         let record = MealLogRecord(id: meal.id, userId: userId, eatenAt: Date(), mealType: dbType,
                                    name: name, calories: calories, proteinG: Double(protein),
@@ -219,15 +226,41 @@ final class TodayStore: ObservableObject {
         }
     }
 
+    /// Forgiving delete (#9): remove immediately + show an Undo window; the DB
+    /// delete only commits after a few seconds unless the user taps Undo.
     func deleteMeal(_ meal: TodayMeal) {
-        withAnimation { meals.removeAll { $0.id == meal.id } }
+        guard let idx = meals.firstIndex(where: { $0.id == meal.id }) else { return }
+        deletedIndex = idx
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+            recentlyDeleted = meal
+            meals.remove(at: idx)
+        }
+        Haptics.tap()
+        deleteCommit?.cancel()
+        deleteCommit = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 4_500_000_000)
+            guard let self, !Task.isCancelled else { return }
+            await self.commitDelete(meal)
+        }
+    }
+
+    func undoDelete() {
+        guard let meal = recentlyDeleted else { return }
+        deleteCommit?.cancel()
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+            meals.insert(meal, at: min(deletedIndex ?? meals.count, meals.count))
+            recentlyDeleted = nil
+        }
+        Haptics.tap()
+    }
+
+    private func commitDelete(_ meal: TodayMeal) async {
+        withAnimation { recentlyDeleted = nil }
         guard !isDemo else { return }
-        Task {
-            do {
-                try await Backend.client.from("meal_logs").delete().eq("id", value: meal.id).execute()
-            } catch {
-                print("meal delete failed: \(error)")
-            }
+        do {
+            try await Backend.client.from("meal_logs").delete().eq("id", value: meal.id).execute()
+        } catch {
+            print("meal delete failed: \(error)")
         }
     }
 

@@ -26,6 +26,10 @@ struct DashboardView: View {
                     .padding(.bottom, 24)
                 }
                 .refreshable { await store.refresh() }
+
+                if let deleted = store.recentlyDeleted {
+                    undoSnackbar(deleted)
+                }
             }
             .navigationTitle("Today")
             .onAppear {
@@ -41,6 +45,32 @@ struct DashboardView: View {
                 TrendsView(store: trends)
             }
         }
+    }
+
+    private func undoSnackbar(_ meal: TodayMeal) -> some View {
+        VStack {
+            Spacer()
+            HStack(spacing: 12) {
+                Text("Removed \(meal.name)")
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .lineLimit(1)
+                Spacer()
+                Button { store.undoDelete() } label: {
+                    Text("Undo")
+                        .font(Theme.Fonts.caption.weight(.bold))
+                        .foregroundStyle(Theme.Colors.volt)
+                }
+                .pressable()
+            }
+            .padding(.horizontal, 16).padding(.vertical, 12)
+            .background(Theme.Colors.surface, in: Capsule())
+            .overlay(Capsule().stroke(Theme.Colors.surfaceRaised, lineWidth: 0.5))
+            .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
+            .padding(.horizontal, Theme.Metrics.screenPadding)
+            .padding(.bottom, 12)
+        }
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
     private var safetyBanner: some View {

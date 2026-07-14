@@ -21,6 +21,7 @@ struct ProfileView: View {
                 ScrollView {
                     VStack(spacing: Theme.Metrics.spacing) {
                         headerCard
+                        completionCard
                         allergenCard
                         goalsCard
                         settingsRows
@@ -69,6 +70,89 @@ struct ProfileView: View {
             Spacer()
         }
         .card()
+    }
+
+    // MARK: Profile completeness (#11 progress, #12 goal gradient)
+
+    private struct ChecklistItem: Identifiable {
+        let id = UUID()
+        let label: String
+        let done: Bool
+        let action: (() -> Void)?
+    }
+
+    private var checklist: [ChecklistItem] {
+        [
+            ChecklistItem(label: "Create your account", done: true, action: nil),
+            ChecklistItem(label: "Set your allergy triggers", done: !session.allergenSlugs.isEmpty,
+                          action: { showTriggers = true }),
+            ChecklistItem(label: "Set goals & targets", done: store.targetCalories > 0,
+                          action: { showGoals = true }),
+            ChecklistItem(label: "Connect Apple Health", done: health.connected,
+                          action: { Task { await health.connect() } }),
+        ]
+    }
+
+    private var completion: Double {
+        let done = checklist.filter(\.done).count
+        return Double(done) / Double(checklist.count)
+    }
+
+    @ViewBuilder
+    private var completionCard: some View {
+        if completion < 1 {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 14) {
+                    ZStack {
+                        Circle().stroke(Theme.Colors.surfaceRaised, lineWidth: 6)
+                        Circle().trim(from: 0, to: completion)
+                            .stroke(Theme.Colors.volt, style: .init(lineWidth: 6, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                            .animation(.spring(response: 0.5), value: completion)
+                        Text("\(Int(completion * 100))%")
+                            .font(Theme.Fonts.stat(15))
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                    }
+                    .frame(width: 56, height: 56)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Finish your profile")
+                            .font(Theme.Fonts.headline)
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                        Text("A little more unlocks sharper targets and safer recipes.")
+                            .font(Theme.Fonts.caption)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                VStack(spacing: 8) {
+                    ForEach(checklist) { item in
+                        if let action = item.action, !item.done {
+                            Button(action: action) { checklistRow(item) }.pressable()
+                        } else {
+                            checklistRow(item)
+                        }
+                    }
+                }
+            }
+            .card()
+        }
+    }
+
+    private func checklistRow(_ item: ChecklistItem) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: item.done ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(item.done ? Theme.Colors.safe : Theme.Colors.textTertiary)
+            Text(item.label)
+                .font(Theme.Fonts.body)
+                .foregroundStyle(item.done ? Theme.Colors.textSecondary : Theme.Colors.textPrimary)
+                .strikethrough(item.done, color: Theme.Colors.textTertiary)
+            Spacer()
+            if !item.done && item.action != nil {
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(Theme.Colors.textTertiary)
+            }
+        }
     }
 
     private var displayName: String {

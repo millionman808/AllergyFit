@@ -36,7 +36,7 @@ struct DemoGroceryItem: Identifiable {
 
 enum MockData {
     static let userName = "Eli"
-    static let allergens = ["Peanut", "Dairy", "Sesame"]
+    static let allergens = ["Milk / Dairy", "Peanut", "Sesame"]
 
     static let todayMeals: [DemoMeal] = [
         .init(name: "Oat & Blueberry Bowl", mealType: "Breakfast", time: "7:20 AM", calories: 420, protein: 22, carbs: 58, fat: 12, icon: "cup.and.saucer.fill"),

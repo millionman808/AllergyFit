@@ -188,8 +188,9 @@ struct ProfileView: View {
                             Image(systemName: sev.icon).font(.caption2)
                             Text(AllergenCatalog.nameBySlug[slug] ?? slug)
                                 .font(Theme.Fonts.caption).lineLimit(1).minimumScaleFactor(0.8)
-                            Text(sev.short)
+                            Text(sev.label)
                                 .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                .lineLimit(1).minimumScaleFactor(0.7)
                                 .opacity(0.85)
                         }
                         .foregroundStyle(sev.color)

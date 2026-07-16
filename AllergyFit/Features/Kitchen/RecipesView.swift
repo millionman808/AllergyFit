@@ -214,7 +214,7 @@ struct RecipesView: View {
 
     private var allergenSlugs: [String] { session.allergenSlugs }
     private var allergenNames: [String] {
-        session.allergenSlugs.map { $0.replacingOccurrences(of: "_", with: " ").capitalized }
+        AllergenCatalog.names(for: session.allergenSlugs).sorted()
     }
 
     var body: some View {

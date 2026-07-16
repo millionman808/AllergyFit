@@ -368,7 +368,7 @@ struct PlanView: View {
         } label: {
             HStack {
                 Image(systemName: "cart.fill")
-                Text(count > 0 ? "Grocery list · \(count) items" : "Grocery list")
+                Text(count > 0 ? "This week's list · \(count) items" : "Grocery list")
                     .font(Theme.Fonts.headline)
             }
             .frame(maxWidth: .infinity)

@@ -1,5 +1,7 @@
 import SwiftUI
 import Supabase
+import PhotosUI
+import UIKit
 
 /// AI meal logger: describe what you ate → Claude parses → USDA nutrition
 /// → allergens + confidence → editable ingredients → save to the daily log.
@@ -21,6 +23,7 @@ struct AIMealLogView: View {
     @State private var loadingIndex = 0
     @State private var editingItem: AnalyzedItem?
     @State private var swappingItemId: Int?
+    @State private var photoItem: PhotosPickerItem?
 
     private var allergenSlugs: [String] { session.allergenSlugs }
 
@@ -65,6 +68,10 @@ struct AIMealLogView: View {
                 phase = .result
             }
         }
+        .onChange(of: photoItem) { item in
+            guard let item else { return }
+            analyzePhoto(item)
+        }
     }
 
     // MARK: - Input
@@ -74,6 +81,38 @@ struct AIMealLogView: View {
             Text("What did you eat?")
                 .font(Theme.Fonts.title)
                 .foregroundStyle(Theme.Colors.textPrimary)
+
+            // Photo is the fastest path (#1 friction reducer).
+            PhotosPicker(selection: $photoItem, matching: .images) {
+                VStack(spacing: 8) {
+                    Image(systemName: "camera.fill")
+                        .font(.title2)
+                        .foregroundStyle(Theme.Colors.onVolt)
+                        .frame(width: 46, height: 46)
+                        .background(Theme.Colors.volt, in: Circle())
+                    Text("Snap a photo of your meal")
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text("Macros from USDA + an instant safe / not-safe check for your allergies")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 22)
+                .background(Theme.Colors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Theme.Colors.volt.opacity(0.35), style: .init(lineWidth: 1.5, dash: [6, 5])))
+            }
+            .buttonStyle(.plain)
+
+            HStack(spacing: 10) {
+                Rectangle().fill(Theme.Colors.surfaceRaised).frame(height: 1)
+                Text("or type it").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
+                Rectangle().fill(Theme.Colors.surfaceRaised).frame(height: 1)
+            }
+            .padding(.vertical, 2)
 
             ZStack(alignment: .topLeading) {
                 if mealText.isEmpty {
@@ -479,25 +518,60 @@ struct AIMealLogView: View {
         Task {
             do {
                 let response = try await AIMealService.analyze(messages: conversation, allergens: allergenSlugs)
-                withAnimation {
-                    if response.needsClarification, let qs = response.questions, !qs.isEmpty {
-                        questions = qs
-                        phase = .clarifying
-                    } else if let analyzed = response.meal {
-                        meal = analyzed
-                        phase = .result
-                    } else {
-                        errorMessage = "I'm not confident I understood your meal. Could you describe it with a little more detail?"
-                        phase = .input
-                    }
-                }
+                applyResponse(response)
             } catch {
-                withAnimation {
-                    errorMessage = error.localizedDescription
-                    phase = .input
-                }
+                withAnimation { errorMessage = error.localizedDescription; phase = .input }
             }
         }
+    }
+
+    /// Snap → Claude reads the food + portions → USDA macros → allergen verdict.
+    private func analyzePhoto(_ item: PhotosPickerItem) {
+        errorMessage = nil
+        conversation = []
+        withAnimation { phase = .loading }
+        Task {
+            do {
+                guard let data = try await item.loadTransferable(type: Data.self),
+                      let uiImage = UIImage(data: data),
+                      let jpeg = resizedJPEG(uiImage, maxDimension: 1024) else {
+                    throw NSError(domain: "MealPhoto", code: 1,
+                                  userInfo: [NSLocalizedDescriptionKey: "Couldn't read that photo. Try another."])
+                }
+                let response = try await AIMealService.analyze(
+                    messages: [], allergens: allergenSlugs,
+                    imageBase64: jpeg.base64EncodedString(), mediaType: "image/jpeg")
+                photoItem = nil
+                applyResponse(response)
+            } catch {
+                withAnimation { errorMessage = error.localizedDescription; phase = .input }
+                photoItem = nil
+            }
+        }
+    }
+
+    private func applyResponse(_ response: AnalyzeMealResponse) {
+        withAnimation {
+            if response.needsClarification, let qs = response.questions, !qs.isEmpty {
+                questions = qs
+                phase = .clarifying
+            } else if let analyzed = response.meal {
+                meal = analyzed
+                phase = .result
+                Haptics.success()
+            } else {
+                errorMessage = "I couldn't quite read that meal. Try again, or type what you ate."
+                phase = .input
+            }
+        }
+    }
+
+    private func resizedJPEG(_ image: UIImage, maxDimension: CGFloat) -> Data? {
+        let largest = max(image.size.width, image.size.height)
+        let scale = largest > maxDimension ? maxDimension / largest : 1
+        let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        let resized = UIGraphicsImageRenderer(size: size).image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
+        return resized.jpegData(compressionQuality: 0.6)
     }
 
     private func applyEdit(_ updated: AnalyzedItem, original: AnalyzedItem) {

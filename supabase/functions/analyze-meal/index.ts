@@ -62,6 +62,13 @@ For every item return: food name, quantity, measurement unit, preparation method
 
 This is an automated best-effort estimate. Do NOT ask clarifying questions — ALWAYS set needs_clarification=false. When an amount is ambiguous, assume the most common cooking default (e.g. "1 chicken" ≈ one whole 1.4 kg chicken, "1 onion" ≈ 1 medium ~110 g, "oil" with no amount ≈ 1 tbsp, "salt to taste" ≈ a small pinch). Estimate reasonable standard amounts and proceed.`;
 
+// Photo mode: read a meal from an image and estimate portions from visual cues.
+const PARSE_SYSTEM_PHOTO = `You are an expert at identifying food from photographs.
+
+Extract every distinct food and drink you can see in the image. For each, estimate the portion — a size class (small/medium/large), a count, or grams — from visual cues like plate size, utensils, and typical servings. Note preparation you can see (grilled, fried, breaded). Watch for likely hidden ingredients that matter for allergies (butter, cheese, dressing, breading, sauces) and include them when clearly present.
+
+Do NOT ask clarifying questions — ALWAYS set needs_clarification=false. Give your best visual estimate and proceed. Return the same foods array format.`;
+
 // ---------- Claude call 2: match + portions + allergens (nutrition comes from DB) ----------
 
 const COMPOSE_SCHEMA = {
@@ -157,25 +164,39 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
-    const { messages, allergens = [], estimate_only = false } = await req.json();
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return json({ error: "messages array required" }, 400);
+    const { messages = [], allergens = [], estimate_only = false,
+            image_base64, media_type } = await req.json();
+    const isPhoto = typeof image_base64 === "string" && image_base64.length > 0;
+    if (!isPhoto && (!Array.isArray(messages) || messages.length === 0)) {
+      return json({ error: "messages array or image required" }, 400);
     }
+
+    // Photo: build a vision message; otherwise use the text conversation.
+    const parseMessages = isPhoto
+      ? [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: media_type ?? "image/jpeg", data: image_base64 } },
+            { type: "text", text: "Identify every food and drink in this photo of a meal and estimate each portion." },
+          ],
+        }]
+      : messages;
+    const parseSystem = isPhoto ? PARSE_SYSTEM_PHOTO : (estimate_only ? PARSE_SYSTEM_ESTIMATE : PARSE_SYSTEM);
 
     // --- Stage 1: parse the meal (no nutrition) ---
     const parseResp = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 4096,
-      system: estimate_only ? PARSE_SYSTEM_ESTIMATE : PARSE_SYSTEM,
-      messages,
+      system: parseSystem,
+      messages: parseMessages,
       output_config: { format: { type: "json_schema", schema: PARSE_SCHEMA } },
     });
     const parsed = extractJson(parseResp) as {
       needs_clarification: boolean; questions: string[]; foods: ParsedFood[];
     };
 
-    // Recipe estimate mode never bounces back with questions.
-    if (!estimate_only && parsed.needs_clarification && parsed.questions.length > 0) {
+    // Recipe-estimate and photo modes never bounce back with questions.
+    if (!estimate_only && !isPhoto && parsed.needs_clarification && parsed.questions.length > 0) {
       return json({ needs_clarification: true, questions: parsed.questions });
     }
     if (parsed.foods.length === 0) {

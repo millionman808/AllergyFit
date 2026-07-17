@@ -17,6 +17,13 @@ final class SessionStore: ObservableObject {
     @Published var backendError = false
 
     private let cachedOnboardedKey = "cachedOnboarded"
+    fileprivate static let cachedAllergenSlugsKey = "cachedAllergenSlugs"
+
+    /// Last known trigger slugs, readable outside the app's UI (e.g. the Siri
+    /// intent, which runs without a live SessionStore).
+    nonisolated static var cachedAllergenSlugs: [String] {
+        UserDefaults.standard.stringArray(forKey: cachedAllergenSlugsKey) ?? []
+    }
     /// Allergen slugs powering recipes, meal analysis, and swaps.
     /// Demo default matches the mock profile; replaced by DB values on sign-in.
     @Published var allergenSlugs: [String] = ["peanut", "dairy", "sesame"]
@@ -121,7 +128,11 @@ final class SessionStore: ObservableObject {
                 .execute().value
             let idToSlug = Dictionary(uniqueKeysWithValues: known.map { ($0.id, $0.slug) })
             let slugs = mine.compactMap { $0.allergenId.flatMap { idToSlug[$0] } }
-            if !slugs.isEmpty { allergenSlugs = slugs }
+            if !slugs.isEmpty {
+                allergenSlugs = slugs
+                // Cached so the Siri intent can check triggers without a session load.
+                UserDefaults.standard.set(slugs, forKey: Self.cachedAllergenSlugsKey)
+            }
             var sevMap: [String: Sensitivity] = [:]
             for row in mine {
                 if let id = row.allergenId, let slug = idToSlug[id] {

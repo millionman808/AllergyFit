@@ -43,7 +43,10 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.elischafer.allergyfit
         MARKETING_VERSION: 0.1.0
         CURRENT_PROJECT_VERSION: 1
+        DEVELOPMENT_TEAM: KLD3ENRH42
         GENERATE_INFOPLIST_FILE: true
+        # Siri needs a usage string before it will run the "Log a Meal" intent.
+        INFOPLIST_KEY_NSSiriUsageDescription: AllergyFit uses Siri so you can log a meal by voice and hear whether it's safe for your allergies.
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_UILaunchScreen_Generation: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait

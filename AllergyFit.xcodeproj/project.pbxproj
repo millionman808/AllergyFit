@@ -38,6 +38,7 @@
 		A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DAB4D05FE16724A93EEF2FE /* Theme.swift */; };
 		A472F5802CA033B55A7B1E0C /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F12C9AFA9A9B34DB6B5EC4D /* Haptics.swift */; };
 		A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */; };
+		AAB5062C9AE38F124135344A /* LogMealIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2E73B96C8E73278AE0554A /* LogMealIntent.swift */; };
 		B1E2CB180B0E64154364515D /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 5721EC0D9A2599DDB87B397C /* GoogleSignIn */; };
 		BAE85554D15597AD58224A29 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 71A272564201D4B8EE1BC16C /* Assets.xcassets */; };
 		BE6FAD4E24A404232EFF037D /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97EAF00C421B8C1D38B8C78 /* MockData.swift */; };
@@ -62,6 +63,7 @@
 		185FD671A9C3E4B68037D2A8 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
 		1AC8C220F0DF2B9C47CBF7DD /* DayPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayPlanView.swift; sourceTree = "<group>"; };
 		1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergyFitApp.swift; sourceTree = "<group>"; };
+		1E2E73B96C8E73278AE0554A /* LogMealIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMealIntent.swift; sourceTree = "<group>"; };
 		200FA7100116F8B798CEBA44 /* BarcodeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeService.swift; sourceTree = "<group>"; };
 		21C23F92E8134BABAEA6365A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		256B3452AAC3E00918051DEE /* BarcodeScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerView.swift; sourceTree = "<group>"; };
@@ -219,6 +221,7 @@
 				CF49210443EB801A592920C3 /* Barcode */,
 				A5D667CC2E6E0DD5EA75F849 /* Dashboard */,
 				473FBEBC701C9DFE8D16D4F1 /* Insights */,
+				D392E97FDE823A1A953C56EE /* Intents */,
 				159C8CE4F5200EEFA04427C9 /* Kitchen */,
 				C715171B69B04C06EA361F38 /* Log */,
 				F6AA27EE44E954A6166BA765 /* Onboarding */,
@@ -287,6 +290,14 @@
 			path = Barcode;
 			sourceTree = "<group>";
 		};
+		D392E97FDE823A1A953C56EE /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+				1E2E73B96C8E73278AE0554A /* LogMealIntent.swift */,
+			);
+			path = Intents;
+			sourceTree = "<group>";
+		};
 		D71C271D66AF028E70C840BB /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
@@ -342,6 +353,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					DFBAC28DD20901260703364D = {
+						DevelopmentTeam = KLD3ENRH42;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -404,6 +416,7 @@
 				FE3EF2AECF196D5456035554 /* InsightsView.swift in Sources */,
 				0E69B9D03E02968533C62DFC /* KitchenView.swift in Sources */,
 				F6004B03FC572963AED80E6C /* LabScanView.swift in Sources */,
+				AAB5062C9AE38F124135344A /* LogMealIntent.swift in Sources */,
 				53D64F44D171D1360884DF86 /* LogService.swift in Sources */,
 				0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */,
 				BE6FAD4E24A404232EFF037D /* MockData.swift in Sources */,
@@ -445,6 +458,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = AllergyFit/Resources/Info.plist;
@@ -453,6 +467,7 @@
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "AllergyFit reads your workouts and active energy to tune your daily nutrition targets on training days.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "AllergyFit uses your photos to read blood allergy test results you choose to scan.";
+				INFOPLIST_KEY_NSSiriUsageDescription = "AllergyFit uses Siri so you can log a meal by voice and hear whether it's safe for your allergies.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -594,6 +609,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = AllergyFit/Resources/Info.plist;
@@ -602,6 +618,7 @@
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "AllergyFit reads your workouts and active energy to tune your daily nutrition targets on training days.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "AllergyFit uses your photos to read blood allergy test results you choose to scan.";
+				INFOPLIST_KEY_NSSiriUsageDescription = "AllergyFit uses Siri so you can log a meal by voice and hear whether it's safe for your allergies.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (

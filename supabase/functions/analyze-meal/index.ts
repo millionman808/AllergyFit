@@ -160,10 +160,63 @@ function extractJson(msg: Anthropic.Message): unknown {
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
+// ---------- AI rate limiting + kill switch ----------
+// Usage counts and the switch live server-side and are written ONLY by this
+// (service-role) code, so the app can never raise its own limits.
+const RL_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const RL_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const RL_DEFAULT_LIMIT = Number(Deno.env.get("DAILY_AI_LIMIT") ?? "50");
+
+function rlUserId(auth: string | null): string | null {
+  if (!auth) return null;
+  const parts = auth.replace(/^Bearer\s+/i, "").split(".");
+  if (parts.length < 2) return null;
+  try {
+    return JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/"))).sub ?? null;
+  } catch { return null; }
+}
+
+type RLResult = { ok: true } | { ok: false; status: number; message: string };
+
+async function enforceAiLimit(auth: string | null): Promise<RLResult> {
+  if (!RL_URL || !RL_KEY) return { ok: true };            // not configured → fail open
+  const userId = rlUserId(auth);
+  if (!userId) return { ok: false, status: 401, message: "Please sign in to use AI features." };
+  const h = { apikey: RL_KEY, Authorization: `Bearer ${RL_KEY}`, "Content-Type": "application/json" };
+
+  let limit = RL_DEFAULT_LIMIT;
+  try {
+    const cfg = await fetch(`${RL_URL}/rest/v1/service_config?id=eq.1&select=ai_enabled,daily_ai_limit`, { headers: h });
+    if (cfg.ok) {
+      const row = (await cfg.json())[0];
+      if (row?.ai_enabled === false)
+        return { ok: false, status: 503, message: "AI features are temporarily paused. Please try again shortly." };
+      if (typeof row?.daily_ai_limit === "number") limit = row.daily_ai_limit;
+    }
+  } catch { /* fail open on config errors */ }
+
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const res = await fetch(`${RL_URL}/rest/v1/rpc/bump_ai_usage`, {
+      method: "POST", headers: h, body: JSON.stringify({ p_user: userId, p_day: day }),
+    });
+    if (res.ok) {
+      const count = await res.json();
+      if (typeof count === "number" && count > limit)
+        return { ok: false, status: 429, message: `You've reached today's AI limit (${limit} requests). It resets tomorrow.` };
+    }
+  } catch { /* fail open on counter errors */ }
+
+  return { ok: true };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
+    const gate = await enforceAiLimit(req.headers.get("Authorization"));
+    if (!gate.ok) return json({ error: gate.message }, gate.status);
+
     const { messages = [], allergens = [], estimate_only = false,
             image_base64, media_type } = await req.json();
     const isPhoto = typeof image_base64 === "string" && image_base64.length > 0;

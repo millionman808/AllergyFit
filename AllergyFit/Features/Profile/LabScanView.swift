@@ -241,6 +241,10 @@ struct LabScanView: View {
     // MARK: Actions
 
     private func analyze(_ item: PhotosPickerItem) async {
+        if session.isDemo {   // demo never spends on live AI
+            withAnimation { errorMessage = "Create a free account to scan lab results with Volt — it's free."; phase = .pick }
+            return
+        }
         withAnimation { phase = .analyzing; errorMessage = nil }
         do {
             guard let data = try await item.loadTransferable(type: Data.self),

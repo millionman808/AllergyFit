@@ -7,6 +7,8 @@ struct RootView: View {
         Group {
             if session.isLoading {
                 splash
+            } else if session.session != nil && session.backendError && session.profileOnboarded == nil {
+                OfflineView(retry: { await session.retry() })
             } else if session.isDemo && !session.demoOnboarded {
                 OnboardingView()
             } else if session.session != nil && session.profileOnboarded == nil {
@@ -34,6 +36,8 @@ struct RootView: View {
 
 struct MainTabView: View {
     @State private var selection = UserDefaults.standard.integer(forKey: "initialTab")
+    @AppStorage("seenVoltIntro") private var seenVoltIntro = false
+    @State private var showVoltIntro = false
 
     var body: some View {
         content
@@ -41,6 +45,16 @@ struct MainTabView: View {
                 CustomTabBar(selection: $selection)
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
+            .task {
+                if !seenVoltIntro {
+                    // Small beat so the app is visible behind the sheet.
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    showVoltIntro = true
+                }
+            }
+            .sheet(isPresented: $showVoltIntro, onDismiss: { seenVoltIntro = true }) {
+                VoltIntroSheet()
+            }
     }
 
     @ViewBuilder private var content: some View {

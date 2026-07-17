@@ -257,25 +257,8 @@ struct RecipesView: View {
 
     private var generateBanner: some View {
         Button { showGenerate = true } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "bolt.fill")
-                    .font(.title3)
-                    .foregroundStyle(Theme.Colors.onVolt)
-                    .frame(width: 40, height: 40)
-                    .background(Theme.Colors.volt, in: Circle())
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Generate a recipe with Volt")
-                        .font(Theme.Fonts.headline)
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("Safe for your triggers, from a craving or your fridge")
-                        .font(Theme.Fonts.caption)
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                        .lineLimit(1)
-                }
-                Spacer()
-                Image(systemName: "chevron.right").foregroundStyle(Theme.Colors.textTertiary)
-            }
-            .card()
+            VoltActionCard(title: "Generate a recipe with Volt",
+                           subtitle: "Safe for your triggers, from a craving or your fridge")
         }
     }
 

@@ -12,6 +12,11 @@ final class SessionStore: ObservableObject {
     @Published var demoOnboarded = false
     /// nil while loading for a signed-in user; demo users don't use this.
     @Published var profileOnboarded: Bool?
+    /// True when the backend couldn't be reached and we have no cached state to
+    /// fall back on — drives the offline screen instead of a blank/stuck view.
+    @Published var backendError = false
+
+    private let cachedOnboardedKey = "cachedOnboarded"
     /// Allergen slugs powering recipes, meal analysis, and swaps.
     /// Demo default matches the mock profile; replaced by DB values on sign-in.
     @Published var allergenSlugs: [String] = ["peanut", "dairy", "sesame"]
@@ -65,12 +70,33 @@ final class SessionStore: ObservableObject {
                 .single()
                 .execute()
                 .value
-            profileOnboarded = flags.onboardingCompleted ?? false
+            let onboarded = flags.onboardingCompleted ?? false
+            profileOnboarded = onboarded
+            backendError = false
+            UserDefaults.standard.set(onboarded, forKey: cachedOnboardedKey)
         } catch {
             print("profile flags load failed: \(error)")
-            profileOnboarded = false
+            // Don't strand a signed-in user in onboarding on a transient outage.
+            // Use the last known state if we have it; otherwise surface offline.
+            if UserDefaults.standard.object(forKey: cachedOnboardedKey) != nil {
+                profileOnboarded = UserDefaults.standard.bool(forKey: cachedOnboardedKey)
+                backendError = true
+            } else {
+                profileOnboarded = nil
+                backendError = true
+                return   // no cached state → OfflineView; skip allergen load
+            }
         }
         await reloadAllergens(userId: userId)
+    }
+
+    /// Retry loading backend state (from the offline screen).
+    func retry() async {
+        guard let userId = session?.user.id else {
+            backendError = false
+            return
+        }
+        await loadProfileState(userId: userId)
     }
 
     func reloadAllergens(userId: UUID) async {

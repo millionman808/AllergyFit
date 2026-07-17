@@ -7,10 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0024B3F51409FC17DD35639A /* OfflineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE7F11C332AE11247EF20A1 /* OfflineView.swift */; };
 		01F35C772624406092C554F5 /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0720F266E4BA50D0D73ADAB /* SupabaseClient.swift */; };
 		0C2AD9806B993977C21F04AE /* ProfileSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */; };
 		0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 288435BEE80ED02056790322 /* LogView.swift */; };
 		0E69B9D03E02968533C62DFC /* KitchenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */; };
+		146B919C69CA22A3E886B9B5 /* VoltActionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 342F5EA8459C6E43D5380473 /* VoltActionCard.swift */; };
+		169CFF2544EB4818771AB89D /* VoltIntroSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3F636FEBB89315BECB31D0E /* VoltIntroSheet.swift */; };
 		1B38CFAB4165A5C14EF11E83 /* Skeleton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328186B207C708F97059BB8F /* Skeleton.swift */; };
 		27360A1A1A3C55C2F8D052EF /* PurchasesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */; };
 		2BC10D6940F27F748FF1E61C /* DayPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC8C220F0DF2B9C47CBF7DD /* DayPlanView.swift */; };
@@ -66,6 +69,7 @@
 		288435BEE80ED02056790322 /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		2DEF73895F654D9DEAFDA4DB /* RecipeGenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGenService.swift; sourceTree = "<group>"; };
 		328186B207C708F97059BB8F /* Skeleton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skeleton.swift; sourceTree = "<group>"; };
+		342F5EA8459C6E43D5380473 /* VoltActionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoltActionCard.swift; sourceTree = "<group>"; };
 		3568EFD1586B51A8314B7E39 /* Confetti.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Confetti.swift; sourceTree = "<group>"; };
 		3B5C81476BF4CBA13F79BA83 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
 		3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIMealLogView.swift; sourceTree = "<group>"; };
@@ -84,6 +88,7 @@
 		6F12C9AFA9A9B34DB6B5EC4D /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		71A272564201D4B8EE1BC16C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		792FDCDB66B7E209DB4D5832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		7DE7F11C332AE11247EF20A1 /* OfflineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineView.swift; sourceTree = "<group>"; };
 		7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AllergyFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		804C128508222131CC8A9491 /* AIRecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIRecipeView.swift; sourceTree = "<group>"; };
 		80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergenKeywords.swift; sourceTree = "<group>"; };
@@ -94,6 +99,7 @@
 		B0720F266E4BA50D0D73ADAB /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIMealService.swift; sourceTree = "<group>"; };
 		C0507A56BCFDF2BD045EC66E /* LabScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabScanView.swift; sourceTree = "<group>"; };
+		C3F636FEBB89315BECB31D0E /* VoltIntroSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoltIntroSheet.swift; sourceTree = "<group>"; };
 		D7C63BE8C8482C61ACD9CCF8 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		DA1FD5F5554C1673BC732B82 /* QuickAddMealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAddMealView.swift; sourceTree = "<group>"; };
 		DEB40B07CADF21863ED0324E /* TodayStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayStore.swift; sourceTree = "<group>"; };
@@ -226,6 +232,7 @@
 			isa = PBXGroup;
 			children = (
 				435D00CFDC2A3BABE993C79C /* AuthView.swift */,
+				7DE7F11C332AE11247EF20A1 /* OfflineView.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -286,6 +293,7 @@
 				3568EFD1586B51A8314B7E39 /* Confetti.swift */,
 				328186B207C708F97059BB8F /* Skeleton.swift */,
 				9DAB4D05FE16724A93EEF2FE /* Theme.swift */,
+				342F5EA8459C6E43D5380473 /* VoltActionCard.swift */,
 			);
 			path = DesignSystem;
 			sourceTree = "<group>";
@@ -294,6 +302,7 @@
 			isa = PBXGroup;
 			children = (
 				8A1290F9B93141E82026A592 /* OnboardingView.swift */,
+				C3F636FEBB89315BECB31D0E /* VoltIntroSheet.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -399,6 +408,7 @@
 				0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */,
 				BE6FAD4E24A404232EFF037D /* MockData.swift in Sources */,
 				566B3F9A15CB1EC222A5C94F /* Models.swift in Sources */,
+				0024B3F51409FC17DD35639A /* OfflineView.swift in Sources */,
 				F94845F6DD0FECFCA22C29CC /* OnboardingView.swift in Sources */,
 				8FD41D9A4843A4728E015364 /* PlanView.swift in Sources */,
 				0C2AD9806B993977C21F04AE /* ProfileSheets.swift in Sources */,
@@ -419,6 +429,8 @@
 				A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */,
 				8C039AF88FB9F89606CC8BF0 /* TodayStore.swift in Sources */,
 				9976C58153C1C451F1895485 /* TrendsView.swift in Sources */,
+				146B919C69CA22A3E886B9B5 /* VoltActionCard.swift in Sources */,
+				169CFF2544EB4818771AB89D /* VoltIntroSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

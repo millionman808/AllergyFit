@@ -257,25 +257,8 @@ struct PlanView: View {
 
     private var planWithVoltButton: some View {
         Button { showDayPlan = true } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "bolt.fill")
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.Colors.onVolt)
-                    .frame(width: 34, height: 34)
-                    .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("Plan \(PlanStore.dayNames[selectedDay]) with Volt")
-                        .font(Theme.Fonts.headline)
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("A full day around \(dailyTarget) kcal, safe for your triggers")
-                        .font(Theme.Fonts.caption)
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                        .lineLimit(1)
-                }
-                Spacer()
-                Image(systemName: "chevron.right").foregroundStyle(Theme.Colors.textTertiary)
-            }
-            .card()
+            VoltActionCard(title: "Plan \(PlanStore.dayNames[selectedDay]) with Volt",
+                           subtitle: "A full day around \(dailyTarget) kcal, safe for your triggers")
         }
     }
 

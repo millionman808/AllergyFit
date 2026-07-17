@@ -44,7 +44,6 @@ struct MainTabView: View {
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 CustomTabBar(selection: $selection)
             }
-            .ignoresSafeArea(.keyboard, edges: .bottom)
             .task {
                 if !seenVoltIntro {
                     // Small beat so the app is visible behind the sheet.

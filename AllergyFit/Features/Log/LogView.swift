@@ -29,6 +29,7 @@ struct LogView: View {
                         quickAdd
                     }
                     .padding(Theme.Metrics.screenPadding)
+                    .padding(.bottom, Theme.Metrics.tabBarClearance)
                 }
             }
             .navigationTitle("Log")

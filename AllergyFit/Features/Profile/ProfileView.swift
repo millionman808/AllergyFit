@@ -28,7 +28,7 @@ struct ProfileView: View {
                         signOut
                     }
                     .padding(.horizontal, Theme.Metrics.screenPadding)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, Theme.Metrics.tabBarClearance)
                 }
             }
             .navigationTitle("Profile")

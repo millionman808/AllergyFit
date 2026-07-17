@@ -241,7 +241,7 @@ struct PlanView: View {
                 groceryButton
             }
             .padding(.horizontal, Theme.Metrics.screenPadding)
-            .padding(.bottom, 24)
+            .padding(.bottom, Theme.Metrics.tabBarClearance)
         }
         .task {
             let t = await DayTargets.load(session: session)

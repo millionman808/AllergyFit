@@ -48,6 +48,10 @@ enum Theme {
         static let cardPadding: CGFloat = 16
         static let screenPadding: CGFloat = 16
         static let spacing: CGFloat = 12
+        /// Bottom clearance so the last item in a scroll view clears the custom
+        /// tab bar (bar + home indicator). The bar is drawn over the content, so
+        /// every scrolling screen must pad by this or its last row is unreachable.
+        static let tabBarClearance: CGFloat = 104
     }
 }
 

@@ -31,7 +31,7 @@ struct InsightsView: View {
                         weeklyCard
                     }
                     .padding(.horizontal, Theme.Metrics.screenPadding)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, Theme.Metrics.tabBarClearance)
                 }
                 .refreshable { await store.refresh() }
 

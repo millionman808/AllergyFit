@@ -235,7 +235,7 @@ struct RecipesView: View {
                 }
             }
             .padding(.horizontal, Theme.Metrics.screenPadding)
-            .padding(.bottom, 24)
+            .padding(.bottom, Theme.Metrics.tabBarClearance)
         }
         .onAppear {
             store.configure(session: session)

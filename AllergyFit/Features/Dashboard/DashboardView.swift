@@ -3,6 +3,7 @@ import SwiftUI
 /// "Today" — functional daily dashboard backed by TodayStore.
 struct DashboardView: View {
     @EnvironmentObject var session: SessionStore
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var store = TodayStore()
     @StateObject private var trends = TrendsStore()
     @State private var showQuickAdd = false
@@ -24,7 +25,7 @@ struct DashboardView: View {
                         waterCard
                     }
                     .padding(.horizontal, Theme.Metrics.screenPadding)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, Theme.Metrics.tabBarClearance)
                 }
                 .refreshable { await store.refresh() }
 
@@ -36,6 +37,11 @@ struct DashboardView: View {
             .onAppear {
                 store.configure(session: session)
                 trends.configure(session: session, targetCalories: store.targetCalories)
+            }
+            .onChange(of: scenePhase) { phase in
+                // Water + "logged today" are per-day; reset them if the app was
+                // left open past midnight.
+                if phase == .active { store.rolloverIfNewDay() }
             }
             .sheet(isPresented: $showQuickAdd) {
                 QuickAddMealView { name, type, cal, p, c, f in
@@ -172,27 +178,33 @@ struct DashboardView: View {
         HStack {
             Image(systemName: "flame.fill")
                 .font(.title2)
-                .foregroundStyle(Theme.Colors.volt)
+                .foregroundStyle(store.loggedToday ? Theme.Colors.volt : Theme.Colors.textTertiary)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Reaction-free streak")
+                Text("Logging streak")
                     .font(Theme.Fonts.headline)
                     .foregroundStyle(Theme.Colors.textPrimary)
-                Text(store.hasReactionHistory ? "Since your last symptom check-in" : "No reactions logged — keep it up")
+                Text(streakSubtitle)
                     .font(Theme.Fonts.caption)
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             Spacer()
             HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text("\(store.reactionFreeStreak)")
+                Text("\(store.mealStreak)")
                     .font(Theme.Fonts.stat(36))
-                    .foregroundStyle(Theme.Colors.volt)
+                    .foregroundStyle(store.loggedToday ? Theme.Colors.volt : Theme.Colors.textTertiary)
                     .contentTransition(.numericText())
-                Text(store.reactionFreeStreak == 1 ? "day" : "days")
+                Text(store.mealStreak == 1 ? "day" : "days")
                     .font(Theme.Fonts.caption)
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
         }
         .card()
+    }
+
+    private var streakSubtitle: String {
+        if store.mealStreak == 0 { return "Log a meal to start your streak" }
+        if store.loggedToday { return "Logged today — streak is safe" }
+        return "Log your first meal to keep it alive"
     }
 
     private var mealsSection: some View {

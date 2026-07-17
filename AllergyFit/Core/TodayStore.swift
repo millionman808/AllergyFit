@@ -14,10 +14,10 @@ final class TodayStore: ObservableObject {
     @Published var targetCarbs = 320
     @Published var targetFat = 84
     @Published var isLoading = false
-    /// Days since the user's most recent symptom check-in (or since they started
-    /// logging, if they've never logged a reaction).
-    @Published var reactionFreeStreak = 0
-    @Published var hasReactionHistory = false
+    /// Consecutive days the user has logged at least one meal.
+    @Published var mealStreak = 0
+    /// True once today's first meal is logged — the streak card celebrates it.
+    @Published var loggedToday = false
     /// A meal pending permanent deletion — drives the Undo snackbar.
     @Published var recentlyDeleted: TodayMeal?
     private var deletedIndex: Int?
@@ -26,6 +26,7 @@ final class TodayStore: ObservableObject {
     private var isDemo = false
     private var userId: UUID?
     private var configured = false
+    private var lastSeenDay = Calendar.current.startOfDay(for: Date())
 
     let waterGoal = 8
 
@@ -50,11 +51,23 @@ final class TodayStore: ObservableObject {
                           calories: $0.calories, protein: $0.protein, carbs: $0.carbs, fat: $0.fat, icon: $0.icon)
             }
             waterGlasses = 5
-            reactionFreeStreak = 12
-            hasReactionHistory = true
+            mealStreak = 12
+            loggedToday = true
         } else {
             Task { await refresh() }
         }
+    }
+
+    /// Water and "logged today" are per-calendar-day. If the app sits open past
+    /// midnight the in-memory state is stale, so roll it over on foreground.
+    func rolloverIfNewDay() {
+        let today = Calendar.current.startOfDay(for: Date())
+        guard today != lastSeenDay else { return }
+        lastSeenDay = today
+        guard !isDemo else { return }
+        waterGlasses = 0
+        loggedToday = false
+        Task { await refresh() }
     }
 
     // MARK: - Load (signed-in)
@@ -136,47 +149,39 @@ final class TodayStore: ObservableObject {
         await loadStreak(userId: userId)
     }
 
-    /// Real reaction-free streak: whole days since the last symptom check-in.
-    /// If the user has never logged a reaction, count days since their first meal log.
+    /// Meal-logging streak: consecutive days with at least one meal logged.
+    /// Today counts as soon as the first meal lands. If today has nothing yet the
+    /// streak still shows yesterday's run — it only breaks after a full missed day.
     private func loadStreak(userId: UUID) async {
         let cal = Calendar.current
-        func wholeDays(since date: Date) -> Int {
-            max(0, cal.dateComponents([.day], from: cal.startOfDay(for: date),
-                                      to: cal.startOfDay(for: Date())).day ?? 0)
+        let today = cal.startOfDay(for: Date())
+        let window = cal.date(byAdding: .day, value: -180, to: today) ?? today
+        struct MealRow: Codable {
+            let eatenAt: Date
+            enum CodingKeys: String, CodingKey { case eatenAt = "eaten_at" }
         }
         do {
-            struct SymptomRow: Codable {
-                let occurredAt: Date
-                enum CodingKeys: String, CodingKey { case occurredAt = "occurred_at" }
-            }
-            let last: [SymptomRow] = try await Backend.client
-                .from("symptom_logs")
-                .select("occurred_at")
-                .eq("user_id", value: userId)
-                .order("occurred_at", ascending: false)
-                .limit(1)
-                .execute()
-                .value
-            if let lastReaction = last.first?.occurredAt {
-                reactionFreeStreak = wholeDays(since: lastReaction)
-                hasReactionHistory = true
-                return
-            }
-            // No reactions ever — measure from their first logged meal.
-            struct MealRow: Codable {
-                let eatenAt: Date
-                enum CodingKeys: String, CodingKey { case eatenAt = "eaten_at" }
-            }
-            let first: [MealRow] = try await Backend.client
+            let rows: [MealRow] = try await Backend.client
                 .from("meal_logs")
                 .select("eaten_at")
                 .eq("user_id", value: userId)
-                .order("eaten_at", ascending: true)
-                .limit(1)
+                .gte("eaten_at", value: window.ISO8601Format())
+                .order("eaten_at", ascending: false)
                 .execute()
                 .value
-            reactionFreeStreak = first.first.map { wholeDays(since: $0.eatenAt) } ?? 0
-            hasReactionHistory = false
+
+            let days = Set(rows.map { cal.startOfDay(for: $0.eatenAt) })
+            loggedToday = days.contains(today)
+
+            // Start at today if it's logged, else yesterday (grace for "not yet").
+            var cursor = loggedToday ? today : (cal.date(byAdding: .day, value: -1, to: today) ?? today)
+            var count = 0
+            while days.contains(cursor) {
+                count += 1
+                guard let prev = cal.date(byAdding: .day, value: -1, to: cursor) else { break }
+                cursor = prev
+            }
+            mealStreak = count
         } catch {
             print("streak fetch failed: \(error)")
         }
@@ -211,6 +216,12 @@ final class TodayStore: ObservableObject {
                              icon: TodayMeal.icon(for: dbType))
         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
             meals.append(meal)
+            // First meal of the day extends the streak right away — no need to
+            // wait for a refresh to see it tick up.
+            if !loggedToday {
+                loggedToday = true
+                mealStreak += 1
+            }
         }
         Haptics.success()
         guard !isDemo, let userId else { return }

@@ -253,10 +253,6 @@ struct AIRecipeView: View {
     // MARK: Actions
 
     private func generate() {
-        if session.isDemo {   // demo never spends on live AI
-            errorMessage = "Create a free account to generate live recipes with Volt. You can still browse and save recipes here in the demo."
-            return
-        }
         isGenerating = true
         errorMessage = nil
         Task {

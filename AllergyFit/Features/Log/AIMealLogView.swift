@@ -514,7 +514,6 @@ struct AIMealLogView: View {
 
     private func runAnalysis() {
         errorMessage = nil
-        if session.isDemo { return showDemoSample() }   // demo never spends on live AI
         withAnimation { phase = .loading }
         Task {
             do {
@@ -526,21 +525,10 @@ struct AIMealLogView: View {
         }
     }
 
-    /// Demo mode shows a realistic sample analysis instead of calling Claude, so
-    /// browsing the demo never runs up the AI bill.
-    private func showDemoSample() {
-        withAnimation { phase = .loading }
-        Task {
-            try? await Task.sleep(nanoseconds: 700_000_000)
-            withAnimation { meal = .mock; phase = .result; Haptics.success() }
-        }
-    }
-
     /// Snap → Claude reads the food + portions → USDA macros → allergen verdict.
     private func analyzePhoto(_ item: PhotosPickerItem) {
         errorMessage = nil
         conversation = []
-        if session.isDemo { photoItem = nil; return showDemoSample() }   // demo never spends on live AI
         withAnimation { phase = .loading }
         Task {
             do {

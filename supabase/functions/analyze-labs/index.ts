@@ -71,7 +71,7 @@ type RLResult = { ok: true } | { ok: false; status: number; message: string };
 async function enforceAiLimit(auth: string | null): Promise<RLResult> {
   if (!RL_URL || !RL_KEY) return { ok: true };            // not configured → fail open
   const userId = rlUserId(auth);
-  if (!userId) return { ok: false, status: 401, message: "Please sign in to use AI features." };
+  if (!userId) return { ok: true };   // demo / no account: allowed pre-launch (Anthropic budget cap backstops). At ship, remove demo + enable verify_jwt.
   const h = { apikey: RL_KEY, Authorization: `Bearer ${RL_KEY}`, "Content-Type": "application/json" };
 
   let limit = RL_DEFAULT_LIMIT;

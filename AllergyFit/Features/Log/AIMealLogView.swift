@@ -24,6 +24,7 @@ struct AIMealLogView: View {
     @State private var editingItem: AnalyzedItem?
     @State private var swappingItemId: Int?
     @State private var photoItem: PhotosPickerItem?
+    @State private var labelItem: PhotosPickerItem?
 
     private var allergenSlugs: [String] { session.allergenSlugs }
 
@@ -72,6 +73,10 @@ struct AIMealLogView: View {
             guard let item else { return }
             analyzePhoto(item)
         }
+        .onChange(of: labelItem) { item in
+            guard let item else { return }
+            analyzePhoto(item, isLabel: true)
+        }
     }
 
     // MARK: - Input
@@ -104,6 +109,32 @@ struct AIMealLogView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .strokeBorder(Theme.Colors.volt.opacity(0.35), style: .init(lineWidth: 1.5, dash: [6, 5])))
+            }
+            .buttonStyle(.plain)
+
+            // Packaged food? Read the label panel for exact manufacturer numbers.
+            PhotosPicker(selection: $labelItem, matching: .images) {
+                HStack(spacing: 12) {
+                    Image(systemName: "doc.text.viewfinder")
+                        .font(.title3)
+                        .foregroundStyle(Theme.Colors.volt)
+                        .frame(width: 40, height: 40)
+                        .background(Theme.Colors.volt.opacity(0.12),
+                                    in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Scan a nutrition label")
+                            .font(Theme.Fonts.headline)
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                        Text("Exact macros straight off the package's panel")
+                            .font(Theme.Fonts.caption)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                            .lineLimit(1)
+                    }
+                    Spacer()
+                }
+                .padding(12)
+                .background(Theme.Colors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
             .buttonStyle(.plain)
 
@@ -525,27 +556,34 @@ struct AIMealLogView: View {
         }
     }
 
-    /// Snap → Claude reads the food + portions → USDA macros → allergen verdict.
-    private func analyzePhoto(_ item: PhotosPickerItem) {
+    /// Snap → Claude reads the food (or reads a Nutrition Facts panel when
+    /// `isLabel`) → macros → allergen verdict. Label mode uses the package's own
+    /// numbers; meal mode composes from USDA.
+    private func analyzePhoto(_ item: PhotosPickerItem, isLabel: Bool = false) {
         errorMessage = nil
         conversation = []
         withAnimation { phase = .loading }
         Task {
             do {
+                // Labels are dense; give the panel more pixels to stay legible.
+                let maxDim: CGFloat = isLabel ? 1568 : 1024
                 guard let data = try await item.loadTransferable(type: Data.self),
                       let uiImage = UIImage(data: data),
-                      let jpeg = resizedJPEG(uiImage, maxDimension: 1024) else {
+                      let jpeg = resizedJPEG(uiImage, maxDimension: maxDim) else {
                     throw NSError(domain: "MealPhoto", code: 1,
                                   userInfo: [NSLocalizedDescriptionKey: "Couldn't read that photo. Try another."])
                 }
                 let response = try await AIMealService.analyze(
                     messages: [], allergens: allergenSlugs,
-                    imageBase64: jpeg.base64EncodedString(), mediaType: "image/jpeg")
+                    imageBase64: jpeg.base64EncodedString(), mediaType: "image/jpeg",
+                    isLabel: isLabel)
                 photoItem = nil
+                labelItem = nil
                 applyResponse(response)
             } catch {
                 withAnimation { errorMessage = error.localizedDescription; phase = .input }
                 photoItem = nil
+                labelItem = nil
             }
         }
     }

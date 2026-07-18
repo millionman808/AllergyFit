@@ -62,6 +62,13 @@ struct BarcodeScannerView: View {
         } message: {
             Text("This item isn't in the Open Food Facts database yet. You can still log it manually from the Log screen.")
         }
+        .alert("Lookup failed", isPresented: Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } })) {
+            Button("OK", role: .cancel) { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
+        }
     }
 
     private var noCameraSection: some View {
@@ -111,10 +118,15 @@ struct BarcodeScannerView: View {
 
     private func handleScan(_ code: String) {
         let trimmed = code.trimmingCharacters(in: .whitespaces)
-        guard trimmed.count >= 6, !isLooking, product == nil else { return }
+        // Don't fire again while looking up, while a result/alert is already up,
+        // or the camera's continuous stream would loop on the same barcode.
+        guard trimmed.count >= 6, !isLooking, product == nil,
+              !notFound, errorMessage == nil else { return }
         isLooking = true
         errorMessage = nil
-        Task {
+        // @MainActor so the @State writes reliably drive the sheet/alert on device
+        // (off-main SwiftUI state updates silently fail to present — the bug here).
+        Task { @MainActor in
             defer { isLooking = false }
             do {
                 if let p = try await BarcodeService.lookup(barcode: trimmed, userAllergens: session.allergenSlugs) {
@@ -124,7 +136,7 @@ struct BarcodeScannerView: View {
                     notFound = true
                 }
             } catch {
-                errorMessage = "Lookup failed: \(error.localizedDescription)"
+                errorMessage = "Couldn't look that up. Check your connection and try again."
             }
         }
     }

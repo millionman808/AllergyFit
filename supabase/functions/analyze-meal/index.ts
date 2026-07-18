@@ -69,6 +69,39 @@ Extract every distinct food and drink you can see in the image. For each, estima
 
 Do NOT ask clarifying questions — ALWAYS set needs_clarification=false. Give your best visual estimate and proceed. Return the same foods array format.`;
 
+// ---------- Nutrition-label mode: read the panel, trust the package's numbers ----------
+
+const ALLERGEN_NAMES = ALLERGENS.join(", ");
+
+const LABEL_SCHEMA = {
+  type: "object",
+  properties: {
+    is_nutrition_label: { type: "boolean" },
+    product_name: { type: "string" },
+    serving_text: { type: "string" },
+    per_serving: {
+      type: "object",
+      properties: {
+        calories: { type: "number" }, protein: { type: "number" }, carbs: { type: "number" },
+        fat: { type: "number" }, fiber: { type: "number" }, sugar: { type: "number" }, sodium: { type: "number" },
+      },
+      required: ["calories", "protein", "carbs", "fat", "fiber", "sugar", "sodium"],
+      additionalProperties: false,
+    },
+    contains_allergens: { type: "array", items: { type: "string" } },
+  },
+  required: ["is_nutrition_label", "product_name", "serving_text", "per_serving", "contains_allergens"],
+  additionalProperties: false,
+} as const;
+
+const PARSE_SYSTEM_LABEL = `You read Nutrition Facts panels from photos of packaged food.
+
+Set is_nutrition_label=false if the image is not a nutrition label; otherwise true.
+
+Read the values for ONE serving exactly as printed (do not multiply by servings-per-container). Return calories (kcal), protein, carbs (total carbohydrate), fat (total fat), fiber (dietary fiber), sugar (total sugars) in grams, and sodium in MILLIGRAMS. Use 0 for anything not shown. serving_text = the serving size as printed (e.g. "1 cup (55g)"). product_name = the product name if visible, else a short description.
+
+For contains_allergens, read the "Contains:" statement and the ingredient list. Return ONLY names from this exact set, spelled exactly: ${ALLERGEN_NAMES}. Include an allergen if the Contains line or ingredients clearly indicate it; omit everything else. Never invent numbers or allergens that aren't on the label.`;
+
 // ---------- Claude call 2: match + portions + allergens (nutrition comes from DB) ----------
 
 const COMPOSE_SCHEMA = {
@@ -218,10 +251,62 @@ Deno.serve(async (req) => {
     if (!gate.ok) return json({ error: gate.message }, gate.status);
 
     const { messages = [], allergens = [], estimate_only = false,
-            image_base64, media_type } = await req.json();
+            image_base64, media_type, is_label = false } = await req.json();
     const isPhoto = typeof image_base64 === "string" && image_base64.length > 0;
     if (!isPhoto && (!Array.isArray(messages) || messages.length === 0)) {
       return json({ error: "messages array or image required" }, 400);
+    }
+
+    // --- Nutrition-label mode: one vision call, trust the panel's own numbers ---
+    if (isPhoto && is_label) {
+      const labelResp = await anthropic.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 2048,
+        system: PARSE_SYSTEM_LABEL,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: media_type ?? "image/jpeg", data: image_base64 } },
+            { type: "text", text: "Read this Nutrition Facts label." },
+          ],
+        }],
+        output_config: { format: { type: "json_schema", schema: LABEL_SCHEMA } },
+      });
+      const lbl = extractJson(labelResp) as {
+        is_nutrition_label: boolean; product_name: string; serving_text: string;
+        per_serving: Record<string, number>; contains_allergens: string[];
+      };
+      if (!lbl.is_nutrition_label) {
+        return json({
+          needs_clarification: true,
+          questions: ["That doesn't look like a nutrition label. Try a clearer photo of the Nutrition Facts panel, or describe the food instead."],
+        });
+      }
+      const p = lbl.per_serving;
+      const contains = ALLERGENS.filter((a) => (lbl.contains_allergens ?? []).includes(a));
+      const item = {
+        food: lbl.product_name || "Packaged food",
+        quantity: 1, unit: "serving", preparation: lbl.serving_text ?? "", grams: 0,
+        fdc_id: null, fdc_description: "From nutrition label",
+        needs_review: false, portion_estimated: false,
+        allergens: contains, swappable: false, substitutes: [],
+        calories: round1(p.calories ?? 0), protein: round1(p.protein ?? 0), carbs: round1(p.carbs ?? 0),
+        fat: round1(p.fat ?? 0), fiber: round1(p.fiber ?? 0), sugar: round1(p.sugar ?? 0), sodium: round1(p.sodium ?? 0),
+      };
+      return json({
+        needs_clarification: false,
+        meal: {
+          name: lbl.product_name || "Packaged food",
+          confidence: 0.95,
+          items: [item],
+          totals: {
+            calories: item.calories, protein: item.protein, carbs: item.carbs,
+            fat: item.fat, fiber: item.fiber, sugar: item.sugar, sodium: item.sodium,
+          },
+          allergens: { contains, safe: ALLERGENS.filter((a) => !contains.includes(a)) },
+          suggestions: [],
+        },
+      });
     }
 
     // Photo: build a vision message; otherwise use the text conversation.

@@ -23,6 +23,9 @@ targets:
     info:
       path: AllergyFit/Resources/Info.plist
       properties:
+        # Only standard HTTPS/TLS → exempt. Declaring it here means App Store
+        # Connect never asks the export-compliance question on future builds.
+        ITSAppUsesNonExemptEncryption: false
         GIDClientID: 774051386593-n8fe3bpri3tkr7gdb30av32afvg9kssq.apps.googleusercontent.com
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor

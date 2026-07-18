@@ -43,5 +43,7 @@
 	<string>1</string>
 	<key>GIDClientID</key>
 	<string>774051386593-n8fe3bpri3tkr7gdb30av32afvg9kssq.apps.googleusercontent.com</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

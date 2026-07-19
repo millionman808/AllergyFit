@@ -270,32 +270,63 @@ struct DashboardView: View {
     }
 
     private var waterCard: some View {
-        HStack {
-            Image(systemName: "drop.fill")
-                .font(.title3)
-                .foregroundStyle(Theme.Colors.protein)
-            Text("Water")
-                .font(Theme.Fonts.headline)
-                .foregroundStyle(Theme.Colors.textPrimary)
-            Spacer()
-            HStack(spacing: 6) {
-                ForEach(0..<store.waterGoal, id: \.self) { i in
-                    Button {
-                        // Tap a filled glass to un-fill down to it; tap empty to fill up to it.
-                        store.setWater(i < store.waterGlasses ? i : i + 1)
-                    } label: {
-                        Circle()
-                            .fill(i < store.waterGlasses ? Theme.Colors.protein : Theme.Colors.surfaceRaised)
-                            .frame(width: 16, height: 16)
+        VStack(spacing: 12) {
+            HStack {
+                Image(systemName: "drop.fill")
+                    .font(.title3)
+                    .foregroundStyle(Theme.Colors.protein)
+                Text("Water")
+                    .font(Theme.Fonts.headline)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Spacer()
+                Text("\(store.waterGlasses)")
+                    .font(Theme.Fonts.stat(20))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .contentTransition(.numericText())
+                Text("of \(store.waterGoal) glasses")
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
+            HStack(spacing: 12) {
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Theme.Colors.surfaceRaised)
+                        Capsule()
+                            .fill(Theme.Colors.protein)
+                            .frame(width: geo.size.width * waterProgress)
+                            .animation(.spring(response: 0.4), value: store.waterGlasses)
                     }
                 }
+                .frame(height: 10)
+                Button {
+                    store.setWater(store.waterGlasses - 1)
+                } label: {
+                    Image(systemName: "minus")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .frame(width: 40, height: 40)
+                        .background(Theme.Colors.surfaceRaised, in: Circle())
+                }
+                .disabled(store.waterGlasses == 0)
+                .opacity(store.waterGlasses == 0 ? 0.4 : 1)
+                Button {
+                    store.setWater(store.waterGlasses + 1)
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(Theme.Colors.onVolt)
+                        .frame(width: 40, height: 40)
+                        .background(Theme.Colors.protein, in: Circle())
+                }
+                .pressable()
             }
-            Text("\(store.waterGlasses)/\(store.waterGoal)")
-                .font(Theme.Fonts.stat(16))
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .contentTransition(.numericText())
         }
         .card()
+    }
+
+    private var waterProgress: Double {
+        guard store.waterGoal > 0 else { return 0 }
+        return min(1, Double(store.waterGlasses) / Double(store.waterGoal))
     }
 }
 

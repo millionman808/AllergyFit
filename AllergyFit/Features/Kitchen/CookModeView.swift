@@ -10,8 +10,14 @@ struct CookModeView: View {
     @State private var step = 0
     @State private var showIngredients = false
 
+    // Timer — steps that mention a duration get a one-tap countdown.
+    @State private var secondsLeft = 0
+    @State private var timerActive = false
+    private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
     private var steps: [String] { recipe.steps }
     private var isLast: Bool { step >= steps.count - 1 }
+    private var stepMinutes: Int? { CookModeView.detectMinutes(steps.indices.contains(step) ? steps[step] : "") }
 
     var body: some View {
         ZStack {
@@ -68,6 +74,8 @@ struct CookModeView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
 
+                timerStrip
+
                 // Controls: ingredients peek · Back · Next/Done
                 HStack(spacing: 12) {
                     Button { showIngredients = true } label: {
@@ -109,6 +117,81 @@ struct CookModeView: View {
         .sheet(isPresented: $showIngredients) {
             ingredientSheet
         }
+        .onReceive(ticker) { _ in
+            guard timerActive else { return }
+            if secondsLeft > 1 {
+                secondsLeft -= 1
+            } else {
+                secondsLeft = 0
+                timerActive = false
+                Haptics.warning()   // buzz when the timer finishes
+            }
+        }
+        .onChange(of: step) { _ in stopTimer() }
+    }
+
+    // MARK: Timer
+
+    private var timerStrip: some View {
+        Group {
+            if timerActive {
+                HStack(spacing: 14) {
+                    Image(systemName: "timer").font(.title3).foregroundStyle(Theme.Colors.volt)
+                    Text(timeString(secondsLeft))
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                    Spacer()
+                    Button { stopTimer() } label: {
+                        Text("Stop")
+                            .font(Theme.Fonts.headline)
+                            .foregroundStyle(Theme.Colors.danger)
+                            .padding(.horizontal, 16).padding(.vertical, 9)
+                            .background(Theme.Colors.danger.opacity(0.14), in: Capsule())
+                    }
+                }
+                .padding(.horizontal, 18).padding(.vertical, 12)
+                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .padding(.horizontal, 20)
+            } else if let mins = stepMinutes {
+                Button {
+                    secondsLeft = mins * 60
+                    timerActive = true
+                    Haptics.tap()
+                } label: {
+                    Label("Start \(mins) min timer", systemImage: "timer")
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.volt)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Theme.Colors.volt.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+                .pressable()
+                .padding(.horizontal, 20)
+            }
+        }
+        .padding(.bottom, timerActive || stepMinutes != nil ? 10 : 0)
+    }
+
+    private func stopTimer() {
+        timerActive = false
+        secondsLeft = 0
+    }
+
+    private func timeString(_ s: Int) -> String {
+        String(format: "%d:%02d", s / 60, s % 60)
+    }
+
+    /// Pulls the first "N min(ute)" duration out of a step, if any (1–240 min).
+    static func detectMinutes(_ text: String) -> Int? {
+        let lower = text.lowercased()
+        let pattern = #"(\d{1,3})\s*(?:to|-|–)?\s*\d{0,3}\s*(?:min|minute)"#
+        guard let re = try? NSRegularExpression(pattern: pattern),
+              let m = re.firstMatch(in: lower, range: NSRange(lower.startIndex..., in: lower)),
+              let r = Range(m.range(at: 1), in: lower),
+              let n = Int(lower[r]), (1...240).contains(n) else { return nil }
+        return n
     }
 
     private var ingredientSheet: some View {

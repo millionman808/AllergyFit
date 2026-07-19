@@ -35,15 +35,20 @@ struct RootView: View {
 }
 
 struct MainTabView: View {
+    @EnvironmentObject var session: SessionStore
     @State private var selection = UserDefaults.standard.integer(forKey: "initialTab")
     @AppStorage("seenVoltIntro") private var seenVoltIntro = false
     @State private var showVoltIntro = false
+    // Hoisted so the Plan and Recipes tabs (now separate) share one plan.
+    @StateObject private var planStore = PlanStore()
 
     var body: some View {
         content
+            .environmentObject(planStore)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 CustomTabBar(selection: $selection)
             }
+            .onAppear { planStore.configure(session: session) }
             .task {
                 if !seenVoltIntro {
                     // Small beat so the app is visible behind the sheet.
@@ -59,10 +64,38 @@ struct MainTabView: View {
     @ViewBuilder private var content: some View {
         switch selection {
         case 1: LogView()
-        case 2: KitchenView()
-        case 3: InsightsView()
+        case 2: PlanTab(selection: $selection)
+        case 3: RecipesTab()
         case 4: ProfileView()
         default: DashboardView()
+        }
+    }
+}
+
+/// Meal planner tab — the app's primary surface. Owns its navigation stack so
+/// the week, grocery list, and cook mode all push here.
+struct PlanTab: View {
+    @Binding var selection: Int
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Theme.Colors.background.ignoresSafeArea()
+                PlanView(onBrowseRecipes: { selection = 3 })   // jump to Recipes tab
+            }
+            .navigationTitle("Plan")
+        }
+    }
+}
+
+/// Recipe discovery tab — safe-only browse + generate.
+struct RecipesTab: View {
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Theme.Colors.background.ignoresSafeArea()
+                RecipesView()
+            }
+            .navigationTitle("Recipes")
         }
     }
 }
@@ -76,10 +109,10 @@ struct CustomTabBar: View {
     private struct Tab { let index: Int; let icon: String; let label: String }
     private let left: [Tab] = [
         Tab(index: 0, icon: "flame.fill", label: "Today"),
-        Tab(index: 2, icon: "fork.knife", label: "Kitchen"),
+        Tab(index: 2, icon: "calendar", label: "Plan"),
     ]
     private let right: [Tab] = [
-        Tab(index: 3, icon: "waveform.path.ecg", label: "Insights"),
+        Tab(index: 3, icon: "book.fill", label: "Recipes"),
         Tab(index: 4, icon: "person.fill", label: "Profile"),
     ]
 

@@ -7,10 +7,9 @@ struct InsightsView: View {
     @State private var toast: String?
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Theme.Colors.background.ignoresSafeArea()
-                ScrollView {
+        ZStack {
+            Theme.Colors.background.ignoresSafeArea()
+            ScrollView {
                     VStack(alignment: .leading, spacing: Theme.Metrics.spacing) {
                         headline
                         if store.patterns.isEmpty {
@@ -48,9 +47,9 @@ struct InsightsView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .navigationTitle("Insights")
-            .onAppear { store.configure(session: session) }
-        }
+        .navigationTitle("Insights")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { store.configure(session: session) }
     }
 
     private func toastThen(_ message: String) {

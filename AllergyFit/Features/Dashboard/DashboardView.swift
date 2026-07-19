@@ -133,32 +133,51 @@ struct DashboardView: View {
     }
 
     private var calorieCard: some View {
-        VStack(spacing: 10) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("\(store.consumedCalories.formatted())")
-                    .font(Theme.Fonts.stat(56))
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                    .contentTransition(.numericText())
-                Text("/ \(store.targetCalories.formatted())")
-                    .font(Theme.Fonts.headline)
-                    .foregroundStyle(Theme.Colors.textTertiary)
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 14) {
+                budgetRow("flame.fill", "Budget", store.targetCalories, Theme.Colors.volt)
+                budgetRow("fork.knife", "Eaten", store.consumedCalories, Theme.Colors.protein)
             }
-            Text("calories · \(store.remainingCalories.formatted()) remaining")
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.textSecondary)
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Theme.Colors.surfaceRaised)
-                    Capsule()
-                        .fill(progress > 1 ? Theme.Colors.caution : Theme.Colors.volt)
-                        .frame(width: geo.size.width * min(progress, 1))
-                        .animation(.spring(response: 0.4), value: progress)
+            Spacer(minLength: 0)
+            ZStack {
+                Circle().stroke(Theme.Colors.surfaceRaised, lineWidth: 12)
+                Circle()
+                    .trim(from: 0, to: min(progress, 1))
+                    .stroke(progress > 1 ? Theme.Colors.caution : Theme.Colors.volt,
+                            style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .animation(.spring(response: 0.5), value: progress)
+                VStack(spacing: 0) {
+                    Text("You can eat")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                    Text("\(store.remainingCalories.formatted())")
+                        .font(Theme.Fonts.stat(30))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .contentTransition(.numericText())
+                    Text("cal left")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.Colors.textTertiary)
                 }
             }
-            .frame(height: 10)
+            .frame(width: 132, height: 132)
         }
         .frame(maxWidth: .infinity)
         .card()
+    }
+
+    private func budgetRow(_ icon: String, _ label: String, _ value: Int, _ color: Color) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.subheadline)
+                .foregroundStyle(color)
+                .frame(width: 32, height: 32)
+                .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            VStack(alignment: .leading, spacing: 0) {
+                Text(label).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
+                Text("\(value.formatted()) cal").font(Theme.Fonts.headline).foregroundStyle(Theme.Colors.textPrimary)
+            }
+        }
     }
 
     private var progress: Double {

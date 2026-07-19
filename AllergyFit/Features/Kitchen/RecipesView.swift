@@ -518,6 +518,7 @@ struct RecipeDetailView: View {
     @State private var calcError: String?
     @State private var justEstimated = false
     @State private var autoAttempted = false
+    @State private var cooking = false
 
     init(recipe: Recipe, store: RecipeStore) {
         _recipe = State(initialValue: recipe)
@@ -585,6 +586,17 @@ struct RecipeDetailView: View {
                         .card()
 
                         if !recipe.steps.isEmpty {
+                            Button { Haptics.tap(); cooking = true } label: {
+                                Label("Start cooking", systemImage: "flame.fill")
+                                    .font(Theme.Fonts.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 54)
+                                    .background(Theme.Colors.volt)
+                                    .foregroundStyle(Theme.Colors.onVolt)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            }
+                            .pressable()
+
                             Text("Directions")
                                 .font(Theme.Fonts.headline)
                                 .foregroundStyle(Theme.Colors.textPrimary)
@@ -619,9 +631,11 @@ struct RecipeDetailView: View {
                                     .font(Theme.Fonts.headline)
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 52)
-                                    .background(Theme.Colors.volt)
-                                    .foregroundStyle(Theme.Colors.onVolt)
+                                    .background(store.isSaved(recipe) ? Theme.Colors.volt.opacity(0.14) : Theme.Colors.surface)
+                                    .foregroundStyle(Theme.Colors.volt)
                                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(Theme.Colors.volt.opacity(0.5), lineWidth: 1))
                             }
                             .pressable()
                             if !recipe.url.hasPrefix("ai://"), let url = URL(string: recipe.url) {
@@ -653,6 +667,9 @@ struct RecipeDetailView: View {
                 autoAttempted = true
                 await calculate()
             }
+        }
+        .fullScreenCover(isPresented: $cooking) {
+            CookModeView(recipe: recipe)
         }
     }
 

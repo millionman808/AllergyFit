@@ -23,6 +23,7 @@ struct ProfileView: View {
                         headerCard
                         completionCard
                         allergenCard
+                        insightsCard
                         goalsCard
                         settingsRows
                         signOut
@@ -35,6 +36,7 @@ struct ProfileView: View {
             .onAppear { store.configure(session: session) }
             .navigationDestination(for: String.self) { screen in
                 switch screen {
+                case "insights": InsightsView()
                 case "labscan": LabScanView()
                 case "notifications": NotificationsView()
                 case "subscription": SubscriptionView()
@@ -48,6 +50,34 @@ struct ProfileView: View {
             .sheet(isPresented: $showDietary) { DietaryPrefsView(store: store) }
             .sheet(item: $shareURL) { url in ShareSheet(items: [url]) }
         }
+    }
+
+    // MARK: Insights entry
+
+    private var insightsCard: some View {
+        NavigationLink(value: "insights") {
+            HStack(spacing: 14) {
+                Image(systemName: "waveform.path.ecg")
+                    .font(.title2)
+                    .foregroundStyle(Theme.Colors.volt)
+                    .frame(width: 48, height: 48)
+                    .background(Theme.Colors.volt.opacity(0.12),
+                                in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Reaction insights")
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text("Patterns Volt spotted between foods and how you feel")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").foregroundStyle(Theme.Colors.textTertiary)
+            }
+            .card()
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: Header

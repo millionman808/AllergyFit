@@ -45,7 +45,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.elischafer.allergyfit
         MARKETING_VERSION: 0.1.0
-        CURRENT_PROJECT_VERSION: 3
+        CURRENT_PROJECT_VERSION: 4
         DEVELOPMENT_TEAM: KLD3ENRH42
         GENERATE_INFOPLIST_FILE: true
         # Siri needs a usage string before it will run the "Log a Meal" intent.

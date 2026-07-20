@@ -10,9 +10,15 @@ struct CookModeView: View {
     @State private var step = 0
     @State private var showIngredients = false
 
-    // Timer — steps that mention a duration get a one-tap countdown.
+    // Timer — a labeled countdown that floats on screen and keeps running as
+    // you move between steps.
     @State private var secondsLeft = 0
     @State private var timerActive = false
+    @State private var timerDone = false
+    @State private var timerLabel = ""
+    @State private var showTimerSetup = false
+    @State private var setupMinutes = 10
+    @State private var setupLabel = ""
     private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     private var steps: [String] { recipe.steps }
@@ -41,6 +47,8 @@ struct CookModeView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
+
+                timerPill   // floats here, always visible while a timer runs
 
                 // The step — the whole point, oversized
                 ScrollView {
@@ -123,59 +131,124 @@ struct CookModeView: View {
                 secondsLeft -= 1
             } else {
                 secondsLeft = 0
-                timerActive = false
+                withAnimation { timerActive = false; timerDone = true }
                 Haptics.warning()   // buzz when the timer finishes
             }
         }
-        .onChange(of: step) { _ in stopTimer() }
+        .sheet(isPresented: $showTimerSetup) { timerSetupSheet }
     }
 
     // MARK: Timer
 
-    private var timerStrip: some View {
-        Group {
-            if timerActive {
-                HStack(spacing: 14) {
-                    Image(systemName: "timer").font(.title3).foregroundStyle(Theme.Colors.volt)
-                    Text(timeString(secondsLeft))
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                    Spacer()
-                    Button { stopTimer() } label: {
-                        Text("Stop")
-                            .font(Theme.Fonts.headline)
-                            .foregroundStyle(Theme.Colors.danger)
-                            .padding(.horizontal, 16).padding(.vertical, 9)
-                            .background(Theme.Colors.danger.opacity(0.14), in: Capsule())
+    /// The always-visible countdown. Once started it keeps running as you move
+    /// between steps, so you can glance at it any time.
+    @ViewBuilder private var timerPill: some View {
+        if timerActive || timerDone {
+            HStack(spacing: 10) {
+                Image(systemName: timerDone ? "bell.fill" : "timer")
+                    .font(.headline)
+                    .foregroundStyle(timerDone ? Theme.Colors.onVolt : Theme.Colors.volt)
+                VStack(alignment: .leading, spacing: 0) {
+                    if !timerLabel.isEmpty {
+                        Text(timerLabel)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(timerDone ? Theme.Colors.onVolt.opacity(0.9) : Theme.Colors.textSecondary)
+                            .lineLimit(1)
                     }
+                    Text(timerDone ? "Time's up!" : timeString(secondsLeft))
+                        .font(.system(size: 19, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(timerDone ? Theme.Colors.onVolt : Theme.Colors.textPrimary)
+                        .contentTransition(.numericText())
                 }
-                .padding(.horizontal, 18).padding(.vertical, 12)
-                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .padding(.horizontal, 20)
-            } else if let mins = stepMinutes {
-                Button {
-                    secondsLeft = mins * 60
-                    timerActive = true
-                    Haptics.tap()
-                } label: {
-                    Label("Start \(mins) min timer", systemImage: "timer")
-                        .font(Theme.Fonts.headline)
-                        .foregroundStyle(Theme.Colors.volt)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .background(Theme.Colors.volt.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                Spacer(minLength: 8)
+                Button { withAnimation { stopTimer() } } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(timerDone ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
+                        .frame(width: 28, height: 28)
+                        .background(timerDone ? Color.white.opacity(0.22) : Theme.Colors.surfaceRaised, in: Circle())
                 }
-                .pressable()
-                .padding(.horizontal, 20)
             }
+            .padding(.horizontal, 14).padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(timerDone ? Theme.Colors.volt : Theme.Colors.surface,
+                        in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
+            .padding(.horizontal, 20).padding(.top, 10)
+            .transition(.move(edge: .top).combined(with: .opacity))
         }
-        .padding(.bottom, timerActive || stepMinutes != nil ? 10 : 0)
+    }
+
+    /// The "set a timer" trigger, shown in the controls column when idle.
+    @ViewBuilder private var timerStrip: some View {
+        if !timerActive && !timerDone {
+            Button {
+                setupMinutes = stepMinutes ?? 10
+                setupLabel = ""
+                showTimerSetup = true
+            } label: {
+                Label(stepMinutes != nil ? "Set timer · \(stepMinutes!) min" : "Set a timer",
+                      systemImage: "timer")
+                    .font(Theme.Fonts.headline)
+                    .foregroundStyle(Theme.Colors.volt)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Theme.Colors.volt.opacity(0.12),
+                                in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .pressable()
+            .padding(.horizontal, 20)
+            .padding(.bottom, 10)
+        }
+    }
+
+    private var timerSetupSheet: some View {
+        NavigationStack {
+            ZStack {
+                Theme.Colors.background.ignoresSafeArea()
+                VStack(spacing: 16) {
+                    TextField("What's it for?  (e.g. Rice)", text: $setupLabel)
+                        .font(Theme.Fonts.body)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .padding(14)
+                        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    Picker("Minutes", selection: $setupMinutes) {
+                        ForEach(1...120, id: \.self) { m in Text("\(m) min").tag(m) }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(maxHeight: 150)
+                    Button { startTimer() } label: {
+                        Text("Start timer")
+                            .font(Theme.Fonts.headline)
+                            .foregroundStyle(Theme.Colors.onVolt)
+                            .frame(maxWidth: .infinity).frame(height: 54)
+                            .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                    .pressable()
+                    Spacer()
+                }
+                .padding(20)
+            }
+            .navigationTitle("New timer")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { showTimerSetup = false } } }
+            .presentationDetents([.medium])
+        }
+    }
+
+    private func startTimer() {
+        secondsLeft = max(1, setupMinutes) * 60
+        timerLabel = setupLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+        timerDone = false
+        withAnimation { timerActive = true }
+        showTimerSetup = false
+        Haptics.tap()
     }
 
     private func stopTimer() {
         timerActive = false
+        timerDone = false
         secondsLeft = 0
     }
 

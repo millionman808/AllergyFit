@@ -25,6 +25,8 @@ struct AIMealLogView: View {
     @State private var swappingItemId: Int?
     @State private var photoItem: PhotosPickerItem?
     @State private var labelItem: PhotosPickerItem?
+    @State private var showPhotoSource = false
+    @State private var pickerSource: UIImagePickerController.SourceType?
 
     private var allergenSlugs: [String] { session.allergenSlugs }
 
@@ -77,6 +79,13 @@ struct AIMealLogView: View {
             guard let item else { return }
             analyzePhoto(item, isLabel: true)
         }
+        .fullScreenCover(item: $pickerSource) { source in
+            MealImagePicker(source: source) { image in
+                pickerSource = nil
+                if let image { analyzePhotoImage(image, isLabel: false) }
+            }
+            .ignoresSafeArea()
+        }
     }
 
     // MARK: - Input
@@ -87,8 +96,9 @@ struct AIMealLogView: View {
                 .font(Theme.Fonts.title)
                 .foregroundStyle(Theme.Colors.textPrimary)
 
-            // Photo is the fastest path (#1 friction reducer).
-            PhotosPicker(selection: $photoItem, matching: .images) {
+            // Photo is the fastest path (#1 friction reducer). Take one live or
+            // pick from the library.
+            Button { showPhotoSource = true } label: {
                 VStack(spacing: 8) {
                     Image(systemName: "camera.fill")
                         .font(.title2)
@@ -98,7 +108,7 @@ struct AIMealLogView: View {
                     Text("Snap a photo of your meal")
                         .font(Theme.Fonts.headline)
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("Macros from USDA + an instant safe / not-safe check for your allergies")
+                    Text("Take a photo or choose one — macros from USDA + an instant safe / not-safe allergy check")
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.textSecondary)
                         .multilineTextAlignment(.center)
@@ -111,6 +121,13 @@ struct AIMealLogView: View {
                     .strokeBorder(Theme.Colors.volt.opacity(0.35), style: .init(lineWidth: 1.5, dash: [6, 5])))
             }
             .buttonStyle(.plain)
+            .confirmationDialog("Add a meal photo", isPresented: $showPhotoSource, titleVisibility: .visible) {
+                if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                    Button("Take Photo") { pickerSource = .camera }
+                }
+                Button("Choose from Library") { pickerSource = .photoLibrary }
+                Button("Cancel", role: .cancel) {}
+            }
 
             // Packaged food? Read the label panel for exact manufacturer numbers.
             PhotosPicker(selection: $labelItem, matching: .images) {
@@ -560,30 +577,40 @@ struct AIMealLogView: View {
     /// `isLabel`) → macros → allergen verdict. Label mode uses the package's own
     /// numbers; meal mode composes from USDA.
     private func analyzePhoto(_ item: PhotosPickerItem, isLabel: Bool = false) {
+        withAnimation { phase = .loading }
+        Task {
+            guard let data = try? await item.loadTransferable(type: Data.self),
+                  let uiImage = UIImage(data: data) else {
+                withAnimation { errorMessage = "Couldn't read that photo. Try another."; phase = .input }
+                photoItem = nil; labelItem = nil
+                return
+            }
+            photoItem = nil; labelItem = nil
+            analyzePhotoImage(uiImage, isLabel: isLabel)
+        }
+    }
+
+    /// Shared core: resize → vision analyze → apply. Used by both the library
+    /// picker and the live camera.
+    private func analyzePhotoImage(_ uiImage: UIImage, isLabel: Bool) {
         errorMessage = nil
         conversation = []
         withAnimation { phase = .loading }
         Task {
+            // Labels are dense; give the panel more pixels to stay legible.
+            let maxDim: CGFloat = isLabel ? 1568 : 1024
+            guard let jpeg = resizedJPEG(uiImage, maxDimension: maxDim) else {
+                withAnimation { errorMessage = "Couldn't read that photo. Try another."; phase = .input }
+                return
+            }
             do {
-                // Labels are dense; give the panel more pixels to stay legible.
-                let maxDim: CGFloat = isLabel ? 1568 : 1024
-                guard let data = try await item.loadTransferable(type: Data.self),
-                      let uiImage = UIImage(data: data),
-                      let jpeg = resizedJPEG(uiImage, maxDimension: maxDim) else {
-                    throw NSError(domain: "MealPhoto", code: 1,
-                                  userInfo: [NSLocalizedDescriptionKey: "Couldn't read that photo. Try another."])
-                }
                 let response = try await AIMealService.analyze(
                     messages: [], allergens: allergenSlugs,
                     imageBase64: jpeg.base64EncodedString(), mediaType: "image/jpeg",
                     isLabel: isLabel)
-                photoItem = nil
-                labelItem = nil
                 applyResponse(response)
             } catch {
                 withAnimation { errorMessage = error.localizedDescription; phase = .input }
-                photoItem = nil
-                labelItem = nil
             }
         }
     }
@@ -790,4 +817,36 @@ struct FlowTags: View {
             }
         }
     }
+}
+
+// MARK: - Camera / library picker
+
+/// Wraps UIImagePickerController so a meal photo can be taken live (camera) or
+/// chosen from the library — returns a UIImage.
+struct MealImagePicker: UIViewControllerRepresentable {
+    let source: UIImagePickerController.SourceType
+    let onPick: (UIImage?) -> Void
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let vc = UIImagePickerController()
+        vc.sourceType = source
+        vc.delegate = context.coordinator
+        return vc
+    }
+    func updateUIViewController(_ vc: UIImagePickerController, context: Context) {}
+    func makeCoordinator() -> Coordinator { Coordinator(onPick: onPick) }
+
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let onPick: (UIImage?) -> Void
+        init(onPick: @escaping (UIImage?) -> Void) { self.onPick = onPick }
+        func imagePickerController(_ picker: UIImagePickerController,
+                                   didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            onPick(info[.originalImage] as? UIImage)
+        }
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { onPick(nil) }
+    }
+}
+
+extension UIImagePickerController.SourceType: Identifiable {
+    public var id: Int { rawValue }
 }

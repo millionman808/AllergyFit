@@ -47,15 +47,19 @@ enum LogService {
         try await Backend.client.from("workouts").insert(row).execute()
     }
 
-    static func saveSymptom(userId: UUID, symptoms: [String], severity: String, duringExercise: Bool) async throws {
+    static func saveSymptom(userId: UUID, symptoms: [String], severity: String,
+                            duringExercise: Bool, notes: String? = nil) async throws {
         struct Row: Codable {
             let user_id: UUID
             let symptoms: [String]
             let severity: String
             let during_or_after_exercise: Bool
+            let notes: String?
         }
+        let trimmed = notes?.trimmingCharacters(in: .whitespacesAndNewlines)
         let row = Row(user_id: userId, symptoms: symptoms.map(symptomSlug),
-                      severity: severity.lowercased(), during_or_after_exercise: duringExercise)
+                      severity: severity.lowercased(), during_or_after_exercise: duringExercise,
+                      notes: (trimmed?.isEmpty == false) ? trimmed : nil)
         try await Backend.client.from("symptom_logs").insert(row).execute()
 
         // Re-run the time-window correlation engine so Insights stays current.

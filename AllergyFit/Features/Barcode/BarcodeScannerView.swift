@@ -37,7 +37,14 @@ struct BarcodeScannerView: View {
                     noCameraSection
                 }
 
-                manualEntryBar
+                VStack(spacing: 6) {
+                    Text("Can't scan it? Type the barcode number")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                    manualEntryBar
+                }
+                .padding(.top, 8)
+                .padding(.bottom, Theme.Metrics.tabBarClearance)
             }
         }
         .navigationTitle("Scan a product")
@@ -46,7 +53,7 @@ struct BarcodeScannerView: View {
             cameraAvailable = AVCaptureDevice.default(for: .video) != nil
         }
         .sheet(item: $product) { p in
-            ProductResultView(product: p)
+            ProductResultView(product: p, session: session)
         }
         .overlay {
             if isLooking {
@@ -149,6 +156,24 @@ extension ScannedProduct: Identifiable { var id: String { barcode } }
 struct ProductResultView: View {
     @Environment(\.dismiss) private var dismiss
     let product: ScannedProduct
+    @ObservedObject var session: SessionStore
+    @State private var servings: Double = 1
+    @State private var grams: Double = 100
+    @State private var isLogging = false
+    @State private var logged = false
+
+    private var hasMacros: Bool { product.caloriesPer100g != nil || product.proteinPer100g != nil }
+    /// Grams in one serving, parsed from the label text if present (e.g. "30 g").
+    private var servingGrams: Double? {
+        guard let s = product.servingSizeText,
+              let re = try? NSRegularExpression(pattern: #"(\d+(?:\.\d+)?)\s*g"#),
+              let m = re.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
+              let r = Range(m.range(at: 1), in: s) else { return nil }
+        return Double(s[r])
+    }
+    private var effectiveGrams: Double { (servingGrams.map { $0 * servings }) ?? grams }
+    private func scaled(_ per100: Double?) -> Int { Int((((per100 ?? 0) * effectiveGrams) / 100).rounded()) }
+    private var scaledCalories: Int { Int(((Double(product.caloriesPer100g ?? 0) * effectiveGrams) / 100).rounded()) }
 
     var body: some View {
         NavigationStack {
@@ -196,22 +221,41 @@ struct ProductResultView: View {
                         }
                         .card()
 
-                        // Macros (per 100g)
-                        if product.caloriesPer100g != nil || product.proteinPer100g != nil {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Per 100g").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
+                        // How much did you have? → scaled macros
+                        if hasMacros {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("How much did you have?")
+                                    .font(Theme.Fonts.headline)
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+
+                                amountControl
+
                                 HStack(spacing: 14) {
-                                    macro("\(product.caloriesPer100g ?? 0)", "kcal", Theme.Colors.textPrimary)
-                                    macro(gram(product.proteinPer100g), "protein", Theme.Colors.protein)
-                                    macro(gram(product.carbsPer100g), "carbs", Theme.Colors.carbs)
-                                    macro(gram(product.fatPer100g), "fat", Theme.Colors.fat)
-                                }
-                                if let s = product.servingSizeText, !s.isEmpty {
-                                    Text("Serving size: \(s)").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
+                                    macro("\(scaledCalories)", "kcal", Theme.Colors.textPrimary)
+                                    macro("\(scaled(product.proteinPer100g))g", "protein", Theme.Colors.protein)
+                                    macro("\(scaled(product.carbsPer100g))g", "carbs", Theme.Colors.carbs)
+                                    macro("\(scaled(product.fatPer100g))g", "fat", Theme.Colors.fat)
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .card()
+
+                            Button {
+                                Task { await logMeal() }
+                            } label: {
+                                Group {
+                                    if isLogging { ProgressView().tint(Theme.Colors.onVolt) }
+                                    else if logged { Label("Added to today", systemImage: "checkmark") }
+                                    else { Label("Log \(scaledCalories) kcal to today", systemImage: "plus.circle.fill") }
+                                }
+                                .font(Theme.Fonts.headline)
+                                .frame(maxWidth: .infinity).frame(height: 54)
+                                .background(logged ? Theme.Colors.safe : Theme.Colors.volt)
+                                .foregroundStyle(Theme.Colors.onVolt)
+                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            }
+                            .disabled(isLogging || logged)
+                            .pressable()
                         }
 
                         // All allergens present
@@ -251,6 +295,78 @@ struct ProductResultView: View {
             Text(label).font(.system(size: 10, weight: .medium, design: .rounded)).foregroundStyle(Theme.Colors.textTertiary)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    /// Servings stepper when the label has a serving size, otherwise a grams
+    /// stepper. Either way it drives the scaled macros above.
+    private var amountControl: some View {
+        let usingServings = servingGrams != nil
+        return HStack(spacing: 14) {
+            Button {
+                if usingServings { servings = max(0.5, servings - 0.5) }
+                else { grams = max(10, grams - 10) }
+            } label: { stepIcon("minus") }
+            VStack(spacing: 1) {
+                if usingServings {
+                    Text(servings == 1 ? "1 serving" : "\(servings.clean) servings")
+                        .font(Theme.Fonts.headline).foregroundStyle(Theme.Colors.textPrimary)
+                    Text("\(Int(effectiveGrams.rounded())) g").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
+                } else {
+                    Text("\(Int(grams.rounded())) g")
+                        .font(Theme.Fonts.headline).foregroundStyle(Theme.Colors.textPrimary)
+                    Text("no serving size on label").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            Button {
+                if usingServings { servings += 0.5 }
+                else { grams += 10 }
+            } label: { stepIcon("plus") }
+        }
+    }
+
+    private func stepIcon(_ name: String) -> some View {
+        Image(systemName: name)
+            .font(.system(size: 16, weight: .bold))
+            .foregroundStyle(Theme.Colors.volt)
+            .frame(width: 46, height: 46)
+            .background(Theme.Colors.volt.opacity(0.12), in: Circle())
+    }
+
+    private func logMeal() async {
+        isLogging = true
+        defer { isLogging = false }
+        if !session.isDemo, let userId = session.session?.user.id {
+            let record = MealLogRecord(
+                id: UUID(), userId: userId, eatenAt: Date(),
+                mealType: Self.mealTypeForNow(),
+                name: [product.brand, product.name].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " "),
+                calories: scaledCalories,
+                proteinG: Double(scaled(product.proteinPer100g)),
+                carbsG: Double(scaled(product.carbsPer100g)),
+                fatG: Double(scaled(product.fatPer100g)))
+            do { try await Backend.client.from("meal_logs").insert(record).execute() }
+            catch { print("product log failed: \(error)") }
+        }
+        Haptics.success()
+        withAnimation { logged = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) { dismiss() }
+    }
+
+    private static func mealTypeForNow() -> String {
+        switch Calendar.current.component(.hour, from: Date()) {
+        case 4..<11: return "breakfast"
+        case 11..<16: return "lunch"
+        case 16..<22: return "dinner"
+        default: return "snack"
+        }
+    }
+}
+
+private extension Double {
+    /// "1.5" not "1.500000"; drops a trailing ".0".
+    var clean: String {
+        truncatingRemainder(dividingBy: 1) == 0 ? String(Int(self)) : String(format: "%.1f", self)
     }
 }
 

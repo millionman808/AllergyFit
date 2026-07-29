@@ -140,7 +140,7 @@ struct AuthView: View {
                 credentials: .init(provider: .apple, idToken: token)
             )
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = Self.friendlyAuthMessage(error)
         }
     }
 
@@ -172,7 +172,7 @@ struct AuthView: View {
             // User closing Google's sheet isn't an error worth showing.
             let ns = error as NSError
             if ns.domain == kGIDSignInErrorDomain, ns.code == GIDSignInError.canceled.rawValue { return }
-            errorMessage = error.localizedDescription
+            errorMessage = Self.friendlyAuthMessage(error)
         }
     }
 
@@ -195,8 +195,45 @@ struct AuthView: View {
                 try await Backend.client.auth.signIn(email: email, password: password)
             }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = Self.friendlyAuthMessage(error)
         }
+    }
+
+    /// Supabase's raw errors are developer-facing ("For security purposes, you can
+    /// only request this after 30 seconds"). Translate the common ones into
+    /// something a user can act on.
+    static func friendlyAuthMessage(_ error: Error) -> String {
+        let raw = error.localizedDescription
+        let l = raw.lowercased()
+
+        if l.contains("for security purposes") || l.contains("rate limit") || l.contains("too many requests") {
+            // Pull the wait time out of the message when it's there.
+            if let re = try? NSRegularExpression(pattern: #"(\d+)\s*second"#),
+               let m = re.firstMatch(in: l, range: NSRange(l.startIndex..., in: l)),
+               let r = Range(m.range(at: 1), in: l) {
+                return "Too many attempts. Wait \(l[r]) seconds and try again."
+            }
+            return "Too many attempts. Wait a moment and try again."
+        }
+        if l.contains("invalid login") || l.contains("invalid credentials") {
+            return "That email or password doesn't match. Try again, or create an account."
+        }
+        if l.contains("already registered") || l.contains("already been registered") || l.contains("user already") {
+            return "You already have an account with this email — tap Sign in instead."
+        }
+        if l.contains("password") && (l.contains("6 characters") || l.contains("at least")) {
+            return "Use a password of at least 6 characters."
+        }
+        if l.contains("invalid email") || l.contains("unable to validate email") {
+            return "That email address doesn't look right. Check it and try again."
+        }
+        if l.contains("email not confirmed") {
+            return "Check your inbox and confirm your email, then sign in."
+        }
+        if l.contains("network") || l.contains("offline") || l.contains("connection") {
+            return "Can't reach the server. Check your connection and try again."
+        }
+        return raw
     }
 }
 

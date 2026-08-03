@@ -10,10 +10,72 @@ struct AuthView: View {
     @State private var isSigningUp = false
     @State private var errorMessage: String?
     @State private var isBusy = false
+    @State private var awaitingConfirmation = false
+    @State private var resent = false
 
     var body: some View {
         ZStack {
             Theme.Colors.background.ignoresSafeArea()
+            if awaitingConfirmation { confirmEmailScreen } else { signInScreen }
+        }
+    }
+
+    /// Shown when the project requires email confirmation — signup otherwise
+    /// looks like nothing happened.
+    private var confirmEmailScreen: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Image(systemName: "envelope.badge.fill")
+                .font(.system(size: 52))
+                .foregroundStyle(Theme.Colors.volt)
+            Text("Check your email")
+                .font(Theme.Fonts.title)
+                .foregroundStyle(Theme.Colors.textPrimary)
+            Text("We sent a confirmation link to\n\(email)")
+                .font(Theme.Fonts.body)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Theme.Colors.textSecondary)
+            Text("Tap the link, then come back here and sign in.")
+                .font(Theme.Fonts.caption)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Theme.Colors.textTertiary)
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(Theme.Fonts.caption)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(Theme.Colors.danger)
+            }
+
+            Button {
+                Task { await resendConfirmation() }
+            } label: {
+                Group {
+                    if isBusy { ProgressView().tint(Theme.Colors.volt) }
+                    else { Text(resent ? "Email sent again" : "Resend email") }
+                }
+                .font(Theme.Fonts.headline)
+                .foregroundStyle(Theme.Colors.volt)
+                .frame(maxWidth: .infinity).frame(height: 52)
+                .background(Theme.Colors.volt.opacity(0.12),
+                            in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .disabled(isBusy || resent)
+
+            Button {
+                withAnimation { awaitingConfirmation = false; isSigningUp = false; resent = false; errorMessage = nil }
+            } label: {
+                Text("Back to sign in")
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
+            Spacer()
+        }
+        .padding(28)
+    }
+
+    private var signInScreen: some View {
+        ZStack {
 
             VStack(spacing: 24) {
                 Spacer()
@@ -190,10 +252,30 @@ struct AuthView: View {
         errorMessage = nil
         do {
             if isSigningUp {
-                try await Backend.client.auth.signUp(email: email, password: password)
+                let response = try await Backend.client.auth.signUp(email: email, password: password)
+                // If the project requires email confirmation there's no session
+                // yet — tell the user to go check their inbox instead of leaving
+                // them staring at an unchanged screen.
+                if response.session == nil {
+                    withAnimation { awaitingConfirmation = true }
+                }
+                // With confirmation off we get a session and SessionStore's
+                // authStateChanges takes us straight into onboarding.
             } else {
                 try await Backend.client.auth.signIn(email: email, password: password)
             }
+        } catch {
+            errorMessage = Self.friendlyAuthMessage(error)
+        }
+    }
+
+    private func resendConfirmation() async {
+        isBusy = true
+        defer { isBusy = false }
+        errorMessage = nil
+        do {
+            try await Backend.client.auth.resend(email: email, type: .signup)
+            withAnimation { resent = true }
         } catch {
             errorMessage = Self.friendlyAuthMessage(error)
         }

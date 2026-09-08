@@ -37,6 +37,7 @@
 		9787A90913EC5DBD3A9F76B1 /* AIRecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804C128508222131CC8A9491 /* AIRecipeView.swift */; };
 		9976C58153C1C451F1895485 /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 185FD671A9C3E4B68037D2A8 /* TrendsView.swift */; };
 		9CFFEF6F3A066A304D0F9DC1 /* HealthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62AF4EC9F170CBFD837F5677 /* HealthManager.swift */; };
+		A09ACEE367E63E404B64C2CC /* OnboardingMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7CE6FD848A3475B62047D6F /* OnboardingMotion.swift */; };
 		A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DAB4D05FE16724A93EEF2FE /* Theme.swift */; };
 		A472F5802CA033B55A7B1E0C /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F12C9AFA9A9B34DB6B5EC4D /* Haptics.swift */; };
 		A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */; };
@@ -114,6 +115,7 @@
 		ECADE9B46A714426CE1D1F29 /* RecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipesView.swift; sourceTree = "<group>"; };
 		F355062205365F5C256EF2F3 /* PreAuthOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreAuthOnboardingView.swift; sourceTree = "<group>"; };
 		F527FD29D3656B651EA45656 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		F7CE6FD848A3475B62047D6F /* OnboardingMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingMotion.swift; sourceTree = "<group>"; };
 		FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KitchenView.swift; sourceTree = "<group>"; };
 		FB23C130F988B920D45F1B18 /* ProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -309,6 +311,7 @@
 			isa = PBXGroup;
 			children = (
 				3568EFD1586B51A8314B7E39 /* Confetti.swift */,
+				F7CE6FD848A3475B62047D6F /* OnboardingMotion.swift */,
 				328186B207C708F97059BB8F /* Skeleton.swift */,
 				9DAB4D05FE16724A93EEF2FE /* Theme.swift */,
 				342F5EA8459C6E43D5380473 /* VoltActionCard.swift */,
@@ -433,6 +436,7 @@
 				566B3F9A15CB1EC222A5C94F /* Models.swift in Sources */,
 				0024B3F51409FC17DD35639A /* OfflineView.swift in Sources */,
 				CF6246F215255401EE7FFECC /* OnboardingDraft.swift in Sources */,
+				A09ACEE367E63E404B64C2CC /* OnboardingMotion.swift in Sources */,
 				F94845F6DD0FECFCA22C29CC /* OnboardingView.swift in Sources */,
 				8FD41D9A4843A4728E015364 /* PlanView.swift in Sources */,
 				6224ECEE0BAB2640A0B8475F /* PreAuthOnboardingView.swift in Sources */,

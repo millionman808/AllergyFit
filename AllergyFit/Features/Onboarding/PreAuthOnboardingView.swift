@@ -27,9 +27,7 @@ struct PreAuthOnboardingView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 30)
                     .id(step)
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                        removal: .move(edge: .leading).combined(with: .opacity)))
+                    .transition(.onboardingStep)
                 }
                 .animation(reduceMotion ? .easeOut(duration: 0.15)
                                         : .spring(response: 0.5, dampingFraction: 0.88), value: step)
@@ -144,12 +142,14 @@ struct PreAuthOnboardingView: View {
                     .foregroundStyle(Theme.Colors.onVolt)
             }
             .padding(.top, 20)
+            .revealIn(0)
             header("Train hard.\nEat safe.",
                    "The nutrition app for people with food allergies who train.")
+                .revealIn(1)
             VStack(alignment: .leading, spacing: 12) {
-                bullet("checkmark.shield.fill", "Every meal checked against your triggers")
-                bullet("chart.bar.fill", "Macros from the USDA database — never guessed")
-                bullet("calendar", "A week of safe meals, planned for you")
+                bullet("checkmark.shield.fill", "Every meal checked against your triggers").revealIn(2)
+                bullet("chart.bar.fill", "Macros from the USDA database — never guessed").revealIn(3)
+                bullet("calendar", "A week of safe meals, planned for you").revealIn(4)
             }
             .padding(.top, 4)
         }
@@ -175,7 +175,9 @@ struct PreAuthOnboardingView: View {
         VStack(alignment: .leading, spacing: 18) {
             header("What do you need to avoid?",
                    "Pick everything that applies. You can change this any time.")
+                .revealIn(0)
             FlowChips(items: allAllergens, selected: $draft.allergenNames)
+                .revealIn(1)
         }
     }
 
@@ -184,7 +186,8 @@ struct PreAuthOnboardingView: View {
         VStack(alignment: .leading, spacing: 18) {
             header("How bad is each one?",
                    "This decides how hard we flag a food — a trace of something anaphylactic isn't the same as a little dairy.")
-            ForEach(Array(draft.allergenNames).sorted(), id: \.self) { name in
+                .revealIn(0)
+            ForEach(Array(Array(draft.allergenNames).sorted().enumerated()), id: \.element) { idx, name in
                 VStack(alignment: .leading, spacing: 8) {
                     Text(name)
                         .font(Theme.Fonts.headline)
@@ -209,6 +212,7 @@ struct PreAuthOnboardingView: View {
                     }
                 }
                 .card()
+                .revealIn(idx + 1)
             }
         }
     }
@@ -221,7 +225,8 @@ struct PreAuthOnboardingView: View {
         VStack(alignment: .leading, spacing: 18) {
             header("What are you training for?",
                    "We'll set your calories and protein around it.")
-            ForEach(["Build muscle", "Maintain", "Cut"], id: \.self) { g in
+                .revealIn(0)
+            ForEach(Array(["Build muscle", "Maintain", "Cut"].enumerated()), id: \.element) { idx, g in
                 Button {
                     Haptics.tap(); draft.goal = g
                 } label: {
@@ -236,6 +241,7 @@ struct PreAuthOnboardingView: View {
                     .card()
                 }
                 .buttonStyle(.plain)
+                .revealIn(idx + 1)
             }
         }
     }
@@ -284,11 +290,11 @@ struct PreAuthOnboardingView: View {
                    "Other AI food apps guess the calories. We don't.")
             VStack(alignment: .leading, spacing: 14) {
                 trustRow("1", "You snap a photo",
-                         "The AI only identifies what's on the plate.")
+                         "The AI only identifies what's on the plate.").revealIn(1)
                 trustRow("2", "USDA supplies the numbers",
-                         "Every calorie and gram comes from the official food database.")
+                         "Every calorie and gram comes from the official food database.").revealIn(2)
                 trustRow("3", "We check it against you",
-                         "Then flag anything containing one of your triggers.")
+                         "Then flag anything containing one of your triggers.").revealIn(3)
             }
             Text("Always read the physical label too — recipes change and databases lag behind.")
                 .font(Theme.Fonts.caption)
@@ -319,10 +325,10 @@ struct PreAuthOnboardingView: View {
             header("Your plan is ready.",
                    "Based on your goal, your body and \(draft.allergenNames.count) trigger\(draft.allergenNames.count == 1 ? "" : "s").")
             HStack(spacing: 10) {
-                target("\(t.calories)", "calories", Theme.Colors.volt)
-                target("\(t.protein)g", "protein", Theme.Colors.protein)
-                target("\(t.carbs)g", "carbs", Theme.Colors.carbs)
-                target("\(t.fat)g", "fat", Theme.Colors.fat)
+                target("\(t.calories)", "calories", Theme.Colors.volt).scatterIn(0)
+                target("\(t.protein)g", "protein", Theme.Colors.protein).scatterIn(1)
+                target("\(t.carbs)g", "carbs", Theme.Colors.carbs).scatterIn(2)
+                target("\(t.fat)g", "fat", Theme.Colors.fat).scatterIn(3)
             }
             if !draft.allergenNames.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {

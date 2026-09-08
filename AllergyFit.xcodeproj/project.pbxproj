@@ -28,6 +28,7 @@
 		566B3F9A15CB1EC222A5C94F /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A697D7A190C05DE6A62107E /* Models.swift */; };
 		6224ECEE0BAB2640A0B8475F /* PreAuthOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F355062205365F5C256EF2F3 /* PreAuthOnboardingView.swift */; };
 		6C8341B7CC36C859EA6ED4A4 /* Sensitivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25739FFCCB4C82B4E1BA28DA /* Sensitivity.swift */; };
+		717CAC2C3BCA1A9213AB0753 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512E95E3CCD78E4E7614A610 /* PaywallView.swift */; };
 		764EE38CD7AEE1DFBB76C2D9 /* CookModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EC13F3ACA41CA7ED6E333 /* CookModeView.swift */; };
 		838DB15D4DDE4CBAD02C854F /* InsightsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E701777BF7009E9C766AF99E /* InsightsStore.swift */; };
 		894A499DE984F20BB56F485E /* AllergenKeywords.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */; };
@@ -84,6 +85,7 @@
 		435D00CFDC2A3BABE993C79C /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		4DE9B057C1A2F851554C887D /* AllergyFit.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AllergyFit.entitlements; sourceTree = "<group>"; };
+		512E95E3CCD78E4E7614A610 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		5362C1AB2997D74FFD7C7339 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		5A697D7A190C05DE6A62107E /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		5DB275F388DE7232A4145F13 /* ReminderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderManager.swift; sourceTree = "<group>"; };
@@ -234,10 +236,19 @@
 				159C8CE4F5200EEFA04427C9 /* Kitchen */,
 				C715171B69B04C06EA361F38 /* Log */,
 				F6AA27EE44E954A6166BA765 /* Onboarding */,
+				9662D7BD6D7A2311E94E8211 /* Paywall */,
 				53A5E5FAB4F61EE9C52ECEBA /* Plan */,
 				750F89CED5115065489F8737 /* Profile */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		9662D7BD6D7A2311E94E8211 /* Paywall */ = {
+			isa = PBXGroup;
+			children = (
+				512E95E3CCD78E4E7614A610 /* PaywallView.swift */,
+			);
+			path = Paywall;
 			sourceTree = "<group>";
 		};
 		A4355B00357CB3181717DA2B /* Auth */ = {
@@ -438,6 +449,7 @@
 				CF6246F215255401EE7FFECC /* OnboardingDraft.swift in Sources */,
 				A09ACEE367E63E404B64C2CC /* OnboardingMotion.swift in Sources */,
 				F94845F6DD0FECFCA22C29CC /* OnboardingView.swift in Sources */,
+				717CAC2C3BCA1A9213AB0753 /* PaywallView.swift in Sources */,
 				8FD41D9A4843A4728E015364 /* PlanView.swift in Sources */,
 				6224ECEE0BAB2640A0B8475F /* PreAuthOnboardingView.swift in Sources */,
 				0C2AD9806B993977C21F04AE /* ProfileSheets.swift in Sources */,
@@ -473,7 +485,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -490,7 +502,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.elischafer.allergyfit;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
@@ -624,7 +636,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -641,7 +653,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.elischafer.allergyfit;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;

@@ -43,6 +43,8 @@ struct MainTabView: View {
     @EnvironmentObject var session: SessionStore
     @State private var selection = UserDefaults.standard.integer(forKey: "initialTab")
     @AppStorage("seenVoltIntro") private var seenVoltIntro = false
+    @AppStorage("seenPaywall") private var seenPaywall = false
+    @State private var showPaywall = false
     @State private var showVoltIntro = false
     // One shared plan powers Today, Plan, recipe discovery, and meal completion.
     @StateObject private var planStore = PlanStore()
@@ -61,8 +63,22 @@ struct MainTabView: View {
                     showVoltIntro = true
                 }
             }
-            .sheet(isPresented: $showVoltIntro, onDismiss: { seenVoltIntro = true }) {
+            .sheet(isPresented: $showVoltIntro, onDismiss: {
+                seenVoltIntro = true
+                // Offer the plan right after the intro, once.
+                if !seenPaywall { showPaywall = true }
+            }) {
                 VoltIntroSheet()
+            }
+            .sheet(isPresented: $showPaywall, onDismiss: { seenPaywall = true }) {
+                PaywallView()
+            }
+            .task {
+                // Returning users who already saw the intro still get one look.
+                if seenVoltIntro && !seenPaywall {
+                    try? await Task.sleep(nanoseconds: 700_000_000)
+                    showPaywall = true
+                }
             }
     }
 

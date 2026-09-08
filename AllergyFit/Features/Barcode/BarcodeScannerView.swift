@@ -86,7 +86,7 @@ struct BarcodeScannerView: View {
             Text("Scan a packaged food")
                 .font(Theme.Fonts.title)
                 .foregroundStyle(Theme.Colors.textPrimary)
-            Text("On a real device, point your camera at any barcode for an instant safe/unsafe verdict. In the simulator, type a barcode below to try it.")
+            Text("On a real device, point your camera at a barcode to compare the product with your listed triggers. Always verify the current package label. In the simulator, type a barcode below to try it.")
                 .font(Theme.Fonts.caption)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .multilineTextAlignment(.center)

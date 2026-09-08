@@ -7,7 +7,7 @@ struct LogView: View {
     @State private var toast: String?
     @State private var path: [String] = {
         if let screen = UserDefaults.standard.string(forKey: "logScreen") { return [screen] }
-        return []
+        return ["meal"]
     }()
 
     var body: some View {
@@ -17,16 +17,16 @@ struct LogView: View {
                 ScrollView {
                     VStack(spacing: Theme.Metrics.spacing) {
                         NavigationLink(value: "meal") {
-                            logButton("Log a meal", subtitle: "Snap a photo or describe it — AI works out the nutrition", icon: "sparkles", color: Theme.Colors.volt)
+                            logButton("Check or log a meal", subtitle: "Use a photo or description to review ingredients and nutrition", icon: "viewfinder", color: Theme.Colors.volt)
                         }
                         NavigationLink(value: "workout") {
-                            logButton("Log a workout", subtitle: "Type, duration, intensity", icon: "dumbbell.fill", color: Theme.Colors.protein)
+                            logButton("Add workout context", subtitle: "Connect type, duration, and intensity to your check-ins", icon: "dumbbell.fill", color: Theme.Colors.protein)
                         }
                         NavigationLink(value: "symptom") {
-                            logButton("Check-in", subtitle: "Log a good day or a reaction — feeds your patterns", icon: "heart.text.square.fill", color: Theme.Colors.danger)
+                            logButton("Log a reaction", subtitle: "Record symptoms or a good day to build possible patterns", icon: "heart.text.square.fill", color: Theme.Colors.danger)
                         }
                         NavigationLink(value: "barcode") {
-                            logButton("Scan a product", subtitle: "Instant safe/unsafe verdict + macros", icon: "barcode.viewfinder", color: Theme.Colors.caution)
+                            logButton("Scan a product", subtitle: "Compare its label with your listed triggers and macros", icon: "barcode.viewfinder", color: Theme.Colors.caution)
                         }
 
                         quickAdd
@@ -48,7 +48,7 @@ struct LogView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .navigationTitle("Log")
+            .navigationTitle("Check")
             .onAppear { quick.configure(session: session) }
             .navigationDestination(for: String.self) { screen in
                 switch screen {

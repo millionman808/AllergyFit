@@ -3,7 +3,9 @@ import SwiftUI
 /// 4-step onboarding: allergens → goal → stats → targets reveal.
 struct OnboardingView: View {
     @EnvironmentObject var session: SessionStore
-    @State private var step = UserDefaults.standard.integer(forKey: "onboardingStep")
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var step = min(max(UserDefaults.standard.integer(forKey: "onboardingStep"), 0), 3)
+    @State private var movingForward = true
     @State private var selectedAllergens: Set<String> = ["Peanut", "Milk / Dairy", "Sesame"]
     @State private var goal = "Build muscle"
     @State private var trainingDays = 4
@@ -30,36 +32,70 @@ struct OnboardingView: View {
         ZStack {
             Theme.Colors.background.ignoresSafeArea()
             VStack(spacing: 0) {
-                progressBar
+                onboardingChrome
                     .padding(.horizontal, Theme.Metrics.screenPadding)
-                    .padding(.top, 12)
+                    .padding(.top, 8)
 
-                TabView(selection: $step) {
-                    allergenStep.tag(0)
-                    goalStep.tag(1)
-                    statsStep.tag(2)
-                    targetsStep.tag(3)
+                ZStack {
+                    currentStep
+                        .id(step)
+                        .transition(stepTransition)
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .animation(.easeInOut, value: step)
+                .clipped()
+                .animation(reduceMotion ? .easeOut(duration: 0.15) : .spring(response: 0.52, dampingFraction: 0.88), value: step)
 
                 nextButton
                     .padding(.horizontal, Theme.Metrics.screenPadding)
                     .padding(.bottom, 16)
             }
         }
+        .onChange(of: step) { newValue in
+            UserDefaults.standard.set(newValue, forKey: "onboardingStep")
+        }
     }
 
     // MARK: - Chrome
 
-    private var progressBar: some View {
-        HStack(spacing: 6) {
-            ForEach(0..<totalSteps, id: \.self) { i in
-                Capsule()
-                    .fill(i <= step ? Theme.Colors.volt : Theme.Colors.surfaceRaised)
-                    .frame(height: 4)
+    private var onboardingChrome: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Button {
+                    goBack()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .frame(width: 34, height: 34)
+                        .background(Theme.Colors.surface, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .opacity(step == 0 ? 0 : 1)
+                .disabled(step == 0)
+                .accessibilityLabel("Previous step")
+
+                Spacer()
+
+                Text("SETUP  \(step + 1) OF \(totalSteps)")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .tracking(1.2)
+                    .foregroundStyle(Theme.Colors.textTertiary)
+
+                Spacer()
+
+                Color.clear.frame(width: 34, height: 34)
+            }
+
+            HStack(spacing: 6) {
+                ForEach(0..<totalSteps, id: \.self) { i in
+                    Capsule()
+                        .fill(i <= step ? Theme.Colors.volt : Theme.Colors.surfaceRaised)
+                        .frame(height: i == step ? 5 : 3)
+                        .animation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.72), value: step)
+                }
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Step \(step + 1) of \(totalSteps)")
     }
 
     private var nextButton: some View {
@@ -71,7 +107,7 @@ struct OnboardingView: View {
             }
             Button {
                 if step < totalSteps - 1 {
-                    withAnimation { step += 1 }
+                    advance()
                 } else {
                     finish()
                 }
@@ -91,6 +127,42 @@ struct OnboardingView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
             .disabled(isSaving)
+            .pressable()
+        }
+    }
+
+    @ViewBuilder private var currentStep: some View {
+        switch step {
+        case 1: goalStep
+        case 2: statsStep
+        case 3: targetsStep
+        default: allergenStep
+        }
+    }
+
+    private var stepTransition: AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return .asymmetric(
+            insertion: .move(edge: movingForward ? .trailing : .leading).combined(with: .opacity),
+            removal: .move(edge: movingForward ? .leading : .trailing).combined(with: .opacity)
+        )
+    }
+
+    private func advance() {
+        guard step < totalSteps - 1 else { return }
+        Haptics.tap()
+        movingForward = true
+        withAnimation(reduceMotion ? .easeOut(duration: 0.15) : .spring(response: 0.52, dampingFraction: 0.88)) {
+            step += 1
+        }
+    }
+
+    private func goBack() {
+        guard step > 0 else { return }
+        Haptics.tap()
+        movingForward = false
+        withAnimation(reduceMotion ? .easeOut(duration: 0.15) : .spring(response: 0.52, dampingFraction: 0.88)) {
+            step -= 1
         }
     }
 
@@ -98,7 +170,11 @@ struct OnboardingView: View {
 
     private func finish() {
         if session.isDemo {
-            withAnimation { session.demoOnboarded = true }
+            UserDefaults.standard.removeObject(forKey: "onboardingStep")
+            Haptics.success()
+            withAnimation(reduceMotion ? .easeOut(duration: 0.15) : .spring(response: 0.5, dampingFraction: 0.86)) {
+                session.demoOnboarded = true
+            }
             return
         }
         guard let userId = session.session?.user.id else { return }
@@ -108,7 +184,11 @@ struct OnboardingView: View {
             do {
                 try await saveProfile(userId: userId)
                 await session.reloadAllergens(userId: userId)
-                withAnimation { session.profileOnboarded = true }
+                UserDefaults.standard.removeObject(forKey: "onboardingStep")
+                Haptics.success()
+                withAnimation(reduceMotion ? .easeOut(duration: 0.15) : .spring(response: 0.5, dampingFraction: 0.86)) {
+                    session.profileOnboarded = true
+                }
             } catch {
                 saveError = "Couldn't save: \(error.localizedDescription)"
             }
@@ -201,8 +281,12 @@ struct OnboardingView: View {
     private var allergenStep: some View {
         ScrollView {
             VStack(spacing: 20) {
+                OnboardingMotionHero(step: 0)
+                    .onboardingReveal(delay: 0.02)
                 header("What should we\nkeep off your plate?", "Select everything you react to. Safety first — every meal is filtered against this list.")
+                    .onboardingReveal(delay: 0.08)
                 FlowChips(items: MockData.allAllergens, selected: $selectedAllergens)
+                    .onboardingReveal(delay: 0.15)
                 Button {
                 } label: {
                     Label("Add a custom trigger", systemImage: "plus.circle.fill")
@@ -210,6 +294,7 @@ struct OnboardingView: View {
                         .foregroundStyle(Theme.Colors.volt)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .onboardingReveal(delay: 0.22)
             }
             .padding(Theme.Metrics.screenPadding)
         }
@@ -220,12 +305,16 @@ struct OnboardingView: View {
     private var goalStep: some View {
         ScrollView {
             VStack(spacing: 20) {
+                OnboardingMotionHero(step: 1)
+                    .onboardingReveal(delay: 0.02)
                 header("What's the mission?", "Your meal plan flexes around this.")
+                    .onboardingReveal(delay: 0.08)
                 VStack(spacing: Theme.Metrics.spacing) {
                     goalCard("Cut", "Lose fat, keep muscle", "flame.fill", "Cut")
-                    goalCard("Build muscle", "Fuel growth with safe surplus", "dumbbell.fill", "Build muscle")
-                    goalCard("Maintain", "Stay strong, stay safe", "scalemass.fill", "Maintain")
+                    goalCard("Build muscle", "Fuel growth around your triggers", "dumbbell.fill", "Build muscle")
+                    goalCard("Maintain", "Stay strong with a steady plan", "scalemass.fill", "Maintain")
                 }
+                .onboardingReveal(delay: 0.15)
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Training days per week")
                         .font(Theme.Fonts.headline)
@@ -233,7 +322,10 @@ struct OnboardingView: View {
                     HStack(spacing: 8) {
                         ForEach(1...7, id: \.self) { d in
                             Button {
-                                trainingDays = d
+                                Haptics.tap()
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.68)) {
+                                    trainingDays = d
+                                }
                             } label: {
                                 Text("\(d)")
                                     .font(Theme.Fonts.stat(16))
@@ -242,11 +334,14 @@ struct OnboardingView: View {
                                     .background(trainingDays == d ? Theme.Colors.volt : Theme.Colors.surface)
                                     .foregroundStyle(trainingDays == d ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
                                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    .scaleEffect(trainingDays == d ? 1.06 : 1)
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
                 .card()
+                .onboardingReveal(delay: 0.22)
             }
             .padding(Theme.Metrics.screenPadding)
         }
@@ -254,7 +349,10 @@ struct OnboardingView: View {
 
     private func goalCard(_ title: String, _ subtitle: String, _ icon: String, _ value: String) -> some View {
         Button {
-            goal = value
+            Haptics.tap()
+            withAnimation(.spring(response: 0.34, dampingFraction: 0.7)) {
+                goal = value
+            }
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: icon)
@@ -281,7 +379,9 @@ struct OnboardingView: View {
                     .stroke(goal == value ? Theme.Colors.volt : .clear, lineWidth: 1.5)
             )
             .clipShape(RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous))
+            .scaleEffect(goal == value ? 1 : 0.985)
         }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Step 3: Stats
@@ -289,7 +389,10 @@ struct OnboardingView: View {
     private var statsStep: some View {
         ScrollView {
             VStack(spacing: 20) {
+                OnboardingMotionHero(step: 2)
+                    .onboardingReveal(delay: 0.02)
                 header("Dial in the numbers", "We use these to calculate your daily targets.")
+                    .onboardingReveal(delay: 0.08)
                 VStack(spacing: Theme.Metrics.spacing) {
                     stepperRow("Weight", "\(weight) lb") { weight = max(80, weight - 5) } up: { weight = min(400, weight + 5) }
                     stepperRow("Height", "\(heightFeet)′ \(heightInches)″") {
@@ -299,6 +402,7 @@ struct OnboardingView: View {
                     }
                     stepperRow("Age", "\(age)") { age = max(13, age - 1) } up: { age = min(90, age + 1) }
                 }
+                .onboardingReveal(delay: 0.15)
             }
             .padding(Theme.Metrics.screenPadding)
         }
@@ -310,7 +414,10 @@ struct OnboardingView: View {
                 .font(Theme.Fonts.headline)
                 .foregroundStyle(Theme.Colors.textSecondary)
             Spacer()
-            Button(action: down) {
+            Button {
+                Haptics.tap()
+                withAnimation(.spring(response: 0.28, dampingFraction: 0.7)) { down() }
+            } label: {
                 Image(systemName: "minus.circle.fill")
                     .font(.title2)
                     .foregroundStyle(Theme.Colors.surfaceRaised, Theme.Colors.textSecondary)
@@ -319,10 +426,19 @@ struct OnboardingView: View {
                 .font(Theme.Fonts.stat(24))
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .frame(minWidth: 110)
-            Button(action: up) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(Theme.Colors.volt.opacity(0.25), Theme.Colors.volt)
+                .animation(.spring(response: 0.28, dampingFraction: 0.7), value: value)
+            Button {
+                Haptics.tap()
+                withAnimation(.spring(response: 0.28, dampingFraction: 0.7)) { up() }
+            } label: {
+                ZStack {
+                    Circle()
+                        .fill(Theme.Colors.volt)
+                        .frame(width: 28, height: 28)
+                    Image(systemName: "plus")
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundStyle(Theme.Colors.onVolt)
+                }
             }
         }
         .card()
@@ -333,7 +449,10 @@ struct OnboardingView: View {
     private var targetsStep: some View {
         ScrollView {
             VStack(spacing: 20) {
+                OnboardingMotionHero(step: 3)
+                    .onboardingReveal(delay: 0.02)
                 header("Your daily fuel plan", "Auto-adjusted on training days. Every meal filtered against \(selectedAllergens.count) triggers.")
+                    .onboardingReveal(delay: 0.08)
 
                 let t = targets
                 VStack(spacing: 4) {
@@ -349,12 +468,14 @@ struct OnboardingView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .card()
+                .onboardingReveal(delay: 0.15)
 
                 HStack(spacing: Theme.Metrics.spacing) {
                     targetPill("Protein", "\(t.protein)g", Theme.Colors.protein)
                     targetPill("Carbs", "\(t.carbs)g", Theme.Colors.carbs)
                     targetPill("Fat", "\(t.fat)g", Theme.Colors.fat)
                 }
+                .onboardingReveal(delay: 0.23)
 
                 HStack(spacing: 10) {
                     Image(systemName: "checkmark.shield.fill")
@@ -366,6 +487,7 @@ struct OnboardingView: View {
                     Spacer()
                 }
                 .card()
+                .onboardingReveal(delay: 0.31)
             }
             .padding(Theme.Metrics.screenPadding)
         }
@@ -396,7 +518,10 @@ struct FlowChips: View {
             ForEach(items, id: \.self) { item in
                 let isOn = selected.contains(item)
                 Button {
-                    if isOn { selected.remove(item) } else { selected.insert(item) }
+                    Haptics.tap()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.68)) {
+                        if isOn { selected.remove(item) } else { selected.insert(item) }
+                    }
                 } label: {
                     Text(item)
                         .font(Theme.Fonts.caption)
@@ -409,8 +534,106 @@ struct FlowChips: View {
                         .foregroundStyle(isOn ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
                         .clipShape(Capsule())
                         .overlay(Capsule().stroke(isOn ? .clear : Theme.Colors.surfaceRaised, lineWidth: 1))
+                        .scaleEffect(isOn ? 1.03 : 1)
                 }
+                .buttonStyle(.plain)
             }
         }
+    }
+}
+
+// MARK: - Onboarding motion language
+
+/// One continuous visual motif across setup: personal data passes through a
+/// protective orbit and resolves as a safe plan on the final step.
+private struct OnboardingMotionHero: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let step: Int
+    @State private var orbiting = false
+    @State private var pulsing = false
+
+    private let symbols = ["fork.knife", "figure.strengthtraining.traditional", "slider.horizontal.3", "checkmark.shield.fill"]
+    private let labels = ["FILTER", "FUEL", "TUNE", "READY"]
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Theme.Colors.volt.opacity(0.10), lineWidth: 18)
+                .frame(width: 106, height: 106)
+                .scaleEffect(pulsing ? 1.12 : 0.92)
+                .opacity(pulsing ? 0.15 : 0.7)
+
+            Circle()
+                .trim(from: 0.06, to: 0.78)
+                .stroke(
+                    Theme.Colors.volt.opacity(0.72),
+                    style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [2, 9])
+                )
+                .frame(width: 106, height: 106)
+                .rotationEffect(.degrees(orbiting ? 360 : 0))
+
+            ForEach(0..<3, id: \.self) { index in
+                Circle()
+                    .fill(index == step % 3 ? Theme.Colors.volt : Theme.Colors.textTertiary.opacity(0.55))
+                    .frame(width: index == step % 3 ? 8 : 5, height: index == step % 3 ? 8 : 5)
+                    .offset(y: -53)
+                    .rotationEffect(.degrees(Double(index) * 120 + (orbiting ? 360 : 0)))
+            }
+
+            Circle()
+                .fill(Theme.Colors.surface)
+                .frame(width: 76, height: 76)
+                .overlay(Circle().stroke(Theme.Colors.volt.opacity(0.22), lineWidth: 1))
+                .shadow(color: Theme.Colors.volt.opacity(0.16), radius: 18, y: 8)
+
+            VStack(spacing: 4) {
+                Image(systemName: symbols[step])
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(Theme.Colors.volt)
+                Text(labels[step])
+                    .font(.system(size: 8, weight: .black, design: .rounded))
+                    .tracking(1.4)
+                    .foregroundStyle(Theme.Colors.textTertiary)
+            }
+        }
+        .frame(height: 128)
+        .accessibilityHidden(true)
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.linear(duration: 10).repeatForever(autoreverses: false)) {
+                orbiting = true
+            }
+            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
+                pulsing = true
+            }
+        }
+    }
+}
+
+private struct OnboardingRevealModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let delay: Double
+    @State private var isVisible = false
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(isVisible ? 1 : 0)
+            .offset(y: reduceMotion ? 0 : (isVisible ? 0 : 18))
+            .scaleEffect(reduceMotion ? 1 : (isVisible ? 1 : 0.985), anchor: .top)
+            .onAppear {
+                if reduceMotion {
+                    isVisible = true
+                } else {
+                    withAnimation(.spring(response: 0.56, dampingFraction: 0.84).delay(delay)) {
+                        isVisible = true
+                    }
+                }
+            }
+    }
+}
+
+private extension View {
+    func onboardingReveal(delay: Double) -> some View {
+        modifier(OnboardingRevealModifier(delay: delay))
     }
 }

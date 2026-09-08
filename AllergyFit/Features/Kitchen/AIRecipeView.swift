@@ -17,7 +17,7 @@ struct AIRecipeView: View {
 
     private let loadingMessages = [
         "Checking your allergen profile…",
-        "Picking safe ingredients…",
+        "Checking ingredients…",
         "Writing the steps…",
         "Estimating the macros…",
     ]
@@ -75,7 +75,7 @@ struct AIRecipeView: View {
                 Text("What are you in the mood for?")
                     .font(Theme.Fonts.title).foregroundStyle(Theme.Colors.textPrimary)
             }
-            Text("Describe a craving, or list what's in your fridge. Volt writes a recipe that's safe for your triggers — \(AllergenCatalog.names(for: session.allergenSlugs).joined(separator: ", ")).")
+            Text("Describe a craving, or list what's in your fridge. Volt checks the recipe against your listed triggers — \(AllergenCatalog.names(for: session.allergenSlugs).joined(separator: ", ")). Always verify product labels.")
                 .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
 
             ZStack(alignment: .topLeading) {

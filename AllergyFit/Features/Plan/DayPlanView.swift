@@ -170,7 +170,7 @@ struct DayPlanView: View {
                 .font(Theme.Fonts.headline)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .multilineTextAlignment(.center)
-            Text("Breakfast · Lunch · Dinner · Snack, all safe for your triggers")
+            Text("Breakfast · Lunch · Dinner · Snack, checked against your listed triggers")
                 .font(Theme.Fonts.caption)
                 .foregroundStyle(Theme.Colors.textTertiary)
         }

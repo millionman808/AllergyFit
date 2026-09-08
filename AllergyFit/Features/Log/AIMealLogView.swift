@@ -108,7 +108,7 @@ struct AIMealLogView: View {
                     Text("Snap a photo of your meal")
                         .font(Theme.Fonts.headline)
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("Take a photo or choose one — macros from USDA + an instant safe / not-safe allergy check")
+                    Text("Take a photo or choose one for estimated macros and a check against your listed triggers. Verify ingredients before eating.")
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.textSecondary)
                         .multilineTextAlignment(.center)

@@ -39,7 +39,7 @@ struct MainTabView: View {
     @State private var selection = UserDefaults.standard.integer(forKey: "initialTab")
     @AppStorage("seenVoltIntro") private var seenVoltIntro = false
     @State private var showVoltIntro = false
-    // Hoisted so the Plan and Recipes tabs (now separate) share one plan.
+    // One shared plan powers Today, Plan, recipe discovery, and meal completion.
     @StateObject private var planStore = PlanStore()
 
     var body: some View {
@@ -63,56 +63,61 @@ struct MainTabView: View {
 
     @ViewBuilder private var content: some View {
         switch selection {
-        case 1: LogView()
-        case 2: PlanTab(selection: $selection)
-        case 3: RecipesTab()
+        case 1: PlanTab()
+        case 2: LogView()
+        case 3: InsightsTab()
         case 4: ProfileView()
-        default: DashboardView()
+        default: DashboardView(
+            onOpenPlan: { selection = 1 },
+            onCheckFood: { selection = 2 }
+        )
         }
     }
 }
 
-/// Meal planner tab — the app's primary surface. Owns its navigation stack so
-/// the week, grocery list, and cook mode all push here.
+/// The weekly planning workspace. Recipe discovery lives inside this flow so
+/// planning, choosing, shopping, and cooking read as one job.
 struct PlanTab: View {
-    @Binding var selection: Int
+    @State private var showRecipes = false
+
     var body: some View {
         NavigationStack {
             ZStack {
                 Theme.Colors.background.ignoresSafeArea()
-                PlanView(onBrowseRecipes: { selection = 3 })   // jump to Recipes tab
+                PlanView(onBrowseRecipes: { showRecipes = true })
             }
             .navigationTitle("Plan")
+            .navigationDestination(isPresented: $showRecipes) {
+                ZStack {
+                    Theme.Colors.background.ignoresSafeArea()
+                    RecipesView()
+                }
+                .navigationTitle("Find meals")
+            }
         }
     }
 }
 
-/// Recipe discovery tab — safe-only browse + generate.
-struct RecipesTab: View {
+/// Reaction learning is a primary product surface, not a profile setting.
+struct InsightsTab: View {
     var body: some View {
         NavigationStack {
-            ZStack {
-                Theme.Colors.background.ignoresSafeArea()
-                RecipesView()
-            }
-            .navigationTitle("Recipes")
+            InsightsView()
         }
     }
 }
 
-/// Custom bottom bar with a raised center capture button (Snap Calorie–style).
-/// Log is the app's primary action, so it's elevated instead of sitting flat
-/// with the other tabs.
+/// Custom bottom bar centered on the repeated product action: check or log food.
 struct CustomTabBar: View {
     @Binding var selection: Int
 
     private struct Tab { let index: Int; let icon: String; let label: String }
     private let left: [Tab] = [
-        Tab(index: 0, icon: "flame.fill", label: "Today"),
-        Tab(index: 2, icon: "calendar", label: "Plan"),
+        Tab(index: 0, icon: "sun.max.fill", label: "Today"),
+        Tab(index: 1, icon: "calendar", label: "Plan"),
     ]
     private let right: [Tab] = [
-        Tab(index: 3, icon: "book.fill", label: "Recipes"),
+        Tab(index: 3, icon: "waveform.path.ecg", label: "Insights"),
         Tab(index: 4, icon: "person.fill", label: "Profile"),
     ]
 
@@ -151,21 +156,26 @@ struct CustomTabBar: View {
     private var centerButton: some View {
         Button {
             Haptics.tap()
-            selection = 1
+            selection = 2
         } label: {
-            ZStack {
-                Circle()
-                    .fill(Theme.Colors.volt)
-                    .frame(width: 58, height: 58)
-                    .shadow(color: Theme.Colors.volt.opacity(0.4), radius: 10, y: 4)
-                Image(systemName: "plus")
-                    .font(.system(size: 26, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.onVolt)
+            VStack(spacing: 3) {
+                ZStack {
+                    Circle()
+                        .fill(Theme.Colors.volt)
+                        .frame(width: 58, height: 58)
+                        .shadow(color: Theme.Colors.volt.opacity(0.4), radius: 10, y: 4)
+                    Image(systemName: "viewfinder")
+                        .font(.system(size: 25, weight: .semibold))
+                        .foregroundStyle(Theme.Colors.onVolt)
+                }
+                Text("Check")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(selection == 2 ? Theme.Colors.volt : Theme.Colors.textSecondary)
             }
-            .offset(y: -16)
+            .offset(y: -13)
         }
         .buttonStyle(.plain)
         .frame(width: 72)
-        .accessibilityLabel("Log")
+        .accessibilityLabel("Check or log food")
     }
 }

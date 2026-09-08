@@ -4,7 +4,6 @@ import SwiftUI
 struct InsightsView: View {
     @EnvironmentObject var session: SessionStore
     @StateObject private var store = InsightsStore()
-    @State private var toast: String?
 
     var body: some View {
         ZStack {
@@ -18,15 +17,10 @@ struct InsightsView: View {
                             ForEach(store.patterns) { pattern in
                                 PatternCard(
                                     pattern: pattern,
-                                    onRemove: {
-                                        toastThen("We'll keep \(pattern.ingredient.lowercased()) out of your meal plans")
-                                        store.dismiss(pattern)
-                                    },
                                     onDismiss: { store.dismiss(pattern) }
                                 )
                             }
                         }
-                        nutrientGaps
                         weeklyCard
                     }
                     .padding(.horizontal, Theme.Metrics.screenPadding)
@@ -34,29 +28,10 @@ struct InsightsView: View {
                 }
                 .refreshable { await store.refresh() }
 
-                if let toast {
-                    VStack {
-                        Spacer()
-                        Label(toast, systemImage: "checkmark.circle.fill")
-                            .font(Theme.Fonts.caption)
-                            .foregroundStyle(Theme.Colors.onVolt)
-                            .padding(.horizontal, 16).padding(.vertical, 12)
-                            .background(Theme.Colors.volt, in: Capsule())
-                            .padding(.bottom, 24)
-                    }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
             }
         .navigationTitle("Insights")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .onAppear { store.configure(session: session) }
-    }
-
-    private func toastThen(_ message: String) {
-        withAnimation { toast = message }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
-            withAnimation { toast = nil }
-        }
     }
 
     private var headline: some View {
@@ -64,7 +39,7 @@ struct InsightsView: View {
             Image(systemName: "waveform.path.ecg")
                 .font(.title3)
                 .foregroundStyle(Theme.Colors.volt)
-            Text("\(store.patterns.count) pattern\(store.patterns.count == 1 ? "" : "s") detected from \(store.mealCount) meals, \(store.workoutCount) workouts, and \(store.checkinCount) check-ins")
+            Text("\(store.patterns.count) possible pattern\(store.patterns.count == 1 ? "" : "s") from \(store.mealCount) meals, \(store.workoutCount) workouts, and \(store.checkinCount) check-ins")
                 .font(Theme.Fonts.caption)
                 .foregroundStyle(Theme.Colors.textSecondary)
             Spacer()
@@ -80,45 +55,13 @@ struct InsightsView: View {
             Text("No patterns yet")
                 .font(Theme.Fonts.headline)
                 .foregroundStyle(Theme.Colors.textPrimary)
-            Text("Log meals, workouts, and symptom check-ins — AllergyFit learns what sets you off and surfaces it here.")
+            Text("Log meals and reaction check-ins. When an ingredient repeats near a symptom, AllergyFit can surface a possible pattern here.")
                 .font(Theme.Fonts.caption)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
-        .card()
-    }
-
-    private var nutrientGaps: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Nutrition gaps")
-                .font(Theme.Fonts.title)
-                .foregroundStyle(Theme.Colors.textPrimary)
-                .padding(.top, 8)
-            gapRow("Calcium", "62% of target — common on dairy-free diets", "Try: fortified oat milk, kale, sardines")
-            gapRow("Vitamin D", "48% of target", "Try: salmon, fortified cereal, sunlight")
-        }
-    }
-
-    private func gapRow(_ nutrient: String, _ status: String, _ fix: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(nutrient)
-                    .font(Theme.Fonts.headline)
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                Spacer()
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .foregroundStyle(Theme.Colors.caution)
-            }
-            Text(status)
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.textSecondary)
-            Text(fix)
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.volt)
-        }
         .card()
     }
 
@@ -129,8 +72,8 @@ struct InsightsView: View {
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .padding(.top, 8)
             HStack(spacing: Theme.Metrics.spacing) {
+                statBox("\(store.mealCount)", "meals", "fork.knife")
                 statBox("\(store.workoutCount)", "workouts", "dumbbell.fill")
-                statBox("92%", "plan adherence", "checkmark.circle.fill")
                 statBox("\(store.checkinCount)", "check-ins", "heart.text.square.fill")
             }
         }
@@ -155,7 +98,6 @@ struct InsightsView: View {
 
 struct PatternCard: View {
     let pattern: InsightPattern
-    let onRemove: () -> Void
     let onDismiss: () -> Void
 
     var body: some View {
@@ -198,16 +140,8 @@ struct PatternCard: View {
             }
 
             HStack(spacing: 10) {
-                Button(action: onRemove) {
-                    Text("Remove from plans")
-                        .font(Theme.Fonts.caption)
-                        .foregroundStyle(Theme.Colors.onVolt)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(Theme.Colors.volt, in: Capsule())
-                }
                 Button(action: onDismiss) {
-                    Text("Dismiss")
+                    Text("Dismiss pattern")
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.textSecondary)
                         .padding(.horizontal, 14)

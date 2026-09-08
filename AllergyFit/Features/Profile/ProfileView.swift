@@ -23,7 +23,6 @@ struct ProfileView: View {
                         headerCard
                         completionCard
                         allergenCard
-                        insightsCard
                         goalsCard
                         settingsRows
                         signOut
@@ -148,7 +147,7 @@ struct ProfileView: View {
                         Text("Finish your profile")
                             .font(Theme.Fonts.headline)
                             .foregroundStyle(Theme.Colors.textPrimary)
-                        Text("A little more unlocks sharper targets and safer recipes.")
+                        Text("A little more gives Volt better targets and trigger checks.")
                             .font(Theme.Fonts.caption)
                             .foregroundStyle(Theme.Colors.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)

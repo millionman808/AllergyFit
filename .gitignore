@@ -12,3 +12,5 @@ build/
 # Secrets — never commit real keys (edge function secrets live in Supabase)
 .env
 .env.*
+.tmp/
+artifacts/

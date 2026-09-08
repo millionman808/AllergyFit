@@ -15,7 +15,7 @@ struct VoltIntroSheet: View {
     private let capabilities: [Capability] = [
         .init(icon: "camera.fill", title: "Snap a meal",
               detail: "Photo or a quick description — Volt works out the nutrition from the USDA database."),
-        .init(icon: "sparkles", title: "Generate safe recipes",
+        .init(icon: "sparkles", title: "Generate trigger-aware recipes",
               detail: "Every idea is pre-checked against your triggers before you see it."),
         .init(icon: "calendar", title: "Plan your week",
               detail: "A full day of meals around your targets, and the grocery list writes itself."),

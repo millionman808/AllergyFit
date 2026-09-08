@@ -30,9 +30,9 @@ final class ReminderManager: ObservableObject {
         UserDefaults.standard.set(on, forKey: "reminder.meals")
         guard on else { removeMealReminders(); return }
         guard await ensureAuthorized() else { mealRemindersOn = false; UserDefaults.standard.set(false, forKey: "reminder.meals"); return }
-        schedule(id: "meal.breakfast", title: "Log your breakfast", body: "Keep your safe-eating streak going.", hour: 9, minute: 0)
+        schedule(id: "meal.breakfast", title: "Log your breakfast", body: "Keep today's food record complete.", hour: 9, minute: 0)
         schedule(id: "meal.lunch", title: "Log your lunch", body: "A quick tap keeps your macros on track.", hour: 13, minute: 0)
-        schedule(id: "meal.dinner", title: "Log your dinner", body: "Wrap up your day of safe fueling.", hour: 19, minute: 30)
+        schedule(id: "meal.dinner", title: "Log your dinner", body: "Wrap up today's meals and check in.", hour: 19, minute: 30)
     }
 
     func setSymptomReminder(_ on: Bool) async {

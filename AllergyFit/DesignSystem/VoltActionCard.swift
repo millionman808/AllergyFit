@@ -22,7 +22,8 @@ struct VoltActionCard: View {
                 Text(subtitle)
                     .font(Theme.Fonts.caption)
                     .foregroundStyle(Theme.Colors.textSecondary)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
             Image(systemName: "chevron.right").foregroundStyle(Theme.Colors.textTertiary)

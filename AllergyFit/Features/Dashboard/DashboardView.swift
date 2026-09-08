@@ -3,11 +3,16 @@ import SwiftUI
 /// "Today" — functional daily dashboard backed by TodayStore.
 struct DashboardView: View {
     @EnvironmentObject var session: SessionStore
+    @EnvironmentObject var planStore: PlanStore
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var store = TodayStore()
     @StateObject private var trends = TrendsStore()
     @State private var showQuickAdd = false
     @State private var showTrends = false
+    @State private var loggingPlanMealID: UUID?
+    @State private var planLogError: String?
+    var onOpenPlan: () -> Void = {}
+    var onCheckFood: () -> Void = {}
 
     var body: some View {
         NavigationStack {
@@ -16,12 +21,12 @@ struct DashboardView: View {
                 ScrollView {
                     VStack(spacing: Theme.Metrics.spacing) {
                         greetingRow
-                        safetyBanner
+                        dailyPlanCard
                         calorieCard
                         macroRow
+                        mealsSection
                         TrendsCard(store: trends) { showTrends = true }
                         streakCard
-                        mealsSection
                         waterCard
                     }
                     .padding(.horizontal, Theme.Metrics.screenPadding)
@@ -51,6 +56,14 @@ struct DashboardView: View {
             .sheet(isPresented: $showTrends) {
                 TrendsView(store: trends)
             }
+            .alert("Couldn't log that meal", isPresented: Binding(
+                get: { planLogError != nil },
+                set: { if !$0 { planLogError = nil } }
+            )) {
+                Button("OK", role: .cancel) { planLogError = nil }
+            } message: {
+                Text(planLogError ?? "Try again in a moment.")
+            }
         }
     }
 
@@ -77,7 +90,179 @@ struct DashboardView: View {
             ? MockData.userName
             : (UserDefaults.standard.string(forKey: "displayName") ?? "")
         let first = name.split(separator: " ").first.map(String.init) ?? ""
-        return first.isEmpty ? "\(base) — let's eat safe today" : "\(base), \(first) — let's eat safe today"
+        return first.isEmpty ? "\(base) — eat with confidence today" : "\(base), \(first) — eat with confidence today"
+    }
+
+    private var todayIndex: Int {
+        (Calendar.current.component(.weekday, from: Date()) + 5) % 7
+    }
+
+    private var todaysPlan: [PlannedMeal] {
+        planStore.meals(for: todayIndex)
+    }
+
+    private var nextPlannedMeal: PlannedMeal? {
+        todaysPlan.first { !$0.isCompleted }
+    }
+
+    /// A meal runway makes the product loop visible before calories. Each dot
+    /// represents a planned meal and fills as it is logged.
+    private var dailyPlanCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("TODAY'S PLAN")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .tracking(1.1)
+                    .foregroundStyle(Theme.Colors.volt)
+                Spacer()
+                if !todaysPlan.isEmpty {
+                    Text("\(todaysPlan.filter(\.isCompleted).count) of \(todaysPlan.count) eaten")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                }
+            }
+
+            if todaysPlan.isEmpty {
+                HStack(spacing: 14) {
+                    Image(systemName: "calendar.badge.plus")
+                        .font(.title2)
+                        .foregroundStyle(Theme.Colors.volt)
+                        .frame(width: 48, height: 48)
+                        .background(Theme.Colors.volt.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Give today a food plan")
+                            .font(Theme.Fonts.headline)
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                        Text("Volt can build meals around your targets and listed triggers.")
+                            .font(Theme.Fonts.caption)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                    }
+                }
+                Button("Plan today", action: onOpenPlan)
+                    .font(Theme.Fonts.headline)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .foregroundStyle(Theme.Colors.onVolt)
+                    .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    .buttonStyle(.plain)
+                Button("Check a meal instead", action: onCheckFood)
+                    .font(Theme.Fonts.caption.weight(.bold))
+                    .foregroundStyle(Theme.Colors.volt)
+                    .buttonStyle(.plain)
+            } else {
+                mealRunway
+                if let meal = nextPlannedMeal {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("UP NEXT\(meal.mealType.map { " · \($0.uppercased())" } ?? "")")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(Theme.Colors.textTertiary)
+                        Text(meal.recipe.title)
+                            .font(Theme.Fonts.title)
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                        Text(mealFitSummary(meal))
+                            .font(Theme.Fonts.caption)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                    }
+                    HStack(spacing: 10) {
+                        Button {
+                            logPlannedMeal(meal)
+                        } label: {
+                            HStack(spacing: 7) {
+                                if loggingPlanMealID == meal.id {
+                                    ProgressView().tint(Theme.Colors.onVolt)
+                                } else {
+                                    Image(systemName: "checkmark")
+                                }
+                                Text(loggingPlanMealID == meal.id ? "Logging" : "Log as eaten")
+                            }
+                            .font(Theme.Fonts.headline)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .foregroundStyle(Theme.Colors.onVolt)
+                            .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(loggingPlanMealID != nil)
+
+                        Button("Review") { onOpenPlan() }
+                            .font(Theme.Fonts.headline)
+                            .frame(width: 92, height: 44)
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .background(Theme.Colors.surfaceRaised, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                            .buttonStyle(.plain)
+                    }
+                } else {
+                    HStack(spacing: 12) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.title2)
+                            .foregroundStyle(Theme.Colors.safe)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Today's plan is complete")
+                                .font(Theme.Fonts.headline)
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                            Text("Your logged meals can now contribute to weekly insights.")
+                                .font(Theme.Fonts.caption)
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                        }
+                    }
+                }
+            }
+        }
+        .card()
+    }
+
+    private var mealRunway: some View {
+        HStack(spacing: 6) {
+            ForEach(Array(todaysPlan.enumerated()), id: \.element.id) { index, meal in
+                ZStack {
+                    Circle()
+                        .fill(meal.isCompleted ? Theme.Colors.volt : Theme.Colors.surfaceRaised)
+                        .frame(width: 30, height: 30)
+                    Image(systemName: meal.isCompleted ? "checkmark" : TodayMeal.icon(for: meal.mealType ?? "snack"))
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(meal.isCompleted ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
+                }
+                .accessibilityLabel("\(meal.mealType ?? "Meal") \(meal.isCompleted ? "logged" : "planned")")
+                if index < todaysPlan.count - 1 {
+                    Capsule()
+                        .fill(meal.isCompleted ? Theme.Colors.volt.opacity(0.65) : Theme.Colors.surfaceRaised)
+                        .frame(height: 3)
+                }
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.82), value: todaysPlan)
+    }
+
+    private func mealFitSummary(_ meal: PlannedMeal) -> String {
+        var parts: [String] = []
+        if let calories = meal.recipe.calories { parts.append("\(calories) kcal") }
+        if let protein = meal.recipe.protein { parts.append("\(protein)g protein") }
+        parts.append("Check the current label before eating")
+        return parts.joined(separator: " · ")
+    }
+
+    private func logPlannedMeal(_ meal: PlannedMeal) {
+        loggingPlanMealID = meal.id
+        Task {
+            let success = await planStore.logAsEaten(meal)
+            if success {
+                if session.isDemo {
+                    store.addMeal(
+                        name: meal.recipe.title,
+                        mealType: meal.mealType ?? "Snack",
+                        calories: meal.recipe.calories ?? 0,
+                        protein: meal.recipe.protein ?? 0,
+                        carbs: meal.recipe.carbs ?? 0,
+                        fat: meal.recipe.fat ?? 0
+                    )
+                } else {
+                    await store.refresh()
+                }
+            } else {
+                planLogError = "The meal stayed in your plan. Check your connection and try again."
+            }
+            loggingPlanMealID = nil
+        }
     }
 
     private func undoSnackbar(_ meal: TodayMeal) -> some View {
@@ -112,10 +297,10 @@ struct DashboardView: View {
                 .font(.title3)
                 .foregroundStyle(Theme.Colors.safe)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Allergy-safe day")
+                Text("Listed trigger check")
                     .font(Theme.Fonts.headline)
                     .foregroundStyle(Theme.Colors.textPrimary)
-                Text("0 flagged ingredients in \(store.meals.count) meal\(store.meals.count == 1 ? "" : "s")")
+                Text("\(store.meals.count) meal\(store.meals.count == 1 ? "" : "s") logged · Verify labels before eating")
                     .font(Theme.Fonts.caption)
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
@@ -222,7 +407,7 @@ struct DashboardView: View {
 
     private var streakSubtitle: String {
         if store.mealStreak == 0 { return "Log a meal to start your streak" }
-        if store.loggedToday { return "Logged today — streak is safe" }
+        if store.loggedToday { return "Logged today — streak updated" }
         return "Log your first meal to keep it alive"
     }
 
@@ -358,9 +543,6 @@ struct MealRow: View {
                     .font(Theme.Fonts.caption)
                     .foregroundStyle(Theme.Colors.textTertiary)
             }
-            Image(systemName: "checkmark.shield.fill")
-                .font(.caption)
-                .foregroundStyle(Theme.Colors.safe)
         }
         .card()
     }

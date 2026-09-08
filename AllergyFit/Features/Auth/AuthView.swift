@@ -84,7 +84,7 @@ struct AuthView: View {
                     Text("AllergyFit")
                         .font(Theme.Fonts.stat(44))
                         .foregroundStyle(Theme.Colors.volt)
-                    Text("Train hard. Eat safe.")
+                    Text("Train hard. Eat with confidence.")
                         .font(Theme.Fonts.headline)
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }

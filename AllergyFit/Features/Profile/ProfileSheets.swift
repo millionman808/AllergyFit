@@ -425,7 +425,7 @@ struct SubscriptionView: View {
         ("infinity", "Unlimited AI meal plans & recipes"),
         ("arrow.triangle.2.circlepath", "One-Tap ingredient swaps"),
         ("cart.fill", "Auto grocery lists"),
-        ("barcode.viewfinder", "Barcode safe/unsafe scanning"),
+        ("barcode.viewfinder", "Barcode checks against your listed triggers"),
         ("waveform.path.ecg", "Reaction-learning insights"),
         ("person.2.fill", "Family profiles"),
     ]
@@ -499,7 +499,7 @@ struct SubscriptionView: View {
         VStack(spacing: 10) {
             Image(systemName: "crown.fill").font(.system(size: 40)).foregroundStyle(Theme.Colors.volt)
             Text("AllergyFit Premium").font(Theme.Fonts.title).foregroundStyle(Theme.Colors.textPrimary)
-            Text("The coach that keeps you safe and on-target — unlocked.")
+            Text("Adaptive planning and deeper insights — unlocked.")
                 .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary).multilineTextAlignment(.center)
         }.frame(maxWidth: .infinity).padding(.vertical, 8).card()
     }

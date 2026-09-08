@@ -7,6 +7,9 @@ struct PlannedMeal: Codable, Identifiable, Equatable {
     var day: Int          // 0 = Monday … 6 = Sunday
     var recipe: Recipe
     var mealType: String? = nil   // "Breakfast" / "Lunch" / "Dinner" / "Snack"
+    var completedAt: Date? = nil
+
+    var isCompleted: Bool { completedAt != nil }
 }
 
 struct GroceryLine: Identifiable {
@@ -32,6 +35,8 @@ final class PlanStore: ObservableObject {
 
     private var isDemo = true
     private var userId: UUID?
+    private var planId: UUID?
+    private var allergenSlugs: [String] = []
     private var configured = false
     private var syncTask: Task<Void, Never>?
 
@@ -46,6 +51,7 @@ final class PlanStore: ObservableObject {
         configured = true
         isDemo = session.isDemo
         userId = session.session?.user.id
+        allergenSlugs = session.allergenSlugs
         if !isDemo, userId != nil {
             Task { await loadFromDatabase() }
         }
@@ -72,15 +78,19 @@ final class PlanStore: ObservableObject {
 
     private func loadFromDatabase() async {
         guard let userId else { return }
-        struct Row: Codable { let plan: [PlannedMeal] }
+        struct Row: Codable {
+            let id: UUID
+            let plan: [PlannedMeal]
+        }
         do {
             let rows: [Row] = try await Backend.client
                 .from("meal_plans")
-                .select("plan")
+                .select("id,plan")
                 .eq("user_id", value: userId)
                 .eq("starts_on", value: Self.weekStart())
                 .execute().value
             if let row = rows.first {
+                planId = row.id
                 planned = row.plan
             }
         } catch {
@@ -98,9 +108,13 @@ final class PlanStore: ObservableObject {
             try? await Task.sleep(nanoseconds: 800_000_000) // debounce rapid edits
             guard !Task.isCancelled else { return }
             do {
-                try await Backend.client.from("meal_plans")
+                struct SyncedPlan: Decodable { let id: UUID }
+                let synced: SyncedPlan = try await Backend.client.from("meal_plans")
                     .upsert(row, onConflict: "user_id,starts_on")
-                    .execute()
+                    .select("id")
+                    .single()
+                    .execute().value
+                planId = synced.id
             } catch {
                 print("plan sync failed: \(error)")
             }
@@ -131,6 +145,82 @@ final class PlanStore: ObservableObject {
 
     func remove(_ meal: PlannedMeal) {
         withAnimation { planned.removeAll { $0.id == meal.id } }
+    }
+
+    /// Completes the plan-to-log loop while retaining ingredient detail for
+    /// nutrition totals and later reaction-pattern analysis.
+    func logAsEaten(_ meal: PlannedMeal) async -> Bool {
+        guard let index = planned.firstIndex(where: { $0.id == meal.id }) else { return false }
+        if planned[index].isCompleted { return true }
+
+        if !isDemo {
+            guard let userId else { return false }
+            struct IngredientRecord: Codable {
+                let name: String
+                let allergens: [String]
+            }
+            struct PlannedMealLogRecord: Codable {
+                let userId: UUID
+                let mealType: String
+                let name: String
+                let ingredients: [IngredientRecord]
+                let calories: Int?
+                let proteinG: Int?
+                let carbsG: Int?
+                let fatG: Int?
+                let detectedAllergens: [String]
+                let fromPlanId: UUID?
+
+                enum CodingKeys: String, CodingKey {
+                    case userId = "user_id"
+                    case mealType = "meal_type"
+                    case name, ingredients, calories
+                    case proteinG = "protein_g"
+                    case carbsG = "carbs_g"
+                    case fatG = "fat_g"
+                    case detectedAllergens = "detected_allergens"
+                    case fromPlanId = "from_plan_id"
+                }
+            }
+
+            let validTypes = ["breakfast", "lunch", "dinner", "snack", "pre_workout", "post_workout"]
+            let normalizedType = meal.mealType?
+                .lowercased()
+                .replacingOccurrences(of: "-", with: "_")
+                .replacingOccurrences(of: " ", with: "_") ?? "snack"
+            let mealType = validTypes.contains(normalizedType) ? normalizedType : "snack"
+            let ingredients = meal.recipe.ingredients.map { ingredient in
+                IngredientRecord(
+                    name: ingredient,
+                    allergens: AllergenKeywords.flagged(in: [ingredient], allergens: allergenSlugs)
+                )
+            }
+            let detected = Array(Set(ingredients.flatMap(\.allergens))).sorted()
+            let record = PlannedMealLogRecord(
+                userId: userId,
+                mealType: mealType,
+                name: meal.recipe.title,
+                ingredients: ingredients,
+                calories: meal.recipe.calories,
+                proteinG: meal.recipe.protein,
+                carbsG: meal.recipe.carbs,
+                fatG: meal.recipe.fat,
+                detectedAllergens: detected,
+                fromPlanId: planId
+            )
+            do {
+                try await Backend.client.from("meal_logs").insert(record).execute()
+            } catch {
+                print("planned meal log failed: \(error)")
+                return false
+            }
+        }
+
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+            planned[index].completedAt = Date()
+        }
+        Haptics.success()
+        return true
     }
 
     func meals(for day: Int) -> [PlannedMeal] {
@@ -234,7 +324,11 @@ struct PlanView: View {
                     emptyState
                 } else {
                     ForEach(meals) { meal in
-                        PlannedMealRow(meal: meal) { planStore.remove(meal) }
+                        PlannedMealRow(
+                            meal: meal,
+                            onLog: { await planStore.logAsEaten(meal) },
+                            onRemove: { planStore.remove(meal) }
+                        )
                     }
                 }
 
@@ -258,7 +352,7 @@ struct PlanView: View {
     private var planWithVoltButton: some View {
         Button { showDayPlan = true } label: {
             VoltActionCard(title: "Plan \(PlanStore.dayNames[selectedDay]) with Volt",
-                           subtitle: "A full day around \(dailyTarget) kcal, safe for your triggers")
+                           subtitle: "Around \(dailyTarget) kcal, checked against your listed triggers")
         }
     }
 
@@ -369,49 +463,91 @@ struct PlanView: View {
 
 struct PlannedMealRow: View {
     let meal: PlannedMeal
+    let onLog: () async -> Bool
     let onRemove: () -> Void
+    @State private var isLogging = false
+    @State private var logFailed = false
 
     var body: some View {
-        HStack(spacing: 12) {
-            AsyncImage(url: URL(string: meal.recipe.image)) { phase in
-                if case .success(let image) = phase {
-                    image.resizable().aspectRatio(contentMode: .fill)
-                } else {
-                    Theme.Colors.surfaceRaised
-                        .overlay(Image(systemName: "fork.knife").foregroundStyle(Theme.Colors.textTertiary))
-                }
-            }
-            .frame(width: 52, height: 52)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 3) {
-                if let type = meal.mealType {
-                    Text(type.uppercased())
-                        .font(.system(size: 9, weight: .bold, design: .rounded))
-                        .foregroundStyle(Theme.Colors.volt)
-                }
-                Text(meal.recipe.title)
-                    .font(Theme.Fonts.headline)
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                    .lineLimit(1)
-                HStack(spacing: 8) {
-                    if let cal = meal.recipe.calories {
-                        Text("\(cal) kcal")
-                            .font(Theme.Fonts.caption)
-                            .foregroundStyle(Theme.Colors.textSecondary)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                AsyncImage(url: URL(string: meal.recipe.image)) { phase in
+                    if case .success(let image) = phase {
+                        image.resizable().aspectRatio(contentMode: .fill)
+                    } else {
+                        Theme.Colors.surfaceRaised
+                            .overlay(Image(systemName: "fork.knife").foregroundStyle(Theme.Colors.textTertiary))
                     }
-                    Text("\(meal.recipe.ingredients.count) ingredients")
-                        .font(Theme.Fonts.caption)
+                }
+                .frame(width: 52, height: 52)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    if let type = meal.mealType {
+                        Text(type.uppercased())
+                            .font(.system(size: 9, weight: .bold, design: .rounded))
+                            .foregroundStyle(Theme.Colors.volt)
+                    }
+                    Text(meal.recipe.title)
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .lineLimit(1)
+                    HStack(spacing: 8) {
+                        if let cal = meal.recipe.calories {
+                            Text("\(cal) kcal")
+                                .font(Theme.Fonts.caption)
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                        }
+                        Text("\(meal.recipe.ingredients.count) ingredients")
+                            .font(Theme.Fonts.caption)
+                            .foregroundStyle(Theme.Colors.textTertiary)
+                    }
+                }
+                Spacer()
+                Button(action: onRemove) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 14))
                         .foregroundStyle(Theme.Colors.textTertiary)
+                        .padding(8)
+                        .background(Theme.Colors.surfaceRaised, in: Circle())
                 }
             }
-            Spacer()
-            Button(action: onRemove) {
-                Image(systemName: "trash")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Theme.Colors.textTertiary)
-                    .padding(8)
-                    .background(Theme.Colors.surfaceRaised, in: Circle())
+
+            if meal.isCompleted {
+                Label("Logged as eaten", systemImage: "checkmark.circle.fill")
+                    .font(Theme.Fonts.caption.weight(.bold))
+                    .foregroundStyle(Theme.Colors.safe)
+                    .transition(.move(edge: .leading).combined(with: .opacity))
+            } else {
+                HStack {
+                    Button {
+                        isLogging = true
+                        logFailed = false
+                        Task {
+                            let success = await onLog()
+                            isLogging = false
+                            logFailed = !success
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            if isLogging { ProgressView().tint(Theme.Colors.onVolt) }
+                            Image(systemName: "checkmark")
+                            Text(isLogging ? "Logging" : "Log as eaten")
+                        }
+                        .font(Theme.Fonts.caption.weight(.bold))
+                        .foregroundStyle(Theme.Colors.onVolt)
+                        .padding(.horizontal, 13)
+                        .frame(height: 36)
+                        .background(Theme.Colors.volt, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isLogging)
+
+                    Spacer()
+                    Text(logFailed ? "Couldn't log. Try again." : "Verify labels before eating")
+                        .font(.system(size: 10, weight: .medium, design: .rounded))
+                        .foregroundStyle(logFailed ? Theme.Colors.danger : Theme.Colors.textTertiary)
+                }
             }
         }
         .card()

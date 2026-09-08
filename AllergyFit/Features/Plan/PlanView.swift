@@ -304,8 +304,13 @@ struct PlanView: View {
     @EnvironmentObject var session: SessionStore
     @EnvironmentObject var planStore: PlanStore
     @State private var selectedDay: Int = {
+        // Screenshot/debug override: -planDay 0...6 (Mon = 0)
+        if UserDefaults.standard.object(forKey: "planDay") != nil {
+            let forced = UserDefaults.standard.integer(forKey: "planDay")
+            if (0...6).contains(forced) { return forced }
+        }
         // default to today (Mon = 0)
-        (Calendar.current.component(.weekday, from: Date()) + 5) % 7
+        return (Calendar.current.component(.weekday, from: Date()) + 5) % 7
     }()
     @State private var showGroceries = false
     @State private var showDayPlan = false

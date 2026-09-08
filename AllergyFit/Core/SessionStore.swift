@@ -50,7 +50,10 @@ final class SessionStore: ObservableObject {
             case .initialSession, .signedIn, .tokenRefreshed, .userUpdated:
                 self.session = session
                 if let user = session?.user, event == .initialSession || event == .signedIn {
-                    Task { await loadProfileState(userId: user.id) }
+                    Task {
+                        await applyPendingDraft(userId: user.id)
+                        await loadProfileState(userId: user.id)
+                    }
                     Task { await PurchasesManager.shared.identify(userId: user.id.uuidString) }
                 }
             case .signedOut, .userDeleted:
@@ -60,6 +63,20 @@ final class SessionStore: ObservableObject {
                 break
             }
             isLoading = false
+        }
+    }
+
+    /// If the user answered the pre-account funnel, write those answers onto
+    /// the new profile so they are never asked the same questions twice.
+    private func applyPendingDraft(userId: UUID) async {
+        guard let draft = OnboardingDraft.stored, !draft.allergenNames.isEmpty else { return }
+        do {
+            try await draft.apply(to: userId)
+            OnboardingDraft.clear()
+            profileOnboarded = true
+            UserDefaults.standard.set(true, forKey: cachedOnboardedKey)
+        } catch {
+            print("onboarding draft apply failed: \(error)")   // keep draft; retry next launch
         }
     }
 

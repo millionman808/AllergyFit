@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject var session: SessionStore
+    @AppStorage("seenPreAuthOnboarding") private var seenPreAuth = false
 
     var body: some View {
         Group {
@@ -17,6 +18,10 @@ struct RootView: View {
                 OnboardingView()
             } else if session.isSignedIn {
                 MainTabView()
+            } else if !seenPreAuth {
+                // Value first: people answer for themselves and see their real
+                // targets before we ask for an account.
+                PreAuthOnboardingView { seenPreAuth = true }
             } else {
                 AuthView()
             }

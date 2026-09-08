@@ -9,6 +9,9 @@ import Supabase
 /// nobody is asked the same questions twice.
 struct OnboardingDraft: Codable, Equatable {
     var allergenNames: Set<String> = []
+    /// Triggers the user typed themselves — anything not in the standard list
+    /// (e.g. "mango", "sulphites in wine"). Stored as user_allergens.custom_name.
+    var customAllergens: [String] = []
     var severityByName: [String: String] = [:]     // display name → severity rawValue
     var goal: String = "Build muscle"              // Build muscle | Maintain | Cut
     var trainingDays: Int = 4
@@ -101,6 +104,21 @@ struct OnboardingDraft: Codable, Equatable {
             try await Backend.client.from("user_allergens")
                 .upsert(rows, onConflict: "user_id,allergen_id", ignoreDuplicates: true)
                 .execute()
+        }
+
+        // Custom triggers have no allergen_id — they ride on custom_name.
+        struct CustomInsert: Codable {
+            let user_id: UUID
+            let custom_name: String
+            let severity: String
+        }
+        let customRows = customAllergens
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .map { CustomInsert(user_id: userId, custom_name: $0,
+                                severity: severityByName[$0] ?? "moderate") }
+        if !customRows.isEmpty {
+            try await Backend.client.from("user_allergens").insert(customRows).execute()
         }
     }
 }

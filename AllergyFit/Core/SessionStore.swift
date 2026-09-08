@@ -27,12 +27,19 @@ final class SessionStore: ObservableObject {
     /// Allergen slugs powering recipes, meal analysis, and swaps.
     /// Demo default matches the mock profile; replaced by DB values on sign-in.
     @Published var allergenSlugs: [String] = ["peanut", "dairy", "sesame"]
+    /// Triggers the user typed themselves (no standard slug). These are passed
+    /// to the AI alongside the standard ones so custom foods get flagged too.
+    @Published var customAllergenNames: [String] = []
     /// Sensitivity level per allergen slug (drives how strongly items are flagged).
     @Published var severityBySlug: [String: Sensitivity] = [
         "peanut": .anaphylaxis, "dairy": .moderate, "sesame": .severe,
     ]
 
     var isSignedIn: Bool { session != nil || isDemo }
+
+    /// Everything the AI should screen a food against: the standard trigger
+    /// slugs plus any custom triggers the user typed themselves.
+    var allergensForAI: [String] { allergenSlugs + customAllergenNames }
 
     init() {
         // Debug/screenshot deep-links: launch with e.g. `-demo 1 -onboarded 1 -initialTab 2`
@@ -145,6 +152,10 @@ final class SessionStore: ObservableObject {
                 .execute().value
             let idToSlug = Dictionary(uniqueKeysWithValues: known.map { ($0.id, $0.slug) })
             let slugs = mine.compactMap { $0.allergenId.flatMap { idToSlug[$0] } }
+            // Custom triggers carry no allergen_id — keep them by name.
+            customAllergenNames = mine.compactMap {
+                $0.allergenId == nil ? $0.customName : nil
+            }.filter { !$0.isEmpty }
             if !slugs.isEmpty {
                 allergenSlugs = slugs
                 // Cached so the Siri intent can check triggers without a session load.

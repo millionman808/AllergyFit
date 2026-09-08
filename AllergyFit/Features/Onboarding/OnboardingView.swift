@@ -512,6 +512,9 @@ struct OnboardingView: View {
 struct FlowChips: View {
     let items: [String]
     @Binding var selected: Set<String>
+    /// When set, an "+ Other" chip is appended so people can name a trigger
+    /// that isn't in the standard list.
+    var onAddCustom: (() -> Void)? = nil
 
     var body: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 8)], spacing: 8) {
@@ -535,6 +538,25 @@ struct FlowChips: View {
                         .clipShape(Capsule())
                         .overlay(Capsule().stroke(isOn ? .clear : Theme.Colors.surfaceRaised, lineWidth: 1))
                         .scaleEffect(isOn ? 1.03 : 1)
+                }
+                .buttonStyle(.plain)
+            }
+
+            if let onAddCustom {
+                Button {
+                    Haptics.tap()
+                    onAddCustom()
+                } label: {
+                    Label("Other", systemImage: "plus")
+                        .font(Theme.Fonts.caption)
+                        .lineLimit(1)
+                        .padding(.horizontal, 10)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 40)
+                        .foregroundStyle(Theme.Colors.volt)
+                        .background(Theme.Colors.volt.opacity(0.10), in: Capsule())
+                        .overlay(Capsule().strokeBorder(Theme.Colors.volt.opacity(0.55),
+                                                        style: .init(lineWidth: 1, dash: [4, 3])))
                 }
                 .buttonStyle(.plain)
             }

@@ -10,6 +10,11 @@ struct PreAuthOnboardingView: View {
 
     @State private var step = 0
     @State private var draft = OnboardingDraft.stored ?? OnboardingDraft()
+    @State private var showCustomTrigger = false
+    @State private var customTriggerText = ""
+
+    /// Standard list plus anything the user typed themselves.
+    private var allTriggerOptions: [String] { allAllergens + draft.customAllergens }
 
     private let total = 7
     private let allAllergens = MockData.allAllergens
@@ -34,6 +39,27 @@ struct PreAuthOnboardingView: View {
                 footer
             }
         }
+        .alert("Add a trigger", isPresented: $showCustomTrigger) {
+            TextField("e.g. mango, sulphites", text: $customTriggerText)
+                .textInputAutocapitalization(.never)
+            Button("Cancel", role: .cancel) {}
+            Button("Add") { addCustomTrigger() }
+        } message: {
+            Text("Name anything you need to avoid that isn't in the list.")
+        }
+    }
+
+    /// Adds a typed trigger and selects it immediately.
+    private func addCustomTrigger() {
+        let name = customTriggerText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        // Don't duplicate something already offered as a standard option.
+        let existing = allTriggerOptions.first { $0.caseInsensitiveCompare(name) == .orderedSame }
+        let final = existing ?? name
+        if existing == nil { draft.customAllergens.append(final) }
+        draft.allergenNames.insert(final)
+        draft.save()
+        Haptics.success()
     }
 
     // MARK: Chrome
@@ -176,8 +202,14 @@ struct PreAuthOnboardingView: View {
             header("What do you need to avoid?",
                    "Pick everything that applies. You can change this any time.")
                 .revealIn(0)
-            FlowChips(items: allAllergens, selected: $draft.allergenNames)
+            FlowChips(items: allTriggerOptions,
+                      selected: $draft.allergenNames,
+                      onAddCustom: { customTriggerText = ""; showCustomTrigger = true })
                 .revealIn(1)
+            Text("Can't find yours? Tap **Other** to add it.")
+                .font(Theme.Fonts.caption)
+                .foregroundStyle(Theme.Colors.textTertiary)
+                .revealIn(2)
         }
     }
 

@@ -261,7 +261,7 @@ struct AIRecipeView: View {
                 // Pull the user's real goal + dietary prefs so recipes match their profile.
                 let targets = await DayTargets.load(session: session)
                 recipe = try await RecipeGenService.generate(
-                    request: request, allergens: session.allergenSlugs,
+                    request: request, allergens: session.allergensForAI,
                     dietary: targets.dietary, goal: targets.goal)
             } catch {
                 errorMessage = "Couldn't generate: \(error.localizedDescription)"

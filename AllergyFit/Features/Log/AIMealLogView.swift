@@ -504,7 +504,7 @@ struct AIMealLogView: View {
                 let grams = max(Int(item.grams.rounded()), 1)
                 let response = try await AIMealService.analyze(
                     messages: [.init(role: "user", content: "\(grams) grams of \(substitute)")],
-                    allergens: allergenSlugs
+                    allergens: session.allergensForAI
                 )
                 guard let newItem = response.meal?.items.first,
                       var m = meal,
@@ -565,7 +565,7 @@ struct AIMealLogView: View {
         withAnimation { phase = .loading }
         Task {
             do {
-                let response = try await AIMealService.analyze(messages: conversation, allergens: allergenSlugs)
+                let response = try await AIMealService.analyze(messages: conversation, allergens: session.allergensForAI)
                 applyResponse(response)
             } catch {
                 withAnimation { errorMessage = error.localizedDescription; phase = .input }
@@ -605,7 +605,7 @@ struct AIMealLogView: View {
             }
             do {
                 let response = try await AIMealService.analyze(
-                    messages: [], allergens: allergenSlugs,
+                    messages: [], allergens: session.allergensForAI,
                     imageBase64: jpeg.base64EncodedString(), mediaType: "image/jpeg",
                     isLabel: isLabel)
                 applyResponse(response)

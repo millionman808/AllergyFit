@@ -12,13 +12,16 @@
 		0C2AD9806B993977C21F04AE /* ProfileSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */; };
 		0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 288435BEE80ED02056790322 /* LogView.swift */; };
 		0E69B9D03E02968533C62DFC /* KitchenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */; };
+		10B759CAE590044693BD86FC /* AdAttribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E2520DEB6FB27AD1EDD29A /* AdAttribution.swift */; };
 		146B919C69CA22A3E886B9B5 /* VoltActionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 342F5EA8459C6E43D5380473 /* VoltActionCard.swift */; };
 		169CFF2544EB4818771AB89D /* VoltIntroSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3F636FEBB89315BECB31D0E /* VoltIntroSheet.swift */; };
 		1B38CFAB4165A5C14EF11E83 /* Skeleton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328186B207C708F97059BB8F /* Skeleton.swift */; };
+		1F26531A7E0E4EC9F7C820D0 /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = 00C34B76BE729D2898103358 /* FacebookCore */; };
 		27360A1A1A3C55C2F8D052EF /* PurchasesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */; };
 		2BC10D6940F27F748FF1E61C /* DayPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC8C220F0DF2B9C47CBF7DD /* DayPlanView.swift */; };
 		3056E89959AC282A2DF57D3E /* RecipeNutritionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C50E9A26E5B9682FDB837B /* RecipeNutritionService.swift */; };
 		3426164A957614A1BA5EA5F5 /* AIMealLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */; };
+		35B66A78FB3DE29856F8D0C5 /* TikTokBusinessSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 4C62D60959E8DA6DF0300FFC /* TikTokBusinessSDK */; };
 		366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C63BE8C8482C61ACD9CCF8 /* Config.swift */; };
 		37EF3047980F19F78008A831 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5362C1AB2997D74FFD7C7339 /* ProfileView.swift */; };
 		4AA0D4ECCE20E8B41FCADB4E /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D0C41123AB2F3D6474672D84 /* Supabase */; };
@@ -108,6 +111,7 @@
 		AAD59E75F8DCC6578F90185A /* OnboardingDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingDraft.swift; sourceTree = "<group>"; };
 		B0720F266E4BA50D0D73ADAB /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIMealService.swift; sourceTree = "<group>"; };
+		B6E2520DEB6FB27AD1EDD29A /* AdAttribution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdAttribution.swift; sourceTree = "<group>"; };
 		C0507A56BCFDF2BD045EC66E /* LabScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabScanView.swift; sourceTree = "<group>"; };
 		C3F636FEBB89315BECB31D0E /* VoltIntroSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoltIntroSheet.swift; sourceTree = "<group>"; };
 		D7C63BE8C8482C61ACD9CCF8 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -130,6 +134,8 @@
 				4AA0D4ECCE20E8B41FCADB4E /* Supabase in Frameworks */,
 				D4AC7AD83F9C8D8ED1E06968 /* RevenueCat in Frameworks */,
 				B1E2CB180B0E64154364515D /* GoogleSignIn in Frameworks */,
+				1F26531A7E0E4EC9F7C820D0 /* FacebookCore in Frameworks */,
+				35B66A78FB3DE29856F8D0C5 /* TikTokBusinessSDK in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,6 +145,7 @@
 		13223DC1369AAED59160036A /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				B6E2520DEB6FB27AD1EDD29A /* AdAttribution.swift */,
 				80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */,
 				6F12C9AFA9A9B34DB6B5EC4D /* Haptics.swift */,
 				62AF4EC9F170CBFD837F5677 /* HealthManager.swift */,
@@ -361,6 +368,8 @@
 				D0C41123AB2F3D6474672D84 /* Supabase */,
 				CF8908F9A809B906D3B24B07 /* RevenueCat */,
 				5721EC0D9A2599DDB87B397C /* GoogleSignIn */,
+				00C34B76BE729D2898103358 /* FacebookCore */,
+				4C62D60959E8DA6DF0300FFC /* TikTokBusinessSDK */,
 			);
 			productName = AllergyFit;
 			productReference = 7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */;
@@ -391,9 +400,11 @@
 			mainGroup = A5BADFA0E5D8805158017EC5;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				CB3E3FA2E452B7C4848DC387 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
 				280F0F5250E5C20181641E54 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				C17130ABC303EE3F53B5E957 /* XCRemoteSwiftPackageReference "purchases-ios" */,
 				BDD2C0FAFA810ADA4807729A /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				CDCF44B7BAAB82471B83A07B /* XCRemoteSwiftPackageReference "tiktok-business-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1C23FDF578115A281272DD2A /* Products */;
@@ -424,6 +435,7 @@
 				3426164A957614A1BA5EA5F5 /* AIMealLogView.swift in Sources */,
 				C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */,
 				9787A90913EC5DBD3A9F76B1 /* AIRecipeView.swift in Sources */,
+				10B759CAE590044693BD86FC /* AdAttribution.swift in Sources */,
 				894A499DE984F20BB56F485E /* AllergenKeywords.swift in Sources */,
 				A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */,
 				F69B9CACF8004643E9CD0C3E /* AuthView.swift in Sources */,
@@ -496,6 +508,7 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "AllergyFit uses your photos to read blood allergy test results you choose to scan.";
 				INFOPLIST_KEY_NSSiriUsageDescription = "AllergyFit uses Siri so you can log a meal by voice and hear whether it's safe for your allergies.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "AllergyFit uses this only to measure which ads brought people to the app. It is never used to profile you or share your health data.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -647,6 +660,7 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "AllergyFit uses your photos to read blood allergy test results you choose to scan.";
 				INFOPLIST_KEY_NSSiriUsageDescription = "AllergyFit uses Siri so you can log a meal by voice and hear whether it's safe for your allergies.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "AllergyFit uses this only to measure which ads brought people to the app. It is never used to profile you or share your health data.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -709,9 +723,35 @@
 				minimumVersion = 5.0.0;
 			};
 		};
+		CB3E3FA2E452B7C4848DC387 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/facebook/facebook-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 17.0.0;
+			};
+		};
+		CDCF44B7BAAB82471B83A07B /* XCRemoteSwiftPackageReference "tiktok-business-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/tiktok/tiktok-business-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		00C34B76BE729D2898103358 /* FacebookCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CB3E3FA2E452B7C4848DC387 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookCore;
+		};
+		4C62D60959E8DA6DF0300FFC /* TikTokBusinessSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CDCF44B7BAAB82471B83A07B /* XCRemoteSwiftPackageReference "tiktok-business-ios-sdk" */;
+			productName = TikTokBusinessSDK;
+		};
 		5721EC0D9A2599DDB87B397C /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 280F0F5250E5C20181641E54 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;

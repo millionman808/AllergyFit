@@ -9,6 +9,8 @@ struct AllergyFitApp: App {
 
     init() {
         PurchasesManager.shared.start()
+        // No-op unless a Meta/TikTok ID is configured in AdAttribution.
+        AdAttribution.start()
     }
 
     var body: some Scene {
@@ -19,6 +21,11 @@ struct AllergyFitApp: App {
                 .preferredColorScheme(colorScheme)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
+                }
+                .task {
+                    // Asked after the app is usable, not on a cold first launch
+                    // where the prompt has no context and just gets denied.
+                    await AdAttribution.requestTrackingIfNeeded()
                 }
         }
     }

@@ -1,5 +1,5 @@
 {
-  "originHash" : "08add0f4aa1de82e3def43ce0a84bb77efd3bb57c289f5303032ea238c6c2a4c",
+  "originHash" : "99be448bdf88e7222f8f1235c349dbf261625fe55f48e2dc738b86199d33e66c",
   "pins" : [
     {
       "identity" : "app-check",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "2781038865a80e2c425a1da12cc1327bcd56501f",
         "version" : "1.7.6"
+      }
+    },
+    {
+      "identity" : "facebook-ios-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/facebook/facebook-ios-sdk",
+      "state" : {
+        "revision" : "619d1772808425faa010d92293b26eeb9bc1d630",
+        "version" : "17.4.0"
       }
     },
     {
@@ -134,6 +143,15 @@
       "state" : {
         "revision" : "db774a277f60063a32d854f2980299caf06da041",
         "version" : "1.6.0"
+      }
+    },
+    {
+      "identity" : "tiktok-business-ios-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tiktok/tiktok-business-ios-sdk",
+      "state" : {
+        "revision" : "2a3a35560c2c0547f74869c58160946e29c0932c",
+        "version" : "1.7.2"
       }
     },
     {

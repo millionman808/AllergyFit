@@ -4,6 +4,7 @@ import SwiftUI
 /// numbers BEFORE being asked to sign up — so the account is the last small
 /// step, not the first big one.
 struct PreAuthOnboardingView: View {
+    @EnvironmentObject var session: SessionStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Called when the funnel finishes (or is skipped) → show AuthView.
     var onFinish: () -> Void
@@ -84,9 +85,11 @@ struct PreAuthOnboardingView: View {
             }
             .animation(.spring(response: 0.35), value: step)
 
-            Button("Sign in") { finish() }
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.textSecondary)
+            if !session.isSignedIn {
+                Button("Sign in") { finish() }
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
@@ -124,10 +127,26 @@ struct PreAuthOnboardingView: View {
         Haptics.tap()
         withAnimation { step -= 1 }
     }
+    /// One funnel, three endings — so demo, first sign-up and an existing
+    /// account without a profile all see exactly the same screens.
     private func finish() {
         draft.save()
         UserDefaults.standard.set(true, forKey: "seenPreAuthOnboarding")
-        onFinish()
+
+        if session.isDemo {
+            session.demoOnboarded = true
+            return
+        }
+        if let userId = session.session?.user.id {
+            // Already signed in — write straight to the profile.
+            Task {
+                try? await draft.apply(to: userId)
+                OnboardingDraft.clear()
+                await MainActor.run { session.profileOnboarded = true }
+            }
+            return
+        }
+        onFinish()          // signed out → hand off to AuthView
     }
 
     // MARK: Steps

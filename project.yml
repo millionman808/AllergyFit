@@ -14,6 +14,12 @@ packages:
   GoogleSignIn:
     url: https://github.com/google/GoogleSignIn-iOS
     from: 8.0.0
+  FacebookSDK:
+    url: https://github.com/facebook/facebook-ios-sdk
+    from: 17.0.0
+  TikTokBusinessSDK:
+    url: https://github.com/tiktok/tiktok-business-ios-sdk
+    from: 1.3.0
 targets:
   AllergyFit:
     type: application
@@ -41,6 +47,10 @@ targets:
         product: RevenueCat
       - package: GoogleSignIn
         product: GoogleSignIn
+      - package: FacebookSDK
+        product: FacebookCore
+      - package: TikTokBusinessSDK
+        product: TikTokBusinessSDK
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.elischafer.allergyfit
@@ -57,6 +67,7 @@ targets:
         INFOPLIST_KEY_NSHealthShareUsageDescription: AllergyFit reads your workouts and active energy to tune your daily nutrition targets on training days.
         INFOPLIST_KEY_NSHealthUpdateUsageDescription: AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: AllergyFit uses your photos to read blood allergy test results you choose to scan.
+        INFOPLIST_KEY_NSUserTrackingUsageDescription: AllergyFit uses this only to measure which ads brought people to the app. It is never used to profile you or share your health data.
         INFOPLIST_KEY_NSCameraUsageDescription: AllergyFit uses the camera to photograph your meals and nutrition labels, and to scan product barcodes and check them against your allergen profile.
         SWIFT_VERSION: 5.9
         TARGETED_DEVICE_FAMILY: 1

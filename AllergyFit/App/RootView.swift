@@ -11,11 +11,13 @@ struct RootView: View {
             } else if session.session != nil && session.backendError && session.profileOnboarded == nil {
                 OfflineView(retry: { await session.retry() })
             } else if session.isDemo && !session.demoOnboarded {
-                OnboardingView()
+                // Same funnel as everyone else — demo used to get a different
+                // set of screens, which made the two look unrelated.
+                PreAuthOnboardingView {}
             } else if session.session != nil && session.profileOnboarded == nil {
                 splash // profile state loading
             } else if session.session != nil && session.profileOnboarded == false {
-                OnboardingView()
+                PreAuthOnboardingView {}
             } else if session.isSignedIn {
                 MainTabView()
             } else if !seenPreAuth {

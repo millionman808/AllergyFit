@@ -33,6 +33,7 @@
 		6C8341B7CC36C859EA6ED4A4 /* Sensitivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25739FFCCB4C82B4E1BA28DA /* Sensitivity.swift */; };
 		717CAC2C3BCA1A9213AB0753 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512E95E3CCD78E4E7614A610 /* PaywallView.swift */; };
 		764EE38CD7AEE1DFBB76C2D9 /* CookModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EC13F3ACA41CA7ED6E333 /* CookModeView.swift */; };
+		807E77651A2554815B9B599C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 401DB052060890B31FDF1D97 /* PrivacyInfo.xcprivacy */; };
 		838DB15D4DDE4CBAD02C854F /* InsightsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E701777BF7009E9C766AF99E /* InsightsStore.swift */; };
 		894A499DE984F20BB56F485E /* AllergenKeywords.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */; };
 		8C039AF88FB9F89606CC8BF0 /* TodayStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEB40B07CADF21863ED0324E /* TodayStore.swift */; };
@@ -84,6 +85,7 @@
 		3568EFD1586B51A8314B7E39 /* Confetti.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Confetti.swift; sourceTree = "<group>"; };
 		3B5C81476BF4CBA13F79BA83 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
 		3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIMealLogView.swift; sourceTree = "<group>"; };
+		401DB052060890B31FDF1D97 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSheets.swift; sourceTree = "<group>"; };
 		435D00CFDC2A3BABE993C79C /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
@@ -207,6 +209,7 @@
 				4DE9B057C1A2F851554C887D /* AllergyFit.entitlements */,
 				71A272564201D4B8EE1BC16C /* Assets.xcassets */,
 				21C23F92E8134BABAEA6365A /* Info.plist */,
+				401DB052060890B31FDF1D97 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -422,6 +425,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BAE85554D15597AD58224A29 /* Assets.xcassets in Resources */,
+				807E77651A2554815B9B599C /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -497,7 +501,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -649,7 +653,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;

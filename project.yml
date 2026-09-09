@@ -55,7 +55,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.elischafer.allergyfit
         MARKETING_VERSION: 1.0.0
-        CURRENT_PROJECT_VERSION: 8
+        CURRENT_PROJECT_VERSION: 9
         DEVELOPMENT_TEAM: KLD3ENRH42
         GENERATE_INFOPLIST_FILE: true
         # Siri needs a usage string before it will run the "Log a Meal" intent.
@@ -67,7 +67,6 @@ targets:
         INFOPLIST_KEY_NSHealthShareUsageDescription: AllergyFit reads your workouts and active energy to tune your daily nutrition targets on training days.
         INFOPLIST_KEY_NSHealthUpdateUsageDescription: AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: AllergyFit uses your photos to read blood allergy test results you choose to scan.
-        INFOPLIST_KEY_NSUserTrackingUsageDescription: AllergyFit uses this only to measure which ads brought people to the app. It is never used to profile you or share your health data.
         INFOPLIST_KEY_NSCameraUsageDescription: AllergyFit uses the camera to photograph your meals and nutrition labels, and to scan product barcodes and check them against your allergen profile.
         SWIFT_VERSION: 5.9
         TARGETED_DEVICE_FAMILY: 1

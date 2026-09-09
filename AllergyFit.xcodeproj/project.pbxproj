@@ -501,7 +501,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -512,7 +512,6 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "AllergyFit uses your photos to read blood allergy test results you choose to scan.";
 				INFOPLIST_KEY_NSSiriUsageDescription = "AllergyFit uses Siri so you can log a meal by voice and hear whether it's safe for your allergies.";
-				INFOPLIST_KEY_NSUserTrackingUsageDescription = "AllergyFit uses this only to measure which ads brought people to the app. It is never used to profile you or share your health data.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -654,7 +653,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -665,7 +664,6 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "AllergyFit uses your photos to read blood allergy test results you choose to scan.";
 				INFOPLIST_KEY_NSSiriUsageDescription = "AllergyFit uses Siri so you can log a meal by voice and hear whether it's safe for your allergies.";
-				INFOPLIST_KEY_NSUserTrackingUsageDescription = "AllergyFit uses this only to measure which ads brought people to the app. It is never used to profile you or share your health data.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (

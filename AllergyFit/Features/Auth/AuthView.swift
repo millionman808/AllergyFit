@@ -7,6 +7,9 @@ struct AuthView: View {
     @EnvironmentObject var session: SessionStore
     /// Lets people back out of signing in and return to onboarding.
     var onBack: (() -> Void)? = nil
+    /// The funnel ends on "Create my account", so arriving from it must land
+    /// on Create Account — not Sign In, which fails for a brand-new email.
+    var startInSignUpMode = false
     @State private var email = ""
     @State private var password = ""
     @State private var isSigningUp = false
@@ -20,6 +23,7 @@ struct AuthView: View {
             Theme.Colors.background.ignoresSafeArea()
             if awaitingConfirmation { confirmEmailScreen } else { signInScreen }
         }
+        .onAppear { if startInSignUpMode { isSigningUp = true } }
     }
 
     /// Shown when the project requires email confirmation — signup otherwise
@@ -158,17 +162,23 @@ struct AuthView: View {
                     Button {
                         Task { await submitEmail() }
                     } label: {
-                        Text(isSigningUp ? "Create Account" : "Sign In")
-                            .font(Theme.Fonts.headline)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 52)
-                            .background(Theme.Colors.volt)
-                            .foregroundStyle(Theme.Colors.onVolt)
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        Group {
+                            if isBusy {
+                                ProgressView().tint(Theme.Colors.onVolt)
+                            } else {
+                                Text(isSigningUp ? "Create Account" : "Sign In")
+                                    .font(Theme.Fonts.headline)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(Theme.Colors.volt)
+                        .foregroundStyle(Theme.Colors.onVolt)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
                     .pressable()
                     .disabled(isBusy || email.isEmpty || password.isEmpty)
-                    .opacity(isBusy ? 0.6 : 1)
+                    .opacity(email.isEmpty || password.isEmpty ? 0.6 : 1)
 
                     Button {
                         isSigningUp.toggle()
@@ -197,6 +207,7 @@ struct AuthView: View {
 
     // MARK: - Actions
 
+    @MainActor
     private func handleApple(_ result: Result<ASAuthorization, Error>) async {
         guard case .success(let auth) = result,
               let credential = auth.credential as? ASAuthorizationAppleIDCredential,
@@ -254,13 +265,19 @@ struct AuthView: View {
             .rootViewController
     }
 
+    @MainActor
     private func submitEmail() async {
         isBusy = true
         defer { isBusy = false }
         errorMessage = nil
+        // Read the fields once — the closures below must not capture the view.
+        let mail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        let pass = password
         do {
             if isSigningUp {
-                let response = try await Backend.client.auth.signUp(email: email, password: password)
+                let response = try await withAuthTimeout {
+                    try await Backend.client.auth.signUp(email: mail, password: pass)
+                }
                 // If the project requires email confirmation there's no session
                 // yet — tell the user to go check their inbox instead of leaving
                 // them staring at an unchanged screen.
@@ -270,13 +287,16 @@ struct AuthView: View {
                 // With confirmation off we get a session and SessionStore's
                 // authStateChanges takes us straight into onboarding.
             } else {
-                try await Backend.client.auth.signIn(email: email, password: password)
+                _ = try await withAuthTimeout {
+                    try await Backend.client.auth.signIn(email: mail, password: pass)
+                }
             }
         } catch {
             errorMessage = Self.friendlyAuthMessage(error)
         }
     }
 
+    @MainActor
     private func resendConfirmation() async {
         isBusy = true
         defer { isBusy = false }
@@ -286,6 +306,30 @@ struct AuthView: View {
             withAnimation { resent = true }
         } catch {
             errorMessage = Self.friendlyAuthMessage(error)
+        }
+    }
+
+    /// A request that never returns looks identical to a button that does
+    /// nothing. Cap it so a bad connection produces a message instead.
+    private nonisolated func withAuthTimeout<T: Sendable>(
+        seconds: Double = 20,
+        _ work: @escaping @Sendable () async throws -> T
+    ) async throws -> T {
+        try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask { try await work() }
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                throw AuthTimeout()
+            }
+            defer { group.cancelAll() }
+            guard let first = try await group.next() else { throw AuthTimeout() }
+            return first
+        }
+    }
+
+    struct AuthTimeout: LocalizedError {
+        var errorDescription: String? {
+            "Couldn't reach the server. Check your connection and try again."
         }
     }
 
@@ -320,7 +364,9 @@ struct AuthView: View {
         if l.contains("email not confirmed") {
             return "Check your inbox and confirm your email, then sign in."
         }
-        if l.contains("network") || l.contains("offline") || l.contains("connection") {
+        if error is AuthTimeout { return raw }
+        if l.contains("network") || l.contains("offline") || l.contains("connection")
+            || l.contains("timed out") || l.contains("internet") {
             return "Can't reach the server. Check your connection and try again."
         }
         return raw

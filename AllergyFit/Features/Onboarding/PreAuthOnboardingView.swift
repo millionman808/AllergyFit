@@ -378,9 +378,8 @@ struct PreAuthOnboardingView: View {
         .card()
     }
 
-    /// A switch drawn from primitives so it shares the app's tap handling
-    /// with every other control here — the system Toggle doesn't register
-    /// touches inside this transitioning step container.
+    /// A switch drawn from primitives so it matches the hand-built steppers
+    /// beside it rather than dropping a system control into the middle of them.
     private func switchPill(on: Bool) -> some View {
         Capsule()
             .fill(on ? Theme.Colors.volt : Theme.Colors.surfaceRaised)

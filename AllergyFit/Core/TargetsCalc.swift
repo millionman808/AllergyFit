@@ -2,9 +2,14 @@ import Foundation
 
 /// Single source of truth for daily targets (Mifflin-St Jeor, sex-neutral midpoint).
 enum TargetsCalc {
+    /// `restingCalories` overrides the estimated BMR when the user knows their
+    /// real number (from a metabolic test, DEXA scan, or a wearable). Mifflin-St
+    /// Jeor is only an estimate, so a measured value should always win.
     static func compute(weightKg: Double, heightCm: Double, age: Int,
-                        trainingDays: Int, goal: String) -> (calories: Int, protein: Int, carbs: Int, fat: Int) {
-        let bmr = 10 * weightKg + 6.25 * heightCm - 5 * Double(age) - 78
+                        trainingDays: Int, goal: String,
+                        restingCalories: Int? = nil) -> (calories: Int, protein: Int, carbs: Int, fat: Int) {
+        let estimated = 10 * weightKg + 6.25 * heightCm - 5 * Double(age) - 78
+        let bmr = restingCalories.map(Double.init) ?? estimated
         let activity: Double = trainingDays <= 1 ? 1.375 : trainingDays <= 3 ? 1.5 : trainingDays <= 5 ? 1.65 : 1.75
         var calories = bmr * activity
         switch goal {

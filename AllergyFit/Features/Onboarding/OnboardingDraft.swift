@@ -19,6 +19,9 @@ struct OnboardingDraft: Codable, Equatable {
     var heightFeet: Int = 5
     var heightInches: Int = 10
     var age: Int = 25
+    /// Calories burned at rest per day. Optional — when the user knows their
+    /// real BMR it replaces the Mifflin-St Jeor estimate.
+    var restingCalories: Int? = nil
 
     private static let key = "onboardingDraft"
 
@@ -39,7 +42,8 @@ struct OnboardingDraft: Codable, Equatable {
     var targets: (calories: Int, protein: Int, carbs: Int, fat: Int) {
         let kg = Double(weightLb) * 0.4536
         let cm = (Double(heightFeet) * 12 + Double(heightInches)) * 2.54
-        let bmr = 10 * kg + 6.25 * cm - 5 * Double(age) - 78
+        let estimated = 10 * kg + 6.25 * cm - 5 * Double(age) - 78
+        let bmr = restingCalories.map(Double.init) ?? estimated
         let activity: Double = trainingDays <= 1 ? 1.375 : trainingDays <= 3 ? 1.5
                              : trainingDays <= 5 ? 1.65 : 1.75
         var calories = bmr * activity

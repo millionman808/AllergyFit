@@ -25,7 +25,9 @@ struct RootView: View {
                 // targets before we ask for an account.
                 PreAuthOnboardingView { seenPreAuth = true }
             } else {
-                AuthView()
+                // Backing out returns to onboarding rather than trapping
+                // people on a login wall.
+                AuthView(onBack: { seenPreAuth = false })
             }
         }
         .animation(.easeInOut(duration: 0.25), value: session.isSignedIn)

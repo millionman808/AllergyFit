@@ -307,7 +307,100 @@ struct PreAuthOnboardingView: View {
             stepper("Height (ft)", value: $draft.heightFeet, range: 3...7, suffix: "'")
             stepper("Height (in)", value: $draft.heightInches, range: 0...11, suffix: "\"")
             stepper("Age", value: $draft.age, range: 13...100, suffix: "")
+            restingCaloriesCard
         }
+    }
+
+    /// Optional BMR override. Most people don't know theirs, so this stays
+    /// collapsed behind a toggle and shows our estimate as the starting point.
+    private var restingCaloriesCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Button {
+                Haptics.tap()
+                draft.restingCalories = draft.restingCalories == nil ? estimatedBMR : nil
+            } label: {
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("I know my resting calories")
+                            .font(Theme.Fonts.headline)
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .multilineTextAlignment(.leading)
+                        Text("What your body burns doing nothing. From a metabolic test, DEXA scan or your watch.")
+                            .font(Theme.Fonts.caption)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
+                    switchPill(on: draft.restingCalories != nil)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if draft.restingCalories != nil {
+                HStack {
+                    Text("Resting calories")
+                        .font(Theme.Fonts.body)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                    Spacer()
+                    Button {
+                        if let v = draft.restingCalories, v > 800 {
+                            Haptics.tap(); draft.restingCalories = v - 25
+                        }
+                    } label: {
+                        Image(systemName: "minus").font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                            .frame(width: 34, height: 34)
+                            .background(Theme.Colors.surfaceRaised, in: Circle())
+                    }
+                    Text("\(draft.restingCalories ?? estimatedBMR)")
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .frame(minWidth: 62)
+                    Button {
+                        if let v = draft.restingCalories, v < 4000 {
+                            Haptics.tap(); draft.restingCalories = v + 25
+                        }
+                    } label: {
+                        Image(systemName: "plus").font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(Theme.Colors.onVolt)
+                            .frame(width: 34, height: 34)
+                            .background(Theme.Colors.volt, in: Circle())
+                    }
+                }
+                Text("We estimated \(estimatedBMR) from your height, weight and age — your own number replaces it.")
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.textTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .card()
+    }
+
+    /// A switch drawn from primitives so it shares the app's tap handling
+    /// with every other control here — the system Toggle doesn't register
+    /// touches inside this transitioning step container.
+    private func switchPill(on: Bool) -> some View {
+        Capsule()
+            .fill(on ? Theme.Colors.volt : Theme.Colors.surfaceRaised)
+            .frame(width: 51, height: 31)
+            .overlay(alignment: on ? .trailing : .leading) {
+                Circle()
+                    .fill(.white)
+                    .frame(width: 27, height: 27)
+                    .padding(.horizontal, 2)
+                    .shadow(color: .black.opacity(0.25), radius: 1, y: 1)
+            }
+            .animation(.spring(response: 0.28, dampingFraction: 0.8), value: on)
+            .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
+    }
+
+    /// Mifflin-St Jeor estimate, used to seed the field.
+    private var estimatedBMR: Int {
+        let kg = Double(draft.weightLb) * 0.4536
+        let cm = (Double(draft.heightFeet) * 12 + Double(draft.heightInches)) * 2.54
+        return Int((10 * kg + 6.25 * cm - 5 * Double(draft.age) - 78).rounded())
     }
 
     private func stepper(_ label: String, value: Binding<Int>, range: ClosedRange<Int>,
@@ -376,7 +469,7 @@ struct PreAuthOnboardingView: View {
             header("Your plan is ready.",
                    "Based on your goal, your body and \(draft.allergenNames.count) trigger\(draft.allergenNames.count == 1 ? "" : "s").")
             HStack(spacing: 10) {
-                target("\(t.calories)", "calories", Theme.Colors.volt).scatterIn(0)
+                target(t.calories.formatted(.number.grouping(.automatic)), "calories", Theme.Colors.volt).scatterIn(0)
                 target("\(t.protein)g", "protein", Theme.Colors.protein).scatterIn(1)
                 target("\(t.carbs)g", "carbs", Theme.Colors.carbs).scatterIn(2)
                 target("\(t.fat)g", "fat", Theme.Colors.fat).scatterIn(3)

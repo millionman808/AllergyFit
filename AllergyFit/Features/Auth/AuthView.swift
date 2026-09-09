@@ -5,6 +5,8 @@ import GoogleSignIn
 
 struct AuthView: View {
     @EnvironmentObject var session: SessionStore
+    /// Lets people back out of signing in and return to onboarding.
+    var onBack: (() -> Void)? = nil
     @State private var email = ""
     @State private var password = ""
     @State private var isSigningUp = false
@@ -75,7 +77,21 @@ struct AuthView: View {
     }
 
     private var signInScreen: some View {
-        ZStack {
+        ZStack(alignment: .topLeading) {
+
+            if let onBack {
+                Button {
+                    Haptics.tap()
+                    onBack()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .frame(width: 40, height: 40)
+                }
+                .padding(.leading, 8)
+                .zIndex(1)
+            }
 
             VStack(spacing: 24) {
                 Spacer()
@@ -163,14 +179,6 @@ struct AuthView: View {
                             .foregroundStyle(Theme.Colors.textSecondary)
                     }
 
-                    Button {
-                        session.isDemo = true
-                    } label: {
-                        Label("View demo", systemImage: "eye.fill")
-                            .font(Theme.Fonts.caption)
-                            .foregroundStyle(Theme.Colors.volt)
-                    }
-                    .padding(.top, 4)
                 }
                 .padding(.horizontal, Theme.Metrics.screenPadding)
 

@@ -32,9 +32,11 @@
 		6224ECEE0BAB2640A0B8475F /* PreAuthOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F355062205365F5C256EF2F3 /* PreAuthOnboardingView.swift */; };
 		6C8341B7CC36C859EA6ED4A4 /* Sensitivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25739FFCCB4C82B4E1BA28DA /* Sensitivity.swift */; };
 		717CAC2C3BCA1A9213AB0753 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512E95E3CCD78E4E7614A610 /* PaywallView.swift */; };
+		75608090A67A02DFCF41F44D /* AdConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46DC741932CA1D866BAA0ECE /* AdConfig.swift */; };
 		764EE38CD7AEE1DFBB76C2D9 /* CookModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EC13F3ACA41CA7ED6E333 /* CookModeView.swift */; };
 		807E77651A2554815B9B599C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 401DB052060890B31FDF1D97 /* PrivacyInfo.xcprivacy */; };
 		838DB15D4DDE4CBAD02C854F /* InsightsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E701777BF7009E9C766AF99E /* InsightsStore.swift */; };
+		844CA77D3EA16A64F77BEDD3 /* AppsFlyerLib in Frameworks */ = {isa = PBXBuildFile; productRef = 4F307B96231D680916C65F2C /* AppsFlyerLib */; };
 		894A499DE984F20BB56F485E /* AllergenKeywords.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */; };
 		8C039AF88FB9F89606CC8BF0 /* TodayStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEB40B07CADF21863ED0324E /* TodayStore.swift */; };
 		8FD41D9A4843A4728E015364 /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8104FB1DADB7B1A3A59180 /* PlanView.swift */; };
@@ -89,6 +91,7 @@
 		41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSheets.swift; sourceTree = "<group>"; };
 		435D00CFDC2A3BABE993C79C /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
+		46DC741932CA1D866BAA0ECE /* AdConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdConfig.swift; sourceTree = "<group>"; };
 		4DE9B057C1A2F851554C887D /* AllergyFit.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AllergyFit.entitlements; sourceTree = "<group>"; };
 		512E95E3CCD78E4E7614A610 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		5362C1AB2997D74FFD7C7339 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
@@ -138,6 +141,7 @@
 				B1E2CB180B0E64154364515D /* GoogleSignIn in Frameworks */,
 				1F26531A7E0E4EC9F7C820D0 /* FacebookCore in Frameworks */,
 				35B66A78FB3DE29856F8D0C5 /* TikTokBusinessSDK in Frameworks */,
+				844CA77D3EA16A64F77BEDD3 /* AppsFlyerLib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,6 +152,7 @@
 			isa = PBXGroup;
 			children = (
 				B6E2520DEB6FB27AD1EDD29A /* AdAttribution.swift */,
+				46DC741932CA1D866BAA0ECE /* AdConfig.swift */,
 				80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */,
 				6F12C9AFA9A9B34DB6B5EC4D /* Haptics.swift */,
 				62AF4EC9F170CBFD837F5677 /* HealthManager.swift */,
@@ -358,6 +363,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B60F2DC7760F0295E9B89DE8 /* Build configuration list for PBXNativeTarget "AllergyFit" */;
 			buildPhases = (
+				AE3144D787F860D5A8E1A38B /* Ad IDs configured */,
 				FB957856150CB466DC2B88DD /* Sources */,
 				96F954ACFB14BDB5C5BC6656 /* Resources */,
 				82654FA5541F0D5BEDC28D21 /* Frameworks */,
@@ -373,6 +379,7 @@
 				5721EC0D9A2599DDB87B397C /* GoogleSignIn */,
 				00C34B76BE729D2898103358 /* FacebookCore */,
 				4C62D60959E8DA6DF0300FFC /* TikTokBusinessSDK */,
+				4F307B96231D680916C65F2C /* AppsFlyerLib */,
 			);
 			productName = AllergyFit;
 			productReference = 7E0F8DDDF1006703D7B3FA2C /* AllergyFit.app */;
@@ -403,6 +410,7 @@
 			mainGroup = A5BADFA0E5D8805158017EC5;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				99338A39799A9A32018BB118 /* XCRemoteSwiftPackageReference "AppsFlyerFramework" */,
 				CB3E3FA2E452B7C4848DC387 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
 				280F0F5250E5C20181641E54 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				C17130ABC303EE3F53B5E957 /* XCRemoteSwiftPackageReference "purchases-ios" */,
@@ -431,6 +439,28 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		AE3144D787F860D5A8E1A38B /* Ad IDs configured */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/AllergyFit/Core/AdConfig.swift",
+			);
+			name = "Ad IDs configured";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# A Release binary declares tracking (PrivacyInfo.xcprivacy) and ships\n# the ATT usage string, so it MUST actually ask — which only happens\n# once Meta/TikTok IDs are set. Shipping without them is a 5.1.2\n# rejection and a misdeclared privacy label. Refuse to archive.\n[ \"$CONFIGURATION\" = \"Release\" ] || exit 0\nf=\"$SRCROOT/AllergyFit/Core/AdConfig.swift\"\nfor k in metaAppID metaClientToken tiktokAppID tiktokAccessToken; do\n  if grep -Eq \"static let $k = \\\"\\\"\" \"$f\"; then\n    echo \"error: AdConfig.$k is empty. Paste the ID (see AdConfig.swift), or set NSPrivacyTracking to false and remove NSUserTrackingUsageDescription before shipping without ads.\"\n    exit 1\n  fi\ndone\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		FB957856150CB466DC2B88DD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -440,6 +470,7 @@
 				C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */,
 				9787A90913EC5DBD3A9F76B1 /* AIRecipeView.swift in Sources */,
 				10B759CAE590044693BD86FC /* AdAttribution.swift in Sources */,
+				75608090A67A02DFCF41F44D /* AdConfig.swift in Sources */,
 				894A499DE984F20BB56F485E /* AllergenKeywords.swift in Sources */,
 				A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */,
 				F69B9CACF8004643E9CD0C3E /* AuthView.swift in Sources */,
@@ -501,7 +532,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -512,6 +543,7 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "AllergyFit uses your photos to read blood allergy test results you choose to scan.";
 				INFOPLIST_KEY_NSSiriUsageDescription = "AllergyFit uses Siri so you can log a meal by voice and hear whether it's safe for your allergies.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "AllergyFit uses this only to measure which ads brought people to the app. It is never used to profile you or share your health data.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -653,7 +685,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -664,6 +696,7 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "AllergyFit uses your photos to read blood allergy test results you choose to scan.";
 				INFOPLIST_KEY_NSSiriUsageDescription = "AllergyFit uses Siri so you can log a meal by voice and hear whether it's safe for your allergies.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "AllergyFit uses this only to measure which ads brought people to the app. It is never used to profile you or share your health data.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -711,6 +744,14 @@
 				minimumVersion = 8.0.0;
 			};
 		};
+		99338A39799A9A32018BB118 /* XCRemoteSwiftPackageReference "AppsFlyerFramework" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AppsFlyerSDK/AppsFlyerFramework";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.15.0;
+			};
+		};
 		BDD2C0FAFA810ADA4807729A /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift";
@@ -755,6 +796,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CDCF44B7BAAB82471B83A07B /* XCRemoteSwiftPackageReference "tiktok-business-ios-sdk" */;
 			productName = TikTokBusinessSDK;
+		};
+		4F307B96231D680916C65F2C /* AppsFlyerLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 99338A39799A9A32018BB118 /* XCRemoteSwiftPackageReference "AppsFlyerFramework" */;
+			productName = AppsFlyerLib;
 		};
 		5721EC0D9A2599DDB87B397C /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;

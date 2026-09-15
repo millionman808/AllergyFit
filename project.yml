@@ -20,6 +20,9 @@ packages:
   TikTokBusinessSDK:
     url: https://github.com/tiktok/tiktok-business-ios-sdk
     from: 1.3.0
+  AppsFlyer:
+    url: https://github.com/AppsFlyerSDK/AppsFlyerFramework
+    from: 6.15.0
 targets:
   AllergyFit:
     type: application
@@ -32,6 +35,15 @@ targets:
         # Only standard HTTPS/TLS → exempt. Declaring it here means App Store
         # Connect never asks the export-compliance question on future builds.
         ITSAppUsesNonExemptEncryption: false
+        # Without a network's SKAdNetwork ID here, StoreKit never sends that
+        # network an install postback and every install looks organic to it.
+        # This exact omission is why Meta reported zero installs for HearHim.
+        SKAdNetworkItems:
+          - SKAdNetworkIdentifier: v9wttpbfk9.skadnetwork   # Meta (Facebook)
+          - SKAdNetworkIdentifier: n38lu8286q.skadnetwork   # Meta (Instagram)
+          - SKAdNetworkIdentifier: 238da6jt44.skadnetwork   # TikTok
+        # Meta SDK checks for these; harmless when the FB app isn't installed.
+        LSApplicationQueriesSchemes: [fbapi, fb-messenger-share-api]
         GIDClientID: 774051386593-n8fe3bpri3tkr7gdb30av32afvg9kssq.apps.googleusercontent.com
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
@@ -51,11 +63,30 @@ targets:
         product: FacebookCore
       - package: TikTokBusinessSDK
         product: TikTokBusinessSDK
+      - package: AppsFlyer
+        product: AppsFlyerLib
+    preBuildScripts:
+      - name: Ad IDs configured
+        inputFiles:
+          - $(SRCROOT)/AllergyFit/Core/AdConfig.swift
+        script: |
+          # A Release binary declares tracking (PrivacyInfo.xcprivacy) and ships
+          # the ATT usage string, so it MUST actually ask — which only happens
+          # once Meta/TikTok IDs are set. Shipping without them is a 5.1.2
+          # rejection and a misdeclared privacy label. Refuse to archive.
+          [ "$CONFIGURATION" = "Release" ] || exit 0
+          f="$SRCROOT/AllergyFit/Core/AdConfig.swift"
+          for k in metaAppID metaClientToken tiktokAppID tiktokAccessToken; do
+            if grep -Eq "static let $k = \"\"" "$f"; then
+              echo "error: AdConfig.$k is empty. Paste the ID (see AdConfig.swift), or set NSPrivacyTracking to false and remove NSUserTrackingUsageDescription before shipping without ads."
+              exit 1
+            fi
+          done
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.elischafer.allergyfit
         MARKETING_VERSION: 1.0.0
-        CURRENT_PROJECT_VERSION: 9
+        CURRENT_PROJECT_VERSION: 10
         DEVELOPMENT_TEAM: KLD3ENRH42
         GENERATE_INFOPLIST_FILE: true
         # Siri needs a usage string before it will run the "Log a Meal" intent.
@@ -67,6 +98,7 @@ targets:
         INFOPLIST_KEY_NSHealthShareUsageDescription: AllergyFit reads your workouts and active energy to tune your daily nutrition targets on training days.
         INFOPLIST_KEY_NSHealthUpdateUsageDescription: AllergyFit can write the calories you log back to Apple Health so all your data stays in sync.
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: AllergyFit uses your photos to read blood allergy test results you choose to scan.
+        INFOPLIST_KEY_NSUserTrackingUsageDescription: AllergyFit uses this only to measure which ads brought people to the app. It is never used to profile you or share your health data.
         INFOPLIST_KEY_NSCameraUsageDescription: AllergyFit uses the camera to photograph your meals and nutrition labels, and to scan product barcodes and check them against your allergen profile.
         SWIFT_VERSION: 5.9
         TARGETED_DEVICE_FAMILY: 1

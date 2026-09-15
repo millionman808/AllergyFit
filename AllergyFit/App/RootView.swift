@@ -74,8 +74,15 @@ struct MainTabView: View {
             }) {
                 VoltIntroSheet()
             }
-            .sheet(isPresented: $showPaywall, onDismiss: { seenPaywall = true }) {
-                PaywallView()
+            // Full-screen, not a sheet: this is the one paywall every new user
+            // sees, and the ad spend is buying eyes for exactly this screen.
+            .fullScreenCover(isPresented: $showPaywall, onDismiss: {
+                seenPaywall = true
+                // Safety net for anyone who skipped the onboarding prompt:
+                // ask AFTER the paywall closes, never on top of it.
+                Task { await AdAttribution.requestTrackingIfNeeded() }
+            }) {
+                PaywallView(source: "onboarding")
             }
             .task {
                 // Returning users who already saw the intro still get one look.

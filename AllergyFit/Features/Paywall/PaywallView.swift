@@ -8,6 +8,9 @@ import RevenueCat
 /// Deliberately dismissible: allergen checking is a safety feature, so the app
 /// stays usable without a subscription.
 struct PaywallView: View {
+    /// Which surface opened it — reported with the paywall-view event so the
+    /// funnel reads per touchpoint ("onboarding", "profile", "recipes").
+    var source: String = "unknown"
     @EnvironmentObject var purchases: PurchasesManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
@@ -20,6 +23,7 @@ struct PaywallView: View {
     var body: some View {
         ZStack {
             Theme.Colors.background.ignoresSafeArea()
+                .onAppear { AdAttribution.logPaywallView(source: source) }
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     closeRow

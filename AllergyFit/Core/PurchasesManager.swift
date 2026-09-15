@@ -75,8 +75,23 @@ final class PurchasesManager: ObservableObject {
         purchaseError = nil
         do {
             let result = try await Purchases.shared.purchase(package: package)
-            if !result.userCancelled {
-                isPremium = result.customerInfo.entitlements[Config.premiumEntitlement]?.isActive == true
+            guard !result.userCancelled else { return }
+            let entitlement = result.customerInfo.entitlements[Config.premiumEntitlement]
+            isPremium = entitlement?.isActive == true
+            guard isPremium else { return }
+
+            // Tell the ad networks what just happened. A trial and a purchase
+            // are reported as different events on purpose: a trial is worth $0
+            // today, and the networks would otherwise learn to chase people
+            // who never convert.
+            let product = package.storeProduct
+            if entitlement?.periodType == .trial {
+                AdAttribution.logTrialStart(productID: product.productIdentifier)
+            } else {
+                AdAttribution.logPurchase(
+                    amount: NSDecimalNumber(decimal: product.price).doubleValue,
+                    currency: product.currencyCode ?? "USD",
+                    productID: product.productIdentifier)
             }
         } catch {
             purchaseError = error.localizedDescription

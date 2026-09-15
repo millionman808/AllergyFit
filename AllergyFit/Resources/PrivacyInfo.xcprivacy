@@ -2,15 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <!-- No tracking in this build. The Meta and TikTok SDKs are linked but
-       never initialised: AdAttribution.anyEnabled is false while the app IDs
-       are empty, so no SDK starts, no advertising identifier is read, and the
-       ATT prompt is never shown. When real ad IDs are configured, set this to
-       true, restore NSPrivacyTrackingDomains and the DeviceID entry below,
-       and update the App Privacy answers in App Store Connect in the same
-       release. -->
+  <!-- Ad attribution via Meta + TikTok, gated behind App Tracking
+       Transparency. The ATT prompt is only shown once AdConfig has real
+       Meta/TikTok IDs; Release builds refuse to archive while those are
+       empty, so this declaration always matches the shipped binary. -->
   <key>NSPrivacyTracking</key>
-  <false/>
+  <true/>
+
+  <!-- Blocked automatically unless the user grants ATT. AppsFlyer's own
+       endpoints are deliberately NOT listed: AppsFlyer attributes via
+       SKAdNetwork when ATT is denied and listing them would break that. -->
+  <key>NSPrivacyTrackingDomains</key>
+  <array>
+    <string>graph.facebook.com</string>
+    <string>analytics.tiktok.com</string>
+    <string>business-api.tiktok.com</string>
+  </array>
 
   <key>NSPrivacyCollectedDataTypes</key>
   <array>
@@ -69,6 +76,19 @@
       <key>NSPrivacyCollectedDataTypeTracking</key><false/>
       <key>NSPrivacyCollectedDataTypePurposes</key>
       <array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+    </dict>
+    <!-- Advertising identifier — the only thing used for tracking, and only
+         after the user grants ATT. -->
+    <dict>
+      <key>NSPrivacyCollectedDataType</key>
+      <string>NSPrivacyCollectedDataTypeDeviceID</string>
+      <key>NSPrivacyCollectedDataTypeLinked</key><true/>
+      <key>NSPrivacyCollectedDataTypeTracking</key><true/>
+      <key>NSPrivacyCollectedDataTypePurposes</key>
+      <array>
+        <string>NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising</string>
+        <string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+      </array>
     </dict>
     <!-- Supabase account identifier. -->
     <dict>

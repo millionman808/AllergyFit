@@ -143,6 +143,7 @@ struct PreAuthOnboardingView: View {
                 try? await draft.apply(to: userId)
                 OnboardingDraft.clear()
                 await MainActor.run { session.profileOnboarded = true }
+                AdAttribution.logOnboardingComplete()
             }
             return
         }
@@ -489,6 +490,13 @@ struct PreAuthOnboardingView: View {
             Text("Create a free account to save this and start logging.")
                 .font(Theme.Fonts.caption)
                 .foregroundStyle(Theme.Colors.textTertiary)
+        }
+        .task {
+            // The first value moment: they've just seen their own numbers.
+            // Ask for tracking here — after the payoff lands, well before any
+            // paywall — where the prompt has context and isn't in the way.
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            await AdAttribution.requestTrackingIfNeeded()
         }
     }
 

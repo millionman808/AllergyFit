@@ -189,6 +189,7 @@ struct OnboardingView: View {
                 withAnimation(reduceMotion ? .easeOut(duration: 0.15) : .spring(response: 0.5, dampingFraction: 0.86)) {
                     session.profileOnboarded = true
                 }
+                AdAttribution.logOnboardingComplete()
             } catch {
                 saveError = "Couldn't save: \(error.localizedDescription)"
             }

@@ -82,6 +82,7 @@ final class SessionStore: ObservableObject {
             OnboardingDraft.clear()
             profileOnboarded = true
             UserDefaults.standard.set(true, forKey: cachedOnboardedKey)
+            AdAttribution.logOnboardingComplete()
         } catch {
             print("onboarding draft apply failed: \(error)")   // keep draft; retry next launch
         }

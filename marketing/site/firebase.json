@@ -1,6 +1,9 @@
 {
   "hosting": [
-    { "target": "safefuel", "public": "public", "ignore": ["firebase.json", "**/.*"] },
-    { "target": "legacy",   "public": "public", "ignore": ["firebase.json", "**/.*"] }
+    { "target": "safefuel", "public": "public", "cleanUrls": true, "trailingSlash": false,
+      "ignore": ["firebase.json", "**/.*"],
+      "headers": [{ "source": "**/*.@(jpg|css)", "headers": [{ "key": "Cache-Control", "value": "max-age=604800" }] }] },
+    { "target": "legacy", "public": "public", "cleanUrls": true, "trailingSlash": false,
+      "ignore": ["firebase.json", "**/.*"] }
   ]
 }

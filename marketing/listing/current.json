@@ -1,74 +1,74 @@
 {
  "ja": {
   "id": "51a304e2-e01b-40a5-8709-6b644b9168c1",
-  "description": "カロリーアプリはアレルギーを無視し、アレルギーアプリは栄養素を無視します。\nAllergyFit は、その両方に対応します。\n\n食事を撮影するだけで、詳細な栄養情報と、登録したアレルゲンに対する即時判定が\n表示されます。重要なのは、AIが行うのは food の識別だけという点です。カロリーと\n栄養素はすべて USDA 食品データベースから取得され、AIが数値を推測することは\nありません。\n\n・数秒で記録：写真、バーコード、栄養表示ラベル、Siri\n・アレルゲンごとに重症度を設定（軽度〜アナフィラキシー）\n・血液検査の結果を撮影して自動入力\n・一週間分の献立を作成すると買い物リストが自動生成\n・タイマー付きのハンズフリー調理モード\n・症状の原因を特定し、専門医への記録を書き出し\n\nAllergyFit は医療機器ではなく、食品の安全を保証するものではありません。\n必ず実際の食品表示をご確認ください。",
+  "description": "カロリーアプリは「食べられないもの」を無視し、アレルギーアプリは栄養素を無視します。\nSafeFuel は、その両方に対応します。アレルギーも、食物不耐症も、過敏症も。\n\n食事を撮影するだけで、詳細な栄養情報と、登録したアレルゲンに対する即時判定が\n表示されます。重要なのは、AIが行うのは food の識別だけという点です。カロリーと\n栄養素はすべて USDA 食品データベースから取得され、AIが数値を推測することは\nありません。\n\n・数秒で記録：写真、バーコード、栄養表示ラベル、Siri\n・アレルゲンごとに重症度を設定（軽度〜アナフィラキシー）\n・血液検査の結果を撮影して自動入力\n・一週間分の献立を作成すると買い物リストが自動生成\n・タイマー付きのハンズフリー調理モード\n・症状の原因を特定し、専門医への記録を書き出し\n\nSafeFuel は医療機器ではなく、食品の安全を保証するものではありません。\n必ず実際の食品表示をご確認ください。",
   "keywords": "アレルギー,グルテン,乳製品,小麦,そば,カロリー,栄養,PFC,献立,食事記録,ダイエット",
   "promotionalText": "新機能：食事を撮影するだけで栄養素とアレルゲン判定がすぐに表示されます。",
   "whatsNew": null,
   "supportUrl": "https://allergyfit-app.web.app/support.html",
   "marketingUrl": "https://allergyfit-app.web.app/",
   "infoId": "1b4acbf2-0f96-4cd4-8d7d-57217137c6c5",
-  "name": "AllergyFit",
-  "subtitle": null
+  "name": "SafeFuel 安心の食事管理",
+  "subtitle": "アレルギー・食物不耐症に対応"
  },
  "es-ES": {
   "id": "55900f7c-75c1-44c9-9728-77303a693674",
-  "description": "Las apps de calorías ignoran tus alergias. Las de alergias ignoran tus macros.\nAllergyFit hace las dos cosas.\n\nHaz una foto de tu plato y obtén la información nutricional completa más un\nveredicto inmediato según tu lista de alérgenos. Lo importante: la IA solo\nidentifica la comida. Cada caloría procede de la base de datos USDA. Nunca se\ninventa una cifra.\n\n· Registra en segundos: foto, código de barras, etiqueta o voz con Siri\n· Gravedad por alérgeno, de leve a anafilaxia\n· Escanea un análisis de sangre para rellenarlo automáticamente\n· Planifica la semana y la lista de la compra se escribe sola\n· Modo cocina manos libres con temporizadores\n· Descubre qué te provoca reacciones y exporta el historial para tu alergólogo\n\nAllergyFit no es un dispositivo médico y no puede garantizar que un alimento sea\nseguro. Lee siempre las etiquetas.",
+  "description": "Las apps de calorías ignoran lo que no puedes comer. Las de alergias ignoran tus\nmacros. SafeFuel hace las dos cosas: alergias, intolerancias y sensibilidades.\n\nHaz una foto de tu plato y obtén la información nutricional completa más un\nveredicto inmediato según tu lista de alérgenos. Lo importante: la IA solo\nidentifica la comida. Cada caloría procede de la base de datos USDA. Nunca se\ninventa una cifra.\n\n· Registra en segundos: foto, código de barras, etiqueta o voz con Siri\n· Gravedad por alérgeno, de leve a anafilaxia\n· Escanea un análisis de sangre para rellenarlo automáticamente\n· Planifica la semana y la lista de la compra se escribe sola\n· Modo cocina manos libres con temporizadores\n· Descubre qué te provoca reacciones y exporta el historial para tu alergólogo\n\nSafeFuel no es un dispositivo médico y no puede garantizar que un alimento sea\nseguro. Lee siempre las etiquetas.",
   "keywords": "alergia,gluten,lactosa,celiaco,intolerancia,macros,nutricion,dieta,escaner,recetas,menu",
   "promotionalText": "Nuevo: haz una foto de tu comida y obtén los macros y una comprobación de alérgenos al instante.",
   "whatsNew": null,
   "supportUrl": "https://allergyfit-app.web.app/support.html",
   "marketingUrl": "https://allergyfit-app.web.app/",
   "infoId": "d659d3d5-a8f1-48dc-925d-c43e627d5294",
-  "name": "AllergyFit",
-  "subtitle": null
+  "name": "SafeFuel: Comida Segura",
+  "subtitle": "Alergias e intolerancias"
  },
  "fr-FR": {
   "id": "0a90f7bd-1da8-4dcf-af6c-8872c42cae98",
-  "description": "Les applis de calories ignorent vos allergies. Les applis d'allergies ignorent\nvos macros. AllergyFit fait les deux.\n\nPhotographiez votre assiette et obtenez les valeurs nutritionnelles complètes\nainsi qu'un verdict immédiat selon votre liste d'allergènes. L'essentiel :\nl'IA identifie seulement les aliments. Chaque calorie provient de la base de\ndonnées USDA. Aucun chiffre inventé.\n\n· Enregistrez en quelques secondes : photo, code-barres, étiquette ou Siri\n· Une gravité par allergène, de léger à anaphylaxie\n· Scannez une analyse sanguine pour tout remplir automatiquement\n· Planifiez la semaine, la liste de courses s'écrit toute seule\n· Mode cuisine mains libres avec minuteurs\n· Identifiez ce qui déclenche vos réactions, exportez pour votre allergologue\n\nAllergyFit n'est pas un dispositif médical et ne peut garantir qu'un aliment est\nsûr. Lisez toujours les étiquettes.",
+  "description": "Les applis de calories ignorent ce que vous ne pouvez pas manger. Les applis\nd'allergies ignorent vos macros. SafeFuel fait les deux : allergies,\nintolérances et sensibilités.\n\nPhotographiez votre assiette et obtenez les valeurs nutritionnelles complètes\nainsi qu'un verdict immédiat selon votre liste d'allergènes. L'essentiel :\nl'IA identifie seulement les aliments. Chaque calorie provient de la base de\ndonnées USDA. Aucun chiffre inventé.\n\n· Enregistrez en quelques secondes : photo, code-barres, étiquette ou Siri\n· Une gravité par allergène, de léger à anaphylaxie\n· Scannez une analyse sanguine pour tout remplir automatiquement\n· Planifiez la semaine, la liste de courses s'écrit toute seule\n· Mode cuisine mains libres avec minuteurs\n· Identifiez ce qui déclenche vos réactions, exportez pour votre allergologue\n\nSafeFuel n'est pas un dispositif médical et ne peut garantir qu'un aliment est\nsûr. Lisez toujours les étiquettes.",
   "keywords": "allergie,gluten,lactose,arachide,intolerance,macros,nutrition,regime,scanner,recettes,menu",
   "promotionalText": "Nouveau : photographiez votre repas pour obtenir les macros et une vérification des allergènes.",
   "whatsNew": null,
   "supportUrl": "https://allergyfit-app.web.app/support.html",
   "marketingUrl": "https://allergyfit-app.web.app/",
   "infoId": "c4b7e713-b71f-4650-9404-4441fac157d3",
-  "name": "AllergyFit",
-  "subtitle": null
+  "name": "SafeFuel : Manger Sûr",
+  "subtitle": "Allergies et intolérances"
  },
  "en-US": {
   "id": "1592315a-4c30-4150-b63b-e88dbd8056c7",
-  "description": "Every calorie app ignores your allergies. Every allergy app ignores your macros.\n\nAllergyFit is the only one that does both.\n\nSnap a photo of your plate and get the full nutrition breakdown plus an instant\nsafe-or-not verdict against your own trigger list. Because here's the part that\nmatters: the AI only identifies your food. Every calorie and gram comes from the\nUSDA food database. It never invents a number.\n\nWHAT YOU CAN DO\n\nLog a meal in seconds\n· Snap a photo, scan a barcode, read a nutrition label, or just say it to Siri\n· Full macros from the USDA database — never guessed\n· Instant \"safe for you\" or \"contains sesame\" verdict on everything\n\nSet your triggers precisely\n· Every allergen gets its own severity, from mild to anaphylaxis\n· Scan a blood test result to fill it in automatically\n· Intolerances tracked separately from true allergies\n\nPlan a week you can actually eat\n· Build a week of meals that avoid your triggers\n· The grocery list writes itself\n· Hands-free cook mode with built-in timers you can name\n\nFind out what's actually causing it\n· Log good days as well as reactions\n· AllergyFit connects your symptoms to what you ate\n· Export a clean history for your allergist\n\nBUILT FOR PEOPLE WHO TRAIN\nHitting your protein without triggering a reaction is a real problem. Most\nsupplements are whey. Most bars have nuts. AllergyFit works out what fits your\nmacros AND your triggers, so you can stop eating the same five safe meals.\n\nSUBSCRIPTION\nFree to try. Premium unlocks unlimited AI meal analysis, week planning and\nrecipe generation.\n\nIMPORTANT\nAllergyFit helps you make informed choices. It is not a medical device and\ncannot guarantee a food is safe. Always read physical labels, and if you are\nhaving a severe reaction use your epinephrine and call emergency services.",
+  "description": "Every calorie app ignores what you can't eat. Every allergy app ignores your macros.\n\nSafeFuel does both — for food allergies, intolerances and sensitivities.\n\nSnap a photo of your plate and get the full nutrition breakdown plus an instant\nsafe-or-not verdict against your own trigger list. Because here's the part that\nmatters: the AI only identifies your food. Every calorie and gram comes from the\nUSDA food database. It never invents a number.\n\nWHAT YOU CAN DO\n\nLog a meal in seconds\n· Snap a photo, scan a barcode, read a nutrition label, or just say it to Siri\n· Full macros from the USDA database — never guessed\n· Instant \"safe for you\" or \"contains sesame\" verdict on everything\n\nSet your triggers precisely\n· Every trigger gets its own severity — from \"upsets my stomach\" to anaphylaxis\n· Scan a blood test result to fill it in automatically\n· Allergies, intolerances and sensitivities each tracked on their own terms\n\nPlan a week you can actually eat\n· Build a week of meals that avoid your triggers\n· The grocery list writes itself\n· Hands-free cook mode with built-in timers you can name\n\nFind out what's actually causing it\n· Log good days as well as reactions\n· SafeFuel connects your symptoms to what you ate\n· Export a clean history for your doctor or allergist\n\nBUILT FOR PEOPLE WHO TRAIN\nHitting your protein without triggering a reaction is a real problem. Most\nsupplements are whey. Most bars have nuts. SafeFuel works out what fits your\nmacros AND your triggers, so you can stop eating the same five safe meals.\n\nSUBSCRIPTION\nFree to try. Premium unlocks unlimited AI meal analysis, week planning and\nrecipe generation.\n\nIMPORTANT\nSafeFuel helps you make informed choices. It is not a medical device and\ncannot guarantee a food is safe. Always read physical labels, and if you are\nhaving a severe reaction use your epinephrine and call emergency services.",
   "keywords": "allergen,gluten,dairy,peanut,intolerance,macro,nutrition,meal plan,celiac,scanner,diet,fitness",
   "promotionalText": "New: snap a photo of any meal for instant macros and an allergy check. Cook mode with timers is here too.",
   "whatsNew": null,
   "supportUrl": "https://allergyfit-app.web.app/support.html",
   "marketingUrl": "https://allergyfit-app.web.app/",
   "infoId": "77e42fc6-8293-4355-8ee0-e09fd922b247",
-  "name": "AllergyFit",
-  "subtitle": null
+  "name": "SafeFuel: Safe Food & Macros",
+  "subtitle": "For Allergies & Sensitivities"
  },
  "pt-BR": {
   "id": "aa2b295c-8013-4b93-9b27-14b7fcfb34c0",
-  "description": "Apps de calorias ignoram suas alergias. Apps de alergia ignoram seus macros.\nO AllergyFit faz os dois.\n\nFotografe seu prato e receba a informação nutricional completa mais um veredito\nimediato conforme sua lista de alérgenos. O ponto principal: a IA apenas\nidentifica o alimento. Cada caloria vem do banco de dados do USDA. Nunca é\ninventada.\n\n· Registre em segundos: foto, código de barras, rótulo ou voz com a Siri\n· Gravidade por alérgeno, de leve a anafilaxia\n· Escaneie um exame de sangue para preencher automaticamente\n· Planeje a semana e a lista de compras se escreve sozinha\n· Modo cozinha sem as mãos, com timers\n· Descubra o que causa suas reações e exporte o histórico para o alergista\n\nO AllergyFit não é um dispositivo médico e não garante que um alimento seja\nseguro. Sempre leia os rótulos.",
+  "description": "Apps de calorias ignoram o que você não pode comer. Apps de alergia ignoram\nseus macros. O SafeFuel faz os dois: alergias, intolerâncias e sensibilidades.\n\nFotografe seu prato e receba a informação nutricional completa mais um veredito\nimediato conforme sua lista de alérgenos. O ponto principal: a IA apenas\nidentifica o alimento. Cada caloria vem do banco de dados do USDA. Nunca é\ninventada.\n\n· Registre em segundos: foto, código de barras, rótulo ou voz com a Siri\n· Gravidade por alérgeno, de leve a anafilaxia\n· Escaneie um exame de sangue para preencher automaticamente\n· Planeje a semana e a lista de compras se escreve sozinha\n· Modo cozinha sem as mãos, com timers\n· Descubra o que causa suas reações e exporte o histórico para o alergista\n\nO SafeFuel não é um dispositivo médico e não garante que um alimento seja\nseguro. Sempre leia os rótulos.",
   "keywords": "alergia,gluten,lactose,amendoim,intolerancia,macros,nutricao,dieta,scanner,receitas,cardapio",
   "promotionalText": "Novo: fotografe sua refeição e receba os macros e a verificação de alérgenos na hora.",
   "whatsNew": null,
   "supportUrl": "https://allergyfit-app.web.app/support.html",
   "marketingUrl": "https://allergyfit-app.web.app/",
   "infoId": "24a58934-c4d0-4005-8395-dd4ab279f6d8",
-  "name": "AllergyFit",
-  "subtitle": null
+  "name": "SafeFuel: Comida Segura",
+  "subtitle": "Alergias e intolerâncias"
  },
  "de-DE": {
   "id": "a8cdbc46-d7d7-48a8-981c-cbcb4311b21a",
-  "description": "Kalorien-Apps ignorieren deine Allergien. Allergie-Apps ignorieren deine Makros.\nAllergyFit kann beides.\n\nFotografiere deinen Teller und erhalte die vollständigen Nährwerte plus ein\nsofortiges Urteil anhand deiner Allergenliste. Entscheidend: Die KI erkennt nur\ndie Lebensmittel. Jede Kalorie stammt aus der USDA-Datenbank. Nie geschätzt.\n\n· In Sekunden erfassen: Foto, Barcode, Etikett oder per Siri\n· Schweregrad pro Allergen, von leicht bis Anaphylaxie\n· Bluttest scannen und automatisch ausfüllen lassen\n· Woche planen — die Einkaufsliste schreibt sich selbst\n· Freihändiger Kochmodus mit Timern\n· Erkenne Auslöser und exportiere den Verlauf für deinen Allergologen\n\nAllergyFit ist kein Medizinprodukt und kann nicht garantieren, dass ein\nLebensmittel sicher ist. Lies immer die Etiketten.",
+  "description": "Kalorien-Apps ignorieren, was du nicht essen kannst. Allergie-Apps ignorieren\ndeine Makros. SafeFuel kann beides: Allergien, Intoleranzen und\nUnverträglichkeiten.\n\nFotografiere deinen Teller und erhalte die vollständigen Nährwerte plus ein\nsofortiges Urteil anhand deiner Allergenliste. Entscheidend: Die KI erkennt nur\ndie Lebensmittel. Jede Kalorie stammt aus der USDA-Datenbank. Nie geschätzt.\n\n· In Sekunden erfassen: Foto, Barcode, Etikett oder per Siri\n· Schweregrad pro Allergen, von leicht bis Anaphylaxie\n· Bluttest scannen und automatisch ausfüllen lassen\n· Woche planen — die Einkaufsliste schreibt sich selbst\n· Freihändiger Kochmodus mit Timern\n· Erkenne Auslöser und exportiere den Verlauf für deinen Allergologen\n\nSafeFuel ist kein Medizinprodukt und kann nicht garantieren, dass ein\nLebensmittel sicher ist. Lies immer die Etiketten.",
   "keywords": "allergie,gluten,laktose,zoeliakie,unvertraeglichkeit,makros,ernaehrung,diaet,scanner,rezepte",
   "promotionalText": "Neu: Mahlzeit fotografieren und sofort Makros plus Allergen-Check erhalten.",
   "whatsNew": null,
   "supportUrl": "https://allergyfit-app.web.app/support.html",
   "marketingUrl": "https://allergyfit-app.web.app/",
   "infoId": "63fc0839-ed02-43e6-bfdf-9d9cf3e7716f",
-  "name": "AllergyFit",
-  "subtitle": null
+  "name": "SafeFuel: Sicher Essen",
+  "subtitle": "Allergien und Intoleranzen"
  }
 }

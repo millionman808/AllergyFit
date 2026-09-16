@@ -18,7 +18,8 @@ struct PaywallView: View {
     @State private var selected: Package?
     @State private var busy = false
 
-    private let privacyURL = URL(string: "https://safefuel-app.web.app/privacy.html")!
+    private let privacyURL = URL(string: "https://safefuel.schafersites.com/privacy")!
+    private let termsURL = URL(string: "https://safefuel.schafersites.com/terms")!
 
     var body: some View {
         ZStack {
@@ -207,9 +208,13 @@ struct PaywallView: View {
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Button("Privacy Policy") { openURL(privacyURL) }
-                .font(.system(size: 11))
-                .foregroundStyle(Theme.Colors.textTertiary)
+            // Apple requires both links wherever an auto-renewing plan is sold.
+            HStack(spacing: 14) {
+                Button("Privacy Policy") { openURL(privacyURL) }
+                Button("Terms of Use") { openURL(termsURL) }
+            }
+            .font(.system(size: 11))
+            .foregroundStyle(Theme.Colors.textTertiary)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 2)

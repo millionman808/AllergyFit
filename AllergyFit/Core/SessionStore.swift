@@ -184,4 +184,14 @@ final class SessionStore: ObservableObject {
         await PurchasesManager.shared.signOut()
         try? await Backend.client.auth.signOut()
     }
+
+    /// Permanently deletes the account and every row that hangs off it, then
+    /// signs out. Required by App Store Guideline 5.1.1(v).
+    func deleteAccount() async throws {
+        try await Backend.client.rpc("delete_my_account").execute()
+        OnboardingDraft.clear()
+        UserDefaults.standard.removeObject(forKey: cachedOnboardedKey)
+        await PurchasesManager.shared.signOut()
+        try? await Backend.client.auth.signOut()
+    }
 }

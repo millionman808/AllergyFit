@@ -19,6 +19,7 @@
 		1F26531A7E0E4EC9F7C820D0 /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = 00C34B76BE729D2898103358 /* FacebookCore */; };
 		27360A1A1A3C55C2F8D052EF /* PurchasesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */; };
 		2BC10D6940F27F748FF1E61C /* DayPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC8C220F0DF2B9C47CBF7DD /* DayPlanView.swift */; };
+		2C66A6CF4169282BEC90554E /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74451300BC2755697537A29 /* FeedbackView.swift */; };
 		3056E89959AC282A2DF57D3E /* RecipeNutritionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C50E9A26E5B9682FDB837B /* RecipeNutritionService.swift */; };
 		3426164A957614A1BA5EA5F5 /* AIMealLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */; };
 		35B66A78FB3DE29856F8D0C5 /* TikTokBusinessSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 4C62D60959E8DA6DF0300FFC /* TikTokBusinessSDK */; };
@@ -119,6 +120,7 @@
 		B6E2520DEB6FB27AD1EDD29A /* AdAttribution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdAttribution.swift; sourceTree = "<group>"; };
 		C0507A56BCFDF2BD045EC66E /* LabScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabScanView.swift; sourceTree = "<group>"; };
 		C3F636FEBB89315BECB31D0E /* VoltIntroSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoltIntroSheet.swift; sourceTree = "<group>"; };
+		C74451300BC2755697537A29 /* FeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		D7C63BE8C8482C61ACD9CCF8 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		DA1FD5F5554C1673BC732B82 /* QuickAddMealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAddMealView.swift; sourceTree = "<group>"; };
 		DEB40B07CADF21863ED0324E /* TodayStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayStore.swift; sourceTree = "<group>"; };
@@ -232,6 +234,7 @@
 		750F89CED5115065489F8737 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				C74451300BC2755697537A29 /* FeedbackView.swift */,
 				C0507A56BCFDF2BD045EC66E /* LabScanView.swift */,
 				41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */,
 				FB23C130F988B920D45F1B18 /* ProfileStore.swift */,
@@ -481,6 +484,7 @@
 				764EE38CD7AEE1DFBB76C2D9 /* CookModeView.swift in Sources */,
 				E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */,
 				2BC10D6940F27F748FF1E61C /* DayPlanView.swift in Sources */,
+				2C66A6CF4169282BEC90554E /* FeedbackView.swift in Sources */,
 				A472F5802CA033B55A7B1E0C /* Haptics.swift in Sources */,
 				9CFFEF6F3A066A304D0F9DC1 /* HealthManager.swift in Sources */,
 				838DB15D4DDE4CBAD02C854F /* InsightsStore.swift in Sources */,

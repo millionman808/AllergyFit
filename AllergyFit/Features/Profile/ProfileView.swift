@@ -12,6 +12,10 @@ struct ProfileView: View {
     @State private var showTriggers = false
     @State private var showGoals = false
     @State private var showDietary = false
+    @State private var showFeedback = false
+    @State private var confirmDelete = false
+    @State private var deleting = false
+    @State private var deleteError: String?
     @State private var shareURL: URL?
 
     var body: some View {
@@ -47,6 +51,7 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showGoals) { GoalsEditorView(store: store) }
             .sheet(isPresented: $showDietary) { DietaryPrefsView(store: store) }
+            .sheet(isPresented: $showFeedback) { FeedbackView() }
             .sheet(item: $shareURL) { url in ShareSheet(items: [url]) }
         }
     }
@@ -273,6 +278,15 @@ struct ProfileView: View {
                 NavigationLink(value: "notifications") { settingsRow("Notifications", "bell.fill") }
                 NavigationLink(value: "subscription") { settingsRow("Manage subscription", "crown.fill") }
             }
+            settingsGroup("Support") {
+                Button { showFeedback = true } label: { settingsRow("Send feedback", "bubble.left.and.text.bubble.right.fill") }
+                Link(destination: URL(string: "https://safefuel.schafersites.com/support")!) {
+                    settingsRow("Help & support", "questionmark.circle.fill")
+                }
+                Link(destination: URL(string: "https://safefuel.schafersites.com/privacy")!) {
+                    settingsRow("Privacy policy", "hand.raised.fill")
+                }
+            }
         }
     }
 
@@ -339,14 +353,47 @@ struct ProfileView: View {
     }
 
     private var signOut: some View {
-        Button {
-            Task { await session.signOut() }
-        } label: {
-            Text(session.isDemo ? "Exit demo" : "Sign out")
-                .font(Theme.Fonts.headline)
-                .foregroundStyle(Theme.Colors.danger)
-                .frame(maxWidth: .infinity)
-                .card()
+        VStack(spacing: 10) {
+            Button {
+                Task { await session.signOut() }
+            } label: {
+                Text(session.isDemo ? "Exit demo" : "Sign out")
+                    .font(Theme.Fonts.headline)
+                    .foregroundStyle(Theme.Colors.danger)
+                    .frame(maxWidth: .infinity)
+                    .card()
+            }
+            if !session.isDemo {
+                Button {
+                    confirmDelete = true
+                } label: {
+                    Group {
+                        if deleting { ProgressView().tint(Theme.Colors.textTertiary) }
+                        else { Text("Delete account") }
+                    }
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.textTertiary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                }
+                .disabled(deleting)
+                if let deleteError {
+                    Text(deleteError).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.danger)
+                        .multilineTextAlignment(.center)
+                }
+            }
+        }
+        .confirmationDialog("Delete your account?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Delete everything", role: .destructive) {
+                Task {
+                    deleting = true; defer { deleting = false }; deleteError = nil
+                    do { try await session.deleteAccount() }
+                    catch { deleteError = "Couldn't delete right now. Try again, or email support@schafersites.com." }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently removes your profile, triggers, meals, symptoms and plans. Subscriptions are managed by Apple and are not cancelled by deleting your account.")
         }
     }
 

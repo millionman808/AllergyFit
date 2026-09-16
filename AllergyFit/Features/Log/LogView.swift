@@ -314,75 +314,69 @@ struct MealLogView: View {
 struct WorkoutLogView: View {
     @EnvironmentObject var session: SessionStore
     @Environment(\.dismiss) private var dismiss
+
+    enum WorkoutCategory: String, CaseIterable {
+        case lifting = "Strength"
+        case cardio = "Cardio / Run"
+    }
+
+    @State private var category: WorkoutCategory = .lifting
     @State private var type = "Lifting"
-    @State private var minutes: Double = 60
+    @State private var minutes: Double = 50
     @State private var intensity = "Hard"
+
+    // Cardio fields
+    @State private var distanceMiles: Double = 3.5
+    @State private var cardioCalories: Int = 380
+
+    // Strength fields
+    @State private var exerciseName = "Barbell Squat"
+    @State private var sets: [StrengthSet] = [
+        StrengthSet(exerciseName: "Barbell Squat", setNumber: 1, weightLb: 185, reps: 10),
+        StrengthSet(exerciseName: "Barbell Squat", setNumber: 2, weightLb: 205, reps: 8),
+        StrengthSet(exerciseName: "Barbell Squat", setNumber: 3, weightLb: 225, reps: 6)
+    ]
+    @State private var newSetWeight = "225"
+    @State private var newSetReps = "8"
+
     @State private var isSaving = false
     @State private var saved = false
     @State private var errorMessage: String?
-    private let types = ["Lifting", "Running", "CrossFit", "Cycling", "Swimming", "HIIT", "Team sport", "Yoga"]
+
+    private let cardioTypes = ["Running", "Cycling", "Swimming", "HIIT", "Walking", "Rowing"]
     private let intensities = ["Light", "Moderate", "Hard", "Max"]
+
+    var totalVolumeLb: Double {
+        sets.reduce(0) { $0 + ($1.weightLb * Double($1.reps)) }
+    }
+
+    var calculatedPace: String {
+        guard distanceMiles > 0.1, minutes > 0 else { return "—" }
+        let pace = minutes / distanceMiles
+        let mins = Int(pace)
+        let secs = Int((pace - Double(mins)) * 60)
+        return String(format: "%d:%02d /mi", mins, secs)
+    }
 
     var body: some View {
         ZStack {
             Theme.Colors.background.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("Type")
-                        .font(Theme.Fonts.headline)
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 80), spacing: 8)], spacing: 8) {
-                        ForEach(types, id: \.self) { t in
-                            Button {
-                                type = t
-                            } label: {
-                                Text(t)
-                                    .font(Theme.Fonts.caption)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 40)
-                                    .background(type == t ? Theme.Colors.volt : Theme.Colors.surface)
-                                    .foregroundStyle(type == t ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
-                                    .clipShape(Capsule())
-                            }
+                    Picker("Category", selection: $category) {
+                        ForEach(WorkoutCategory.allCases, id: \.self) { c in
+                            Text(c.rawValue).tag(c)
                         }
+                    }
+                    .pickerStyle(.segmented)
+
+                    if category == .lifting {
+                        strengthSection
+                    } else {
+                        cardioSection
                     }
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Duration")
-                                .font(Theme.Fonts.headline)
-                                .foregroundStyle(Theme.Colors.textSecondary)
-                            Spacer()
-                            Text("\(Int(minutes)) min")
-                                .font(Theme.Fonts.stat(22))
-                                .foregroundStyle(Theme.Colors.volt)
-                        }
-                        Slider(value: $minutes, in: 10...180, step: 5)
-                            .tint(Theme.Colors.volt)
-                    }
-                    .card()
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Intensity")
-                            .font(Theme.Fonts.headline)
-                            .foregroundStyle(Theme.Colors.textSecondary)
-                        HStack(spacing: 8) {
-                            ForEach(intensities, id: \.self) { i in
-                                Button {
-                                    intensity = i
-                                } label: {
-                                    Text(i)
-                                        .font(Theme.Fonts.caption)
-                                        .frame(maxWidth: .infinity)
-                                        .frame(height: 42)
-                                        .background(intensity == i ? Theme.Colors.volt : Theme.Colors.surface)
-                                        .foregroundStyle(intensity == i ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
-                                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                }
-                            }
-                        }
-                    }
-                    .card()
+                    intensitySection
 
                     if let errorMessage {
                         Text(errorMessage).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.danger)
@@ -412,18 +406,238 @@ struct WorkoutLogView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    // MARK: - Strength Section (JEFIT & Hevy style)
+
+    private var strengthSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Volume comparison card
+            let (metaphor, count) = LiftedVolumeComparison.compare(totalVolumeLb: totalVolumeLb)
+            HStack(spacing: 14) {
+                Text(metaphor.emoji)
+                    .font(.system(size: 38))
+                    .frame(width: 50, height: 50)
+                    .background(Theme.Colors.volt.opacity(0.12), in: Circle())
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(Int(totalVolumeLb).formatted()) lbs lifted today")
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text("That's equivalent to \(String(format: "%.1f", count))× \(metaphor.name) (\(metaphor.funFact))!")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                }
+            }
+            .card()
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Exercise")
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                TextField("Exercise name", text: $exerciseName)
+                    .font(Theme.Fonts.body)
+                    .padding(12)
+                    .background(Theme.Colors.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                // Sets table
+                VStack(spacing: 6) {
+                    HStack {
+                        Text("SET").frame(width: 40, alignment: .leading)
+                        Text("WEIGHT (LBS)").frame(maxWidth: .infinity, alignment: .leading)
+                        Text("REPS").frame(width: 60, alignment: .trailing)
+                    }
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textTertiary)
+                    .padding(.horizontal, 8)
+
+                    ForEach(sets) { s in
+                        HStack {
+                            Text("#\(s.setNumber)")
+                                .font(Theme.Fonts.caption.weight(.bold))
+                                .frame(width: 40, alignment: .leading)
+                                .foregroundStyle(Theme.Colors.volt)
+                            Text("\(Int(s.weightLb)) lbs")
+                                .font(Theme.Fonts.body)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text("\(s.reps)")
+                                .font(Theme.Fonts.body.weight(.semibold))
+                                .frame(width: 60, alignment: .trailing)
+                        }
+                        .padding(10)
+                        .background(Theme.Colors.surfaceRaised, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+
+                    // Add set row
+                    HStack(spacing: 8) {
+                        TextField("Weight", text: $newSetWeight)
+                            .keyboardType(.numberPad)
+                            .padding(8)
+                            .background(Theme.Colors.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        TextField("Reps", text: $newSetReps)
+                            .keyboardType(.numberPad)
+                            .padding(8)
+                            .background(Theme.Colors.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        Button("Add Set") {
+                            addSet()
+                        }
+                        .font(Theme.Fonts.caption.weight(.bold))
+                        .foregroundStyle(Theme.Colors.onVolt)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
+                    .padding(.top, 4)
+                }
+            }
+            .card()
+
+            durationSlider
+        }
+    }
+
+    private func addSet() {
+        guard let w = Double(newSetWeight), let r = Int(newSetReps) else { return }
+        let nextNumber = sets.count + 1
+        sets.append(StrengthSet(exerciseName: exerciseName, setNumber: nextNumber, weightLb: w, reps: r))
+        Haptics.tap()
+    }
+
+    // MARK: - Cardio Section (Strava / BrightOS style)
+
+    private var cardioSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Activity")
+                .font(Theme.Fonts.headline)
+                .foregroundStyle(Theme.Colors.textSecondary)
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 8)], spacing: 8) {
+                ForEach(cardioTypes, id: \.self) { t in
+                    Button {
+                        type = t
+                    } label: {
+                        Text(t)
+                            .font(Theme.Fonts.caption)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 40)
+                            .background(type == t ? Theme.Colors.volt : Theme.Colors.surface)
+                            .foregroundStyle(type == t ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("Distance")
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                    Spacer()
+                    Text(String(format: "%.2f mi", distanceMiles))
+                        .font(Theme.Fonts.stat(22))
+                        .foregroundStyle(Theme.Colors.volt)
+                }
+                Slider(value: $distanceMiles, in: 0.5...26.2, step: 0.1)
+                    .tint(Theme.Colors.volt)
+
+                HStack {
+                    Text("Calculated Pace")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                    Spacer()
+                    Text(calculatedPace)
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                }
+            }
+            .card()
+
+            durationSlider
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Calories Burned")
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                    Spacer()
+                    Text("\(cardioCalories) cal")
+                        .font(Theme.Fonts.stat(20))
+                        .foregroundStyle(Theme.Colors.caution)
+                }
+                Slider(value: Binding(get: { Double(cardioCalories) }, set: { cardioCalories = Int($0) }), in: 50...1500, step: 25)
+                    .tint(Theme.Colors.caution)
+            }
+            .card()
+        }
+    }
+
+    private var durationSlider: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Duration")
+                    .font(Theme.Fonts.headline)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                Spacer()
+                Text("\(Int(minutes)) min")
+                    .font(Theme.Fonts.stat(22))
+                    .foregroundStyle(Theme.Colors.volt)
+            }
+            Slider(value: $minutes, in: 10...180, step: 5)
+                .tint(Theme.Colors.volt)
+        }
+        .card()
+    }
+
+    private var intensitySection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Intensity")
+                .font(Theme.Fonts.headline)
+                .foregroundStyle(Theme.Colors.textSecondary)
+            HStack(spacing: 8) {
+                ForEach(intensities, id: \.self) { i in
+                    Button {
+                        intensity = i
+                    } label: {
+                        Text(i)
+                            .font(Theme.Fonts.caption)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 42)
+                            .background(intensity == i ? Theme.Colors.volt : Theme.Colors.surface)
+                            .foregroundStyle(intensity == i ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                }
+            }
+        }
+        .card()
+    }
+
     private func save() async {
         isSaving = true
         errorMessage = nil
         defer { isSaving = false }
+
+        let workoutType = category == .lifting ? "Lifting" : type
+        let dist = category == .cardio ? distanceMiles * 1609.344 : nil
+        let cals = category == .cardio ? cardioCalories : Int(minutes * 6.5)
+
         if !session.isDemo, let userId = session.session?.user.id {
             do {
-                try await LogService.saveWorkout(userId: userId, type: type, minutes: Int(minutes), intensity: intensity)
+                try await LogService.saveWorkout(
+                    userId: userId,
+                    type: workoutType,
+                    minutes: Int(minutes),
+                    intensity: intensity,
+                    calories: cals,
+                    distanceMeters: dist,
+                    source: "SafeFuel Manual"
+                )
             } catch {
                 errorMessage = "Couldn't save: \(error.localizedDescription)"
                 return
             }
         }
+
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         withAnimation { saved = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { dismiss() }

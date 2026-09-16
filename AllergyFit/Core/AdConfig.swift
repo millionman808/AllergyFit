@@ -19,13 +19,19 @@ enum AdConfig {
     // Meta — developers.facebook.com → create app → Settings → Basic.
     // The app must be in LIVE mode (not Development) before App Promotion
     // campaigns will accept it; that cost a full day on HearHim.
-    static let metaAppID = ""
-    static let metaClientToken = ""
+    static let metaAppID = "3722461767919006"
+    static let metaClientToken = "ae1136416b397cbd80f23f1c49fc6421"
 
-    // TikTok — Events Manager → Web & App → app → Settings → App SDK.
+    // TikTok — Events Manager → Connect data source → App → TikTok SDK.
     // `tiktokAccessToken` is the *App Secret* on that page. The SDK signs every
     // event with it; events signed with an empty/wrong secret are dropped
     // server-side without any error, which looks exactly like "no installs".
+    //
+    // EMPTY UNTIL THE APP IS LIVE: TikTok registers an app by crawling its
+    // public App Store page ("crawl app info failed" before release), so this
+    // can only be filled in the first post-launch update. Install postbacks
+    // still reach TikTok via the SKAdNetwork ID in Info.plist; only the in-app
+    // events wait.
     static let tiktokAppID = ""
     static let tiktokAccessToken = ""
 

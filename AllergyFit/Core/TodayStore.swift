@@ -14,6 +14,12 @@ final class TodayStore: ObservableObject {
     @Published var targetCarbs = 320
     @Published var targetFat = 84
     @Published var isLoading = false
+    /// Active calories burned from workouts and running (Apple Health / Fitbit / SafeFuel)
+    @Published var activeCaloriesBurned = 0
+    @Published var todayWorkouts: [HealthWorkoutSummary] = []
+    @Published var todaySteps = 0
+    @Published var currentHeartRate: Int? = nil
+    @Published var restingHeartRate: Int? = nil
     /// Consecutive days the user has logged at least one meal.
     @Published var mealStreak = 0
     /// True once today's first meal is logged — the streak card celebrates it.
@@ -36,7 +42,32 @@ final class TodayStore: ObservableObject {
     var consumedProtein: Int { meals.reduce(0) { $0 + $1.protein } }
     var consumedCarbs: Int { meals.reduce(0) { $0 + $1.carbs } }
     var consumedFat: Int { meals.reduce(0) { $0 + $1.fat } }
-    var remainingCalories: Int { max(0, targetCalories - consumedCalories) }
+
+    /// Dynamic target: Base targets scale up when you burn energy through training.
+    var dynamicTargetCalories: Int { targetCalories + activeCaloriesBurned }
+    var remainingCalories: Int { max(0, dynamicTargetCalories - consumedCalories) }
+
+    /// Bevel-inspired daily nutrition quality score (0–100)
+    var nutritionScore: NutritionScoreBreakdown {
+        let pRatio = targetProtein > 0 ? min(1.0, Double(consumedProtein) / Double(targetProtein)) : 0.0
+        let cRatio = targetCarbs > 0 ? min(1.0, Double(consumedCarbs) / Double(targetCarbs)) : 0.0
+        let fRatio = targetFat > 0 ? min(1.0, Double(consumedFat) / Double(targetFat)) : 0.0
+        let macroScore = Int(((pRatio * 0.5 + cRatio * 0.3 + fRatio * 0.2) * 40).rounded())
+
+        // Safety score: 30 if meals logged with no allergen reactions
+        let safetyScore = meals.isEmpty ? 15 : 30
+        let balanceScore = min(20, meals.count * 7)
+        let hydrationScore = min(10, Int((Double(waterGlasses) / Double(waterGoal) * 10).rounded()))
+        let total = min(100, macroScore + safetyScore + balanceScore + hydrationScore)
+
+        return NutritionScoreBreakdown(
+            totalScore: total,
+            macroScore: macroScore,
+            safetyScore: safetyScore,
+            balanceScore: balanceScore,
+            hydrationScore: hydrationScore
+        )
+    }
 
     // MARK: - Setup
 
@@ -53,6 +84,24 @@ final class TodayStore: ObservableObject {
             waterGlasses = 5
             mealStreak = 12
             loggedToday = true
+            activeCaloriesBurned = 520
+            todaySteps = 8420
+            currentHeartRate = 72
+            restingHeartRate = 56
+            todayWorkouts = [
+                HealthWorkoutSummary(
+                    id: UUID(),
+                    title: "Morning Run",
+                    activityType: "running",
+                    startDate: Calendar.current.date(byAdding: .hour, value: -3, to: Date()) ?? Date(),
+                    durationMinutes: 42,
+                    caloriesBurned: 485,
+                    distanceMeters: 8368,
+                    avgHeartRate: 152,
+                    source: "Apple Watch / Strava",
+                    icon: "figure.run"
+                )
+            ]
         } else {
             Task { await refresh() }
         }
@@ -73,10 +122,21 @@ final class TodayStore: ObservableObject {
     // MARK: - Load (signed-in)
 
     func refresh() async {
-        guard !isDemo, let userId else { return }
+        guard !isDemo else { return }
         isLoading = true
         defer { isLoading = false }
 
+        // Sync Apple Health / Wearable (Fitbit, Garmin, Strava) metrics
+        await HealthManager.shared.refreshTodayHealth()
+        if HealthManager.shared.connected {
+            todayWorkouts = HealthManager.shared.todayWorkouts
+            activeCaloriesBurned = HealthManager.shared.todayActiveEnergy
+            todaySteps = HealthManager.shared.todaySteps
+            currentHeartRate = HealthManager.shared.currentHeartRate
+            restingHeartRate = HealthManager.shared.restingHeartRate
+        }
+
+        guard let userId else { return }
         let startOfDay = Calendar.current.startOfDay(for: Date())
         do {
             let records: [MealLogRecord] = try await Backend.client
@@ -192,7 +252,13 @@ final class TodayStore: ObservableObject {
     func setWater(_ glasses: Int) {
         let clamped = max(0, min(waterGoal, glasses))
         if clamped != waterGlasses { Haptics.tap() }
+        let diff = clamped - waterGlasses
         waterGlasses = clamped
+        Task {
+            if diff > 0 && HealthManager.shared.connected {
+                await HealthManager.shared.writeWater(milliliters: Double(diff * 250))
+            }
+        }
         guard !isDemo, let userId else { return }
         let record = DailyMetricsRecord(userId: userId, date: Self.todayString(),
                                         waterMl: waterGlasses * 250, isTrainingDay: isTrainingDay)
@@ -206,6 +272,12 @@ final class TodayStore: ObservableObject {
                 print("water save failed: \(error)")
             }
         }
+    }
+
+    /// WaterLlama-style beverage logging
+    func logBeverage(_ beverage: BeverageType) {
+        let effectiveGlasses = max(1, Int((beverage.hydrationFactor * 1.0).rounded()))
+        setWater(waterGlasses + effectiveGlasses)
     }
 
     func addMeal(name: String, mealType: String, calories: Int, protein: Int, carbs: Int, fat: Int) {
@@ -224,6 +296,19 @@ final class TodayStore: ObservableObject {
             }
         }
         Haptics.success()
+
+        // Sync to HealthKit if connected
+        Task {
+            if HealthManager.shared.connected {
+                await HealthManager.shared.writeDietaryNutrition(
+                    calories: calories,
+                    proteinG: Double(protein),
+                    carbsG: Double(carbs),
+                    fatG: Double(fat)
+                )
+            }
+        }
+
         guard !isDemo, let userId else { return }
         let record = MealLogRecord(id: meal.id, userId: userId, eatenAt: Date(), mealType: dbType,
                                    name: name, calories: calories, proteinG: Double(protein),

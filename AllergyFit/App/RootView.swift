@@ -3,6 +3,7 @@ import SwiftUI
 struct RootView: View {
     @EnvironmentObject var session: SessionStore
     @AppStorage("seenPreAuthOnboarding") private var seenPreAuth = false
+    @State private var startInSignUpMode = true
 
     var body: some View {
         Group {
@@ -23,11 +24,20 @@ struct RootView: View {
             } else if !seenPreAuth {
                 // Value first: people answer for themselves and see their real
                 // targets before we ask for an account.
-                PreAuthOnboardingView { seenPreAuth = true }
+                PreAuthOnboardingView(
+                    onFinish: {
+                        startInSignUpMode = true
+                        seenPreAuth = true
+                    },
+                    onSignIn: {
+                        startInSignUpMode = false
+                        seenPreAuth = true
+                    }
+                )
             } else {
                 // Backing out returns to onboarding rather than trapping
                 // people on a login wall.
-                AuthView(onBack: { seenPreAuth = false }, startInSignUpMode: true)
+                AuthView(onBack: { seenPreAuth = false }, startInSignUpMode: startInSignUpMode)
             }
         }
         .animation(.easeInOut(duration: 0.25), value: session.isSignedIn)

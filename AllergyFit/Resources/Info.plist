@@ -65,5 +65,9 @@
 			<string>238da6jt44.skadnetwork</string>
 		</dict>
 	</array>
+	<key>NSHealthShareUsageDescription</key>
+	<string>SafeFuel reads your workouts, runs, active energy, heart rate, and steps to dynamically tune your nutrition targets and track energy expenditure.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>SafeFuel writes the nutrition and calories you log back to Apple Health so all your health metrics remain in sync.</string>
 </dict>
 </plist>

@@ -9,6 +9,7 @@ struct DashboardView: View {
     @StateObject private var trends = TrendsStore()
     @State private var showQuickAdd = false
     @State private var showTrends = false
+    @State private var showNutritionScore = false
     @State private var loggingPlanMealID: UUID?
     @State private var planLogError: String?
     var onOpenPlan: () -> Void = {}
@@ -21,7 +22,9 @@ struct DashboardView: View {
                 ScrollView {
                     VStack(spacing: Theme.Metrics.spacing) {
                         greetingRow
+                        nutritionScorePill
                         dailyPlanCard
+                        activityAndWorkoutsCard
                         calorieCard
                         macroRow
                         mealsSection
@@ -56,6 +59,9 @@ struct DashboardView: View {
             .sheet(isPresented: $showTrends) {
                 TrendsView(store: trends)
             }
+            .sheet(isPresented: $showNutritionScore) {
+                NutritionScoreSheet(score: store.nutritionScore)
+            }
             .alert("Couldn't log that meal", isPresented: Binding(
                 get: { planLogError != nil },
                 set: { if !$0 { planLogError = nil } }
@@ -76,6 +82,133 @@ struct DashboardView: View {
             Spacer()
         }
         .padding(.top, 2)
+    }
+
+    private var nutritionScorePill: some View {
+        Button {
+            showNutritionScore = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.caption)
+                    .foregroundStyle(Color(hex: store.nutritionScore.ratingColorHex))
+                Text("Daily Fuel Score: \(store.nutritionScore.totalScore)/100")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Text("· \(store.nutritionScore.ratingLabel)")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.textTertiary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Theme.Colors.surface, in: Capsule())
+            .overlay(Capsule().stroke(Color(hex: store.nutritionScore.ratingColorHex).opacity(0.35), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var activityAndWorkoutsCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("TODAY'S ACTIVITY")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .tracking(1.1)
+                    .foregroundStyle(Theme.Colors.volt)
+                Spacer()
+                if store.activeCaloriesBurned > 0 {
+                    Text("+\(store.activeCaloriesBurned) kcal burned")
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Theme.Colors.safe)
+                }
+            }
+
+            // High-level wearable ring stats
+            HStack(spacing: 8) {
+                statPill(icon: "flame.fill", label: "\(store.activeCaloriesBurned) kcal", sub: "Active Burn", color: Theme.Colors.caution)
+                statPill(icon: "figure.walk", label: "\(store.todaySteps.formatted())", sub: "Steps", color: Theme.Colors.volt)
+                if let hr = store.currentHeartRate {
+                    statPill(icon: "heart.fill", label: "\(hr) bpm", sub: "Heart Rate", color: Theme.Colors.danger)
+                } else if let rhr = store.restingHeartRate {
+                    statPill(icon: "heart.fill", label: "\(rhr) bpm", sub: "Resting HR", color: Theme.Colors.protein)
+                }
+            }
+
+            if !store.todayWorkouts.isEmpty {
+                VStack(spacing: 8) {
+                    ForEach(store.todayWorkouts) { workout in
+                        HStack(spacing: 12) {
+                            Image(systemName: workout.icon)
+                                .font(.title3)
+                                .foregroundStyle(Theme.Colors.onVolt)
+                                .frame(width: 40, height: 40)
+                                .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(workout.title)
+                                    .font(Theme.Fonts.headline)
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                HStack(spacing: 6) {
+                                    Text("\(workout.durationMinutes) min")
+                                    if let dist = workout.formattedDistance {
+                                        Text("· \(dist)")
+                                    }
+                                    if let pace = workout.formattedPace {
+                                        Text("· \(pace)")
+                                    }
+                                    Text("· \(workout.caloriesBurned) cal")
+                                }
+                                .font(Theme.Fonts.caption)
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                            }
+                            Spacer()
+                            Text(workout.source)
+                                .font(.system(size: 10, weight: .medium, design: .rounded))
+                                .foregroundStyle(Theme.Colors.textTertiary)
+                        }
+                        .padding(10)
+                        .background(Theme.Colors.surfaceRaised.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                }
+            } else {
+                HStack(spacing: 10) {
+                    Image(systemName: "figure.run")
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                    Text("No workouts recorded yet today")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                    Spacer()
+                }
+                .padding(.top, 2)
+            }
+        }
+        .card()
+    }
+
+    private func statPill(icon: String, label: String, sub: String, color: Color) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundStyle(color)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(label)
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .lineLimit(1)
+                Text(sub)
+                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textTertiary)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(Theme.Colors.surfaceRaised, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .frame(maxWidth: .infinity)
     }
 
     private var greeting: String {
@@ -319,8 +452,11 @@ struct DashboardView: View {
 
     private var calorieCard: some View {
         HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 10) {
                 budgetRow("flame.fill", "Budget", store.targetCalories, Theme.Colors.volt)
+                if store.activeCaloriesBurned > 0 {
+                    budgetRow("bolt.fill", "Active Burn", store.activeCaloriesBurned, Theme.Colors.caution)
+                }
                 budgetRow("fork.knife", "Eaten", store.consumedCalories, Theme.Colors.protein)
             }
             Spacer(minLength: 0)
@@ -366,8 +502,8 @@ struct DashboardView: View {
     }
 
     private var progress: Double {
-        guard store.targetCalories > 0 else { return 0 }
-        return Double(store.consumedCalories) / Double(store.targetCalories)
+        guard store.dynamicTargetCalories > 0 else { return 0 }
+        return Double(store.consumedCalories) / Double(store.dynamicTargetCalories)
     }
 
     private var macroRow: some View {
@@ -505,6 +641,31 @@ struct DashboardView: View {
                 }
                 .pressable()
             }
+
+            // WaterLlama-style beverage picker
+            HStack(spacing: 6) {
+                ForEach(BeverageType.allCases) { bev in
+                    Button {
+                        store.logBeverage(bev)
+                        Haptics.tap()
+                    } label: {
+                        VStack(spacing: 3) {
+                            Image(systemName: bev.icon)
+                                .font(.system(size: 13))
+                                .foregroundStyle(Color(hex: bev.colorHex))
+                            Text(bev.rawValue)
+                                .font(.system(size: 9, weight: .semibold, design: .rounded))
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .background(Theme.Colors.surfaceRaised, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
         .card()
     }
@@ -584,3 +745,82 @@ struct MacroGauge: View {
         .card()
     }
 }
+
+/// Bevel-style Nutrition Quality Score detail sheet.
+struct NutritionScoreSheet: View {
+    let score: NutritionScoreBreakdown
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Theme.Colors.background.ignoresSafeArea()
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Big score gauge
+                        ZStack {
+                            Circle()
+                                .stroke(Theme.Colors.surfaceRaised, lineWidth: 14)
+                            Circle()
+                                .trim(from: 0, to: CGFloat(score.totalScore) / 100.0)
+                                .stroke(Color(hex: score.ratingColorHex), style: StrokeStyle(lineWidth: 14, lineCap: .round))
+                                .rotationEffect(.degrees(-90))
+                            VStack(spacing: 2) {
+                                Text("\(score.totalScore)")
+                                    .font(Theme.Fonts.stat(44))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                Text(score.ratingLabel)
+                                    .font(Theme.Fonts.headline)
+                                    .foregroundStyle(Color(hex: score.ratingColorHex))
+                            }
+                        }
+                        .frame(width: 160, height: 160)
+                        .padding(.top, 16)
+
+                        Text("Your score combines macro target accuracy, zero allergen triggers logged, meal timing cadence, and daily hydration.")
+                            .font(Theme.Fonts.caption)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
+
+                        VStack(spacing: 10) {
+                            scoreRow(title: "Macro Accuracy", points: "\(score.macroScore)/40", icon: "chart.bar.fill", color: Theme.Colors.protein)
+                            scoreRow(title: "Allergen Safety", points: "\(score.safetyScore)/30", icon: "checkmark.shield.fill", color: Theme.Colors.safe)
+                            scoreRow(title: "Meal Cadence & Fueling", points: "\(score.balanceScore)/20", icon: "calendar", color: Theme.Colors.volt)
+                            scoreRow(title: "Hydration Balance", points: "\(score.hydrationScore)/10", icon: "drop.fill", color: Color(hex: 0x38BDF8))
+                        }
+                        .padding(.horizontal, Theme.Metrics.screenPadding)
+                    }
+                    .padding(.bottom, 24)
+                }
+            }
+            .navigationTitle("Nutrition Quality Score")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                        .foregroundStyle(Theme.Colors.volt)
+                }
+            }
+        }
+    }
+
+    private func scoreRow(title: String, points: String, icon: String, color: Color) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(color)
+                .frame(width: 36, height: 36)
+                .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            Text(title)
+                .font(Theme.Fonts.body)
+                .foregroundStyle(Theme.Colors.textPrimary)
+            Spacer()
+            Text(points)
+                .font(Theme.Fonts.headline)
+                .foregroundStyle(Theme.Colors.textPrimary)
+        }
+        .card()
+    }
+}
+

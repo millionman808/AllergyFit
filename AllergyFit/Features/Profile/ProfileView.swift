@@ -13,6 +13,7 @@ struct ProfileView: View {
     @State private var showGoals = false
     @State private var showDietary = false
     @State private var showFeedback = false
+    @State private var showWearablesGuide = false
     @State private var confirmDelete = false
     @State private var deleting = false
     @State private var deleteError: String?
@@ -52,6 +53,7 @@ struct ProfileView: View {
             .sheet(isPresented: $showGoals) { GoalsEditorView(store: store) }
             .sheet(isPresented: $showDietary) { DietaryPrefsView(store: store) }
             .sheet(isPresented: $showFeedback) { FeedbackView() }
+            .sheet(isPresented: $showWearablesGuide) { WearablesGuideSheet(health: health) }
             .sheet(item: $shareURL) { url in ShareSheet(items: [url]) }
         }
     }
@@ -264,9 +266,10 @@ struct ProfileView: View {
     /// Settings chunked into labeled groups (#24) — spacing over borders (#18).
     private var settingsRows: some View {
         VStack(alignment: .leading, spacing: Theme.Metrics.spacing) {
-            settingsGroup("Health") {
+            settingsGroup("Wearables & Health") {
                 NavigationLink(value: "labscan") { settingsRow("Scan blood test results", "doc.text.viewfinder") }
                 healthRow
+                Button { showWearablesGuide = true } label: { settingsRow("Connect Fitbit, Garmin & Trackers", "waveform.path.ecg") }
                 Button { exportReport() } label: { settingsRow("Export for your allergist", "square.and.arrow.up.fill") }
             }
             settingsGroup("Nutrition") {

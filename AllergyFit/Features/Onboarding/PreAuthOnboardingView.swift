@@ -8,6 +8,8 @@ struct PreAuthOnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Called when the funnel finishes (or is skipped) → show AuthView.
     var onFinish: () -> Void
+    /// Called when the user explicitly taps "Sign in" to go straight to login.
+    var onSignIn: (() -> Void)? = nil
 
     @State private var step = 0
     @State private var draft = OnboardingDraft.stored ?? OnboardingDraft()
@@ -86,9 +88,11 @@ struct PreAuthOnboardingView: View {
             .animation(.spring(response: 0.35), value: step)
 
             if !session.isSignedIn {
-                Button("Sign in") { finish() }
-                    .font(Theme.Fonts.caption)
-                    .foregroundStyle(Theme.Colors.textSecondary)
+                Button("Sign in") {
+                    if let onSignIn { onSignIn() } else { finish() }
+                }
+                .font(Theme.Fonts.caption)
+                .foregroundStyle(Theme.Colors.textSecondary)
             }
         }
         .padding(.horizontal, 20)
@@ -198,6 +202,23 @@ struct PreAuthOnboardingView: View {
                 bullet("calendar", "A week of safe meals, planned for you").revealIn(4)
             }
             .padding(.top, 4)
+
+            if !session.isSignedIn {
+                Button {
+                    if let onSignIn { onSignIn() } else { finish() }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Already have an account?")
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                        Text("Sign in")
+                            .foregroundStyle(Theme.Colors.volt)
+                            .fontWeight(.semibold)
+                    }
+                    .font(Theme.Fonts.caption)
+                    .padding(.top, 8)
+                }
+                .revealIn(5)
+            }
         }
     }
 

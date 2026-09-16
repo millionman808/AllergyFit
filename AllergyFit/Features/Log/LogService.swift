@@ -35,15 +35,20 @@ enum LogService {
         }
     }
 
-    static func saveWorkout(userId: UUID, type: String, minutes: Int, intensity: String) async throws {
+    static func saveWorkout(userId: UUID, type: String, minutes: Int, intensity: String,
+                            calories: Int? = nil, distanceMeters: Double? = nil, source: String? = nil) async throws {
         struct Row: Codable {
             let user_id: UUID
             let workout_type: String
             let duration_minutes: Int
             let intensity: String
+            let calories_burned: Int?
+            let distance_meters: Double?
+            let source: String?
         }
         let row = Row(user_id: userId, workout_type: workoutSlug(type),
-                      duration_minutes: minutes, intensity: intensity.lowercased())
+                      duration_minutes: minutes, intensity: intensity.lowercased(),
+                      calories_burned: calories, distance_meters: distanceMeters, source: source)
         try await Backend.client.from("workouts").insert(row).execute()
     }
 

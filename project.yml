@@ -76,12 +76,18 @@ targets:
           # rejection and a misdeclared privacy label. Refuse to archive.
           [ "$CONFIGURATION" = "Release" ] || exit 0
           f="$SRCROOT/AllergyFit/Core/AdConfig.swift"
-          for k in metaAppID metaClientToken tiktokAppID tiktokAccessToken; do
+          # Meta is what makes the tracking declaration true; TikTok can't be
+          # registered until the app is live, so it's a warning until then.
+          for k in metaAppID metaClientToken; do
             if grep -Eq "static let $k = \"\"" "$f"; then
               echo "error: AdConfig.$k is empty. Paste the ID (see AdConfig.swift), or set NSPrivacyTracking to false and remove NSUserTrackingUsageDescription before shipping without ads."
               exit 1
             fi
           done
+          for k in tiktokAppID tiktokAccessToken; do
+            grep -Eq "static let $k = \"\"" "$f" && echo "warning: AdConfig.$k is empty — TikTok in-app events are off until the app is live and registered in Events Manager."
+          done
+          exit 0
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.elischafer.allergyfit

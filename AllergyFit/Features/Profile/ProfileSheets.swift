@@ -638,3 +638,137 @@ enum AllergistReport {
         }
     }
 }
+
+// MARK: - Wearables & Health Sync Sheet
+
+struct WearablesGuideSheet: View {
+    @ObservedObject var health: HealthManager
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Theme.Colors.background.ignoresSafeArea()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Connection Banner
+                        HStack(spacing: 14) {
+                            Image(systemName: "heart.text.square.fill")
+                                .font(.system(size: 38))
+                                .foregroundStyle(Theme.Colors.volt)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(health.connected ? "Apple Health Connected" : "Connect Apple Health")
+                                    .font(Theme.Fonts.headline)
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                Text(health.connected ? "Syncing workouts, runs, steps & calories" : "Bridge your Apple Watch, Fitbit, Garmin & more")
+                                    .font(Theme.Fonts.caption)
+                                    .foregroundStyle(Theme.Colors.textSecondary)
+                            }
+                            Spacer()
+                            if health.connected {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(Theme.Colors.safe)
+                            }
+                        }
+                        .card()
+
+                        if !health.connected {
+                            Button {
+                                Task { await health.connect() }
+                            } label: {
+                                Text("Enable Apple Health Sync")
+                                    .font(Theme.Fonts.headline)
+                                    .foregroundStyle(Theme.Colors.onVolt)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 52)
+                                    .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            }
+                            .pressable()
+                        }
+
+                        Text("HOW TO CONNECT YOUR TRACKER")
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .tracking(1.1)
+                            .foregroundStyle(Theme.Colors.textTertiary)
+                            .padding(.top, 8)
+
+                        // Fitbit Guide
+                        trackerGuideCard(
+                            title: "Fitbit (Charge, Sense, Versa, Pixel Watch)",
+                            icon: "waveform.path.ecg",
+                            steps: [
+                                "Open the Fitbit app on your iPhone.",
+                                "Tap your Profile / Settings icon in the top corner.",
+                                "Select 'Third-Party Apps' or 'Connected Apps'.",
+                                "Enable sync to Apple Health (or connect Fitbit to Strava/Health Connect).",
+                                "Your runs, steps, and active calories will automatically sync into SafeFuel."
+                            ]
+                        )
+
+                        // Apple Watch Guide
+                        trackerGuideCard(
+                            title: "Apple Watch",
+                            icon: "applewatch",
+                            steps: [
+                                "Ensure Apple Health is connected in SafeFuel above.",
+                                "Any workout recorded on your Apple Watch (Outdoor Run, Lifting, Cycling) immediately adjusts your daily fuel targets in SafeFuel."
+                            ]
+                        )
+
+                        // Garmin & Strava Guide
+                        trackerGuideCard(
+                            title: "Garmin, Whoop, Strava & Oura",
+                            icon: "figure.run",
+                            steps: [
+                                "Open the Garmin Connect, Whoop, or Strava app.",
+                                "Go to Settings → Connected Apps → Apple Health.",
+                                "Turn on permissions to write Workouts and Active Energy.",
+                                "SafeFuel will automatically read the activities and adjust your training targets."
+                            ]
+                        )
+                    }
+                    .padding(Theme.Metrics.screenPadding)
+                }
+            }
+            .navigationTitle("Connected Trackers")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                        .foregroundStyle(Theme.Colors.volt)
+                }
+            }
+        }
+    }
+
+    private func trackerGuideCard(title: String, icon: String, steps: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.headline)
+                    .foregroundStyle(Theme.Colors.volt)
+                Text(title)
+                    .font(Theme.Fonts.headline)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                    HStack(alignment: .top, spacing: 10) {
+                        Text("\(index + 1)")
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .foregroundStyle(Theme.Colors.onVolt)
+                            .frame(width: 20, height: 20)
+                            .background(Theme.Colors.volt, in: Circle())
+                        Text(step)
+                            .font(Theme.Fonts.caption)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                    }
+                }
+            }
+        }
+        .card()
+    }
+}
+

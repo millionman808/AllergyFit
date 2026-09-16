@@ -531,17 +531,21 @@ struct RecipeDetailView: View {
                 Theme.Colors.background.ignoresSafeArea()
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.Metrics.spacing) {
-                        AsyncImage(url: URL(string: recipe.image)) { phase in
-                            if case .success(let image) = phase {
-                                image.resizable().aspectRatio(contentMode: .fill)
-                            } else {
-                                Theme.Colors.surfaceRaised
+                        // AI-generated recipes have no photo — skip the empty
+                        // box rather than show a 210pt grey rectangle.
+                        if !recipe.image.isEmpty {
+                            AsyncImage(url: URL(string: recipe.image)) { phase in
+                                if case .success(let image) = phase {
+                                    image.resizable().aspectRatio(contentMode: .fill)
+                                } else {
+                                    Theme.Colors.surfaceRaised
+                                }
                             }
+                            .frame(height: 210)
+                            .frame(maxWidth: .infinity)
+                            .clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous))
                         }
-                        .frame(height: 210)
-                        .frame(maxWidth: .infinity)
-                        .clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous))
 
                         Text(recipe.title)
                             .font(Theme.Fonts.title)

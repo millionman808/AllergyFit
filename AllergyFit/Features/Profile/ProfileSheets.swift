@@ -394,6 +394,7 @@ struct NotificationsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }.padding(Theme.Metrics.screenPadding)
+                 .padding(.bottom, Theme.Metrics.tabBarClearance)
             }
         }
         .navigationTitle("Notifications")
@@ -484,6 +485,7 @@ struct SubscriptionView: View {
                         .foregroundStyle(Theme.Colors.textTertiary).multilineTextAlignment(.center)
                 }
                 .padding(Theme.Metrics.screenPadding)
+                .padding(.bottom, Theme.Metrics.tabBarClearance)
             }
             if busy {
                 Color.black.opacity(0.35).ignoresSafeArea()

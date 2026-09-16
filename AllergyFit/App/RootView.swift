@@ -11,22 +11,10 @@ struct RootView: View {
                 splash
             } else if session.session != nil && session.backendError && session.profileOnboarded == nil {
                 OfflineView(retry: { await session.retry() })
-            } else if session.isDemo && !session.demoOnboarded {
-                // Same funnel as everyone else — demo used to get a different
-                // set of screens, which made the two look unrelated.
-                PreAuthOnboardingView {}
-            } else if session.session != nil && session.profileOnboarded == nil {
-                splash // profile state loading
-            } else if session.session != nil && session.profileOnboarded == false {
-                PreAuthOnboardingView {}
-            } else if session.isSignedIn {
-                MainTabView()
             } else if !seenPreAuth {
-                // Value first: people answer for themselves and see their real
-                // targets before we ask for an account.
+                // High-converting funnel: answers -> calculation -> account creation -> single-screen paywall
                 PreAuthOnboardingView(
                     onFinish: {
-                        startInSignUpMode = true
                         seenPreAuth = true
                     },
                     onSignIn: {
@@ -34,9 +22,20 @@ struct RootView: View {
                         seenPreAuth = true
                     }
                 )
+            } else if session.isDemo && !session.demoOnboarded {
+                PreAuthOnboardingView(onFinish: {
+                    seenPreAuth = true
+                })
+            } else if session.session != nil && session.profileOnboarded == nil {
+                splash // profile state loading
+            } else if session.session != nil && session.profileOnboarded == false {
+                PreAuthOnboardingView(onFinish: {
+                    seenPreAuth = true
+                })
+            } else if session.isSignedIn {
+                MainTabView()
             } else {
-                // Backing out returns to onboarding rather than trapping
-                // people on a login wall.
+                // Backing out returns to onboarding rather than trapping people on a login wall.
                 AuthView(onBack: { seenPreAuth = false }, startInSignUpMode: startInSignUpMode)
             }
         }

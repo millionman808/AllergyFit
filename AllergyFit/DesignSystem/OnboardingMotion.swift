@@ -82,6 +82,14 @@ extension AnyTransition {
                 active: DriftAway(active: true),
                 identity: DriftAway(active: false)))
     }
+
+    /// Full horizontal sliding transition based on navigation direction.
+    static func directionalSlide(forward: Bool) -> AnyTransition {
+        .asymmetric(
+            insertion: .move(edge: forward ? .trailing : .leading).combined(with: .opacity),
+            removal: .move(edge: forward ? .leading : .trailing).combined(with: .opacity)
+        )
+    }
 }
 
 struct DriftAway: ViewModifier {

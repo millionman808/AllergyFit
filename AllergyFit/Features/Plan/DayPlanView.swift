@@ -57,10 +57,34 @@ enum MealSlot: String, CaseIterable, Identifiable {
     var title: String { rawValue.capitalized }
     var icon: String {
         switch self {
-        case .breakfast: return "cup.and.saucer.fill"
-        case .lunch: return "sun.max.fill"
-        case .dinner: return "moon.stars.fill"
+        case .breakfast: return "sunrise.fill"
+        case .lunch: return "takeoutbag.and.cup.and.straw.fill"
+        case .dinner: return "fork.knife"
         case .snack: return "carrot.fill"
+        }
+    }
+    /// Display order through the day.
+    static func order(_ title: String?) -> Int {
+        switch from(title) {
+        case .breakfast: return 0
+        case .lunch: return 1
+        case .snack: return 2
+        case .dinner: return 3
+        case nil: return 4
+        }
+    }
+    static func from(_ title: String?) -> MealSlot? {
+        guard let t = title?.lowercased() else { return nil }
+        return MealSlot.allCases.first { $0.rawValue == t }
+    }
+    /// Roughly: has the usual time for this meal already passed today?
+    var isPast: Bool {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch self {
+        case .breakfast: return hour >= 11
+        case .lunch: return hour >= 15
+        case .snack: return hour >= 18
+        case .dinner: return hour >= 22
         }
     }
     /// Share of the daily calorie/protein budget.
@@ -79,8 +103,17 @@ enum DayPlanService {
         let cals = Int((Double(targets.calories) * slot.fraction).rounded())
         let protein = Int((Double(targets.protein) * slot.fraction).rounded())
         let request = "A \(slot.title.lowercased()) of about \(cals) calories with roughly \(protein)g of protein. Keep it realistic for that meal."
-        return try await RecipeGenService.generate(
-            request: request, allergens: allergens, dietary: targets.dietary, goal: targets.goal)
+        // A recipe that trips a trigger is a failure, not a result. Try again
+        // (up to three times) before handing back anything flagged — the user
+        // asked for a plan they can eat, not a plan plus a warning.
+        var best: GeneratedRecipe?
+        for _ in 0..<3 {
+            let recipe = try await RecipeGenService.generate(
+                request: request, allergens: allergens, dietary: targets.dietary, goal: targets.goal)
+            if recipe.flags(for: allergens).isEmpty { return recipe }
+            best = recipe
+        }
+        return best!
     }
 
     /// Generate every meal for the day in parallel.
@@ -246,7 +279,7 @@ struct DayPlanView: View {
             }
             .padding(.top, 2)
 
-            let flags = recipe.flags(for: session.allergenSlugs)
+            let flags = recipe.flags(for: session.allergensForAI)
             if !flags.isEmpty {
                 Label("May contain \(flags.joined(separator: ", ")) — tap regenerate",
                       systemImage: "exclamationmark.triangle.fill")
@@ -292,7 +325,7 @@ struct DayPlanView: View {
         phase = .loading
         errorMessage = nil
         do {
-            meals = try await DayPlanService.generateDay(targets: targets, allergens: session.allergenSlugs)
+            meals = try await DayPlanService.generateDay(targets: targets, allergens: session.allergensForAI)
             phase = .ready
         } catch {
             errorMessage = error.localizedDescription
@@ -304,7 +337,7 @@ struct DayPlanView: View {
         regenerating.insert(slot)
         defer { regenerating.remove(slot) }
         do {
-            let recipe = try await DayPlanService.generate(slot: slot, targets: targets, allergens: session.allergenSlugs)
+            let recipe = try await DayPlanService.generate(slot: slot, targets: targets, allergens: session.allergensForAI)
             withAnimation { meals[slot] = recipe }
         } catch {
             errorMessage = error.localizedDescription
@@ -314,7 +347,7 @@ struct DayPlanView: View {
     private func addToPlan() {
         let planned = MealSlot.allCases.compactMap { slot -> PlannedMeal? in
             guard let recipe = meals[slot] else { return nil }
-            let flags = recipe.flags(for: session.allergenSlugs)
+            let flags = recipe.flags(for: session.allergensForAI)
             return PlannedMeal(id: UUID(), day: day, recipe: recipe.asRecipe(flagged: flags), mealType: slot.title)
         }
         planStore.setDay(planned, day: day)

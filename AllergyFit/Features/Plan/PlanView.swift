@@ -287,13 +287,21 @@ final class PlanStore: ObservableObject {
             Recipe(title: title, url: "https://example.com/\(title)", image: "",
                    calories: cal, ingredients: ingredients, flagged: [])
         }
+        // A full day, today, with slots — so the Plan tab shows what a planned
+        // day really looks like (icons, "up next", the grocery count).
+        let today = (Calendar.current.component(.weekday, from: Date()) + 5) % 7
+        let tomorrow = (today + 1) % 7
         planned = [
-            PlannedMeal(id: UUID(), day: 2, recipe: demo("Chicken Mandi", 520,
-                ["500g chicken thighs", "2 cups basmati rice", "1 onion", "2 tbsp mandi spice", "1 tbsp olive oil"])),
-            PlannedMeal(id: UUID(), day: 2, recipe: demo("Beef Stir-Fry", 610,
-                ["400g beef strips", "2 cups jasmine rice", "1 broccoli crown", "2 tbsp coconut aminos", "1 tbsp olive oil"])),
-            PlannedMeal(id: UUID(), day: 3, recipe: demo("Salmon & Sweet Potato", 640,
-                ["2 salmon fillets", "2 sweet potatoes", "1 broccoli crown", "1 tbsp olive oil"])),
+            PlannedMeal(id: UUID(), day: today, recipe: demo("Oat & Blueberry Bowl", 420,
+                ["1 cup rolled oats", "1 cup oat milk", "1/2 cup blueberries", "1 tbsp maple syrup", "pinch of cinnamon"]), mealType: "Breakfast"),
+            PlannedMeal(id: UUID(), day: today, recipe: demo("Chicken Mandi", 520,
+                ["500g chicken thighs", "2 cups basmati rice", "1 onion", "2 tbsp mandi spice", "1 tbsp olive oil"]), mealType: "Lunch"),
+            PlannedMeal(id: UUID(), day: today, recipe: demo("Apple & Sunflower Butter", 210,
+                ["1 apple", "2 tbsp sunflower seed butter"]), mealType: "Snack"),
+            PlannedMeal(id: UUID(), day: today, recipe: demo("Beef Stir-Fry", 610,
+                ["400g beef strips", "2 cups jasmine rice", "1 broccoli crown", "2 tbsp coconut aminos", "1 tbsp olive oil"]), mealType: "Dinner"),
+            PlannedMeal(id: UUID(), day: tomorrow, recipe: demo("Salmon & Sweet Potato", 640,
+                ["2 salmon fillets", "2 sweet potatoes", "1 broccoli crown", "1 tbsp olive oil"]), mealType: "Dinner"),
         ]
     }
 }
@@ -315,7 +323,12 @@ struct PlanView: View {
     @State private var showGroceries = false
     @State private var showDayPlan = false
     @State private var dailyTarget = 2840
+    @State private var openMeal: PlannedMeal?
+    @StateObject private var recipeStore = RecipeStore()
     var onBrowseRecipes: () -> Void = {}
+
+    /// Monday = 0, matching PlanStore.
+    private var todayIndex: Int { (Calendar.current.component(.weekday, from: Date()) + 5) % 7 }
 
     var body: some View {
         ScrollView {
@@ -325,12 +338,19 @@ struct PlanView: View {
                 planWithVoltButton
 
                 let meals = planStore.meals(for: selectedDay)
+                    .sorted { MealSlot.order($0.mealType) < MealSlot.order($1.mealType) }
                 if meals.isEmpty {
                     emptyState
                 } else {
+                    // The first meal you haven't eaten yet, today, is "up next".
+                    let nextID = selectedDay == todayIndex
+                        ? meals.first(where: { !$0.isCompleted && MealSlot.from($0.mealType).map { !$0.isPast } ?? true })?.id
+                        : nil
                     ForEach(meals) { meal in
                         PlannedMealRow(
                             meal: meal,
+                            isUpNext: meal.id == nextID,
+                            onOpen: { openMeal = meal },
                             onLog: { await planStore.logAsEaten(meal) },
                             onRemove: { planStore.remove(meal) }
                         )
@@ -346,7 +366,12 @@ struct PlanView: View {
             let t = await DayTargets.load(session: session)
             dailyTarget = t.calories
         }
+        .onAppear { recipeStore.configure(session: session) }
         .sheet(isPresented: $showGroceries) { GroceryListView() }
+        .sheet(item: $openMeal) { meal in
+            RecipeDetailView(recipe: meal.recipe, store: recipeStore)
+                .environmentObject(session)
+        }
         .sheet(isPresented: $showDayPlan) {
             DayPlanView(day: selectedDay)
                 .environmentObject(session)
@@ -468,30 +493,57 @@ struct PlanView: View {
 
 struct PlannedMealRow: View {
     let meal: PlannedMeal
+    var isUpNext: Bool = false
+    var onOpen: () -> Void = {}
     let onLog: () async -> Bool
     let onRemove: () -> Void
     @State private var isLogging = false
     @State private var logFailed = false
 
+    private var slot: MealSlot? { MealSlot.from(meal.mealType) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // The whole header opens the recipe — ingredients, steps, cook mode.
+            Button(action: onOpen) {
             HStack(spacing: 12) {
-                AsyncImage(url: URL(string: meal.recipe.image)) { phase in
-                    if case .success(let image) = phase {
-                        image.resizable().aspectRatio(contentMode: .fill)
-                    } else {
-                        Theme.Colors.surfaceRaised
-                            .overlay(Image(systemName: "fork.knife").foregroundStyle(Theme.Colors.textTertiary))
+                if meal.recipe.image.isEmpty {
+                    // AI recipes have no photo; the meal-type icon says what it is.
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(isUpNext ? Theme.Colors.volt.opacity(0.18) : Theme.Colors.surfaceRaised)
+                        Image(systemName: slot?.icon ?? "fork.knife")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(isUpNext ? Theme.Colors.volt : Theme.Colors.textSecondary)
                     }
+                    .frame(width: 52, height: 52)
+                } else {
+                    AsyncImage(url: URL(string: meal.recipe.image)) { phase in
+                        if case .success(let image) = phase {
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        } else {
+                            Theme.Colors.surfaceRaised
+                                .overlay(Image(systemName: slot?.icon ?? "fork.knife").foregroundStyle(Theme.Colors.textTertiary))
+                        }
+                    }
+                    .frame(width: 52, height: 52)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
-                .frame(width: 52, height: 52)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 3) {
-                    if let type = meal.mealType {
-                        Text(type.uppercased())
-                            .font(.system(size: 9, weight: .bold, design: .rounded))
-                            .foregroundStyle(Theme.Colors.volt)
+                    HStack(spacing: 6) {
+                        if let type = meal.mealType {
+                            Text(type.uppercased())
+                                .font(.system(size: 9, weight: .bold, design: .rounded))
+                                .foregroundStyle(Theme.Colors.volt)
+                        }
+                        if isUpNext {
+                            Text("UP NEXT")
+                                .font(.system(size: 9, weight: .heavy, design: .rounded))
+                                .foregroundStyle(Theme.Colors.onVolt)
+                                .padding(.horizontal, 6).padding(.vertical, 2)
+                                .background(Theme.Colors.volt, in: Capsule())
+                        }
                     }
                     Text(meal.recipe.title)
                         .font(Theme.Fonts.headline)
@@ -509,20 +561,24 @@ struct PlannedMealRow: View {
                     }
                 }
                 Spacer()
-                Button(action: onRemove) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Theme.Colors.textTertiary)
-                        .padding(8)
-                        .background(Theme.Colors.surfaceRaised, in: Circle())
-                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.textTertiary)
             }
+            .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
 
             if meal.isCompleted {
-                Label("Logged as eaten", systemImage: "checkmark.circle.fill")
-                    .font(Theme.Fonts.caption.weight(.bold))
-                    .foregroundStyle(Theme.Colors.safe)
-                    .transition(.move(edge: .leading).combined(with: .opacity))
+                HStack {
+                    Label("Logged as eaten", systemImage: "checkmark.circle.fill")
+                        .font(Theme.Fonts.caption.weight(.bold))
+                        .foregroundStyle(Theme.Colors.safe)
+                        .transition(.move(edge: .leading).combined(with: .opacity))
+                    Spacer()
+                    removeButton
+                }
             } else {
                 HStack {
                     Button {
@@ -552,10 +608,26 @@ struct PlannedMealRow: View {
                     Text(logFailed ? "Couldn't log. Try again." : "Verify labels before eating")
                         .font(.system(size: 10, weight: .medium, design: .rounded))
                         .foregroundStyle(logFailed ? Theme.Colors.danger : Theme.Colors.textTertiary)
+                    removeButton
                 }
             }
         }
         .card()
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous)
+                .strokeBorder(Theme.Colors.volt, lineWidth: isUpNext ? 1.5 : 0)
+        )
+    }
+
+    private var removeButton: some View {
+        Button(action: onRemove) {
+            Image(systemName: "trash")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.Colors.textTertiary)
+                .frame(width: 32, height: 32)
+                .background(Theme.Colors.surfaceRaised, in: Circle())
+        }
+        .buttonStyle(.plain)
     }
 }
 

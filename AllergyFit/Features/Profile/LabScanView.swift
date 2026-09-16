@@ -71,6 +71,7 @@ struct LabScanView: View {
                     }
                 }
                 .padding(Theme.Metrics.screenPadding)
+                .padding(.bottom, Theme.Metrics.tabBarClearance)
             }
         }
         .navigationTitle("Scan blood test")

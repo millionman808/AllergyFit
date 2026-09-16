@@ -8,12 +8,14 @@ import Supabase
 /// locally, then apply them to the profile the moment an account exists — so
 /// nobody is asked the same questions twice.
 struct OnboardingDraft: Codable, Equatable {
+    var gender: String = "Male"                    // Male | Female
     var allergenNames: Set<String> = []
     /// Triggers the user typed themselves — anything not in the standard list
     /// (e.g. "mango", "sulphites in wine"). Stored as user_allergens.custom_name.
     var customAllergens: [String] = []
     var severityByName: [String: String] = [:]     // display name → severity rawValue
     var goal: String = "Build muscle"              // Build muscle | Maintain | Cut
+    var wearable: String = "Apple Watch"           // Apple Watch | Fitbit | Garmin/Whoop | iPhone only
     var trainingDays: Int = 4
     var weightLb: Int = 175
     var heightFeet: Int = 5
@@ -37,23 +39,28 @@ struct OnboardingDraft: Codable, Equatable {
     }
     static func clear() { UserDefaults.standard.removeObject(forKey: Self.key) }
 
-    // MARK: Derived targets (Mifflin-St Jeor, sex-neutral midpoint)
+    // MARK: Derived targets (Mifflin-St Jeor, sex-specific)
 
     var targets: (calories: Int, protein: Int, carbs: Int, fat: Int) {
         let kg = Double(weightLb) * 0.4536
         let cm = (Double(heightFeet) * 12 + Double(heightInches)) * 2.54
-        let estimated = 10 * kg + 6.25 * cm - 5 * Double(age) - 78
+        let isFemale = gender.lowercased() == "female"
+        // Mifflin-St Jeor baseline: Male +5, Female -161
+        let genderOffset: Double = isFemale ? -161.0 : 5.0
+        let estimated = 10 * kg + 6.25 * cm - 5 * Double(age) + genderOffset
         let bmr = restingCalories.map(Double.init) ?? estimated
         let activity: Double = trainingDays <= 1 ? 1.375 : trainingDays <= 3 ? 1.5
                              : trainingDays <= 5 ? 1.65 : 1.75
         var calories = bmr * activity
         switch goal {
-        case "Cut": calories -= 400
-        case "Build muscle": calories += 300
+        case "Cut": calories -= isFemale ? 350 : 450
+        case "Build muscle": calories += isFemale ? 250 : 350
         default: break
         }
-        let protein = Int((kg * 1.9).rounded())
-        let fat = Int((kg * 0.9).rounded())
+        let proteinMultiplier = isFemale ? 1.8 : 2.0
+        let fatMultiplier = isFemale ? 1.0 : 0.9
+        let protein = Int((kg * proteinMultiplier).rounded())
+        let fat = Int((kg * fatMultiplier).rounded())
         let carbs = Int(((calories - Double(protein * 4) - Double(fat * 9)) / 4).rounded())
         return (Int(calories.rounded()), protein, max(carbs, 0), fat)
     }
@@ -61,10 +68,12 @@ struct OnboardingDraft: Codable, Equatable {
     /// Write these answers onto the freshly created account.
     func apply(to userId: UUID) async throws {
         let goalValue = goal == "Cut" ? "cut" : goal == "Build muscle" ? "build" : "maintain"
+        let isFemale = gender.lowercased() == "female"
         let t = targets
         struct ProfileUpdate: Codable {
             let fitness_goal: String
             let birth_year: Int
+            let sex: String
             let height_cm: Double
             let weight_kg: Double
             let training_days_per_week: Int
@@ -77,6 +86,7 @@ struct OnboardingDraft: Codable, Equatable {
         let update = ProfileUpdate(
             fitness_goal: goalValue,
             birth_year: Calendar.current.component(.year, from: Date()) - age,
+            sex: isFemale ? "female" : "male",
             height_cm: (Double(heightFeet) * 12 + Double(heightInches)) * 2.54,
             weight_kg: Double(weightLb) * 0.4536,
             training_days_per_week: trainingDays,

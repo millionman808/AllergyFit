@@ -42,35 +42,7 @@ const SCHEMA = {
   additionalProperties: false,
 } as const;
 
-// Allergen keyword safety-net — mirrors the recipe search function so generated
-// recipes get the same double-check that browsed recipes do (independent of which
-// model wrote them).
-const KEYWORDS: Record<string, { name: string; words: string[] }> = {
-  peanut: { name: "Peanut", words: ["peanut"] },
-  tree_nut: { name: "Tree Nuts", words: ["almond", "cashew", "walnut", "pecan", "pistachio", "hazelnut", "macadamia", "pine nut", "brazil nut", "praline"] },
-  dairy: { name: "Dairy", words: ["milk", "butter", "cheese", "cream", "yogurt", "whey", "casein", "ghee", "buttermilk", "parmesan", "mozzarella", "cheddar", "ricotta"] },
-  egg: { name: "Egg", words: ["egg", "mayonnaise", "mayo", "meringue", "aioli"] },
-  wheat: { name: "Wheat", words: ["wheat", "flour", "bread", "breadcrumb", "pasta", "noodle", "cracker", "tortilla", "couscous"] },
-  gluten: { name: "Gluten", words: ["wheat", "flour", "bread", "breadcrumb", "pasta", "noodle", "barley", "rye", "soy sauce", "beer", "couscous", "seitan"] },
-  soy: { name: "Soy", words: ["soy", "tofu", "edamame", "tempeh", "miso"] },
-  fish: { name: "Fish", words: ["salmon", "tuna", "cod", "tilapia", "anchov", "halibut", "trout", "sardine", "fish"] },
-  shellfish: { name: "Shellfish", words: ["shrimp", "prawn", "crab", "lobster", "crawfish", "scampi"] },
-  sesame: { name: "Sesame", words: ["sesame", "tahini"] },
-  corn: { name: "Corn", words: ["corn", "cornstarch", "cornmeal", "polenta", "grits"] },
-  mustard: { name: "Mustard", words: ["mustard"] },
-  celery: { name: "Celery", words: ["celery"] },
-  sulfite: { name: "Sulfites", words: ["wine", "dried apricot"] },
-};
-
-function flagAllergens(ingredientNames: string[], allergens: string[]): string[] {
-  const hay = ingredientNames.join(" ").toLowerCase();
-  const hits: string[] = [];
-  for (const slug of allergens) {
-    const entry = KEYWORDS[slug];
-    if (entry && entry.words.some((w) => hay.includes(w))) hits.push(entry.name);
-  }
-  return hits;
-}
+import { flagAllergens } from "../_shared/allergens.ts";
 
 const SYSTEM = `You are a chef and nutrition coach for people with food allergies.
 

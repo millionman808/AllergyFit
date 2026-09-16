@@ -56,6 +56,7 @@ struct AIMealLogView: View {
                     }
                 }
                 .padding(Theme.Metrics.screenPadding)
+                .padding(.bottom, Theme.Metrics.tabBarClearance)
             }
         }
         .navigationTitle("Log Meal")

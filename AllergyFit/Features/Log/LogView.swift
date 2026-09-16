@@ -400,6 +400,7 @@ struct WorkoutLogView: View {
                     .disabled(isSaving || saved)
                 }
                 .padding(Theme.Metrics.screenPadding)
+                .padding(.bottom, Theme.Metrics.tabBarClearance)
             }
         }
         .navigationTitle("Log a workout")

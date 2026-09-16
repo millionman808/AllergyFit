@@ -12,6 +12,64 @@ const CORS = {
 // allergen slug -> ingredient keywords
 import { flagAllergens } from "../_shared/allergens.ts";
 
+interface RecipeResult {
+  title: string;
+  url: string;
+  image: string;
+  calories: number | null;
+  ingredients: string[];
+  flagged: string[];
+  directions: string[];
+  protein: number | null;
+  carbs: number | null;
+  fat: number | null;
+  servings: number | null;
+}
+
+async function fetchPage(url: string): Promise<string> {
+  const res = await fetch(url, {
+    headers: { "user-agent": UA, "accept-language": "en-US,en;q=0.9" },
+  });
+  if (!res.ok) throw new Error(`fetch ${url} -> ${res.status}`);
+  return await res.text();
+}
+
+function parseSearchCards(html: string): { title: string; url: string; image: string }[] {
+  const cards: { title: string; url: string; image: string }[] = [];
+  const chunks = html.split("mntl-card-list-items").slice(1);
+  for (const chunk of chunks) {
+    const href = chunk.match(/href="(https:\/\/www\.allrecipes\.com\/[^"]+)"/)?.[1];
+    if (!href || !/\/recipe[s]?[\/-]/.test(href)) continue;
+    const title = chunk.match(/card__title-text[^>]*>([^<]+)</)?.[1]?.trim();
+    const image = chunk.match(/(?:data-src|srcset|src)="(https:\/\/www\.allrecipes\.com\/thmb\/[^"\s]+)/)?.[1] ?? "";
+    if (!title) continue;
+    if (cards.some((c) => c.url === href)) continue;
+    cards.push({ title, url: href, image });
+    if (cards.length >= 12) break;
+  }
+  return cards;
+}
+
+function parseDetail(html: string): { ingredients: string[]; calories: number | null; image: string | null } {
+  const ingredients: string[] = [];
+  const itemRe = /mntl-structured-ingredients__list-item[\s\S]*?<p>([\s\S]*?)<\/p>/g;
+  let m;
+  while ((m = itemRe.exec(html)) !== null) {
+    const text = m[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    if (text) ingredients.push(text);
+    if (ingredients.length >= 40) break;
+  }
+  if (ingredients.length === 0) {
+    const nameRe = /data-ingredient-name="true"[^>]*>([^<]+)</g;
+    while ((m = nameRe.exec(html)) !== null) ingredients.push(m[1].trim());
+  }
+  const cal = html.match(/(\d+)\s*<\/td>\s*<td[^>]*>\s*Calories/i)?.[1]
+    ?? html.match(/Calories[\s\S]{0,80}?(\d{2,4})/i)?.[1];
+  const image = html.match(/property="og:image"\s+content="([^"]+)"/)?.[1] ?? null;
+  return { ingredients, calories: cal ? parseInt(cal) : null, image };
+}
+
+
 // Spoonacular — primary source when SPOONACULAR_API_KEY is set.
 // 360k+ recipes, native intolerance filtering, calories included.
 const SPOON_KEY = Deno.env.get("SPOONACULAR_API_KEY");

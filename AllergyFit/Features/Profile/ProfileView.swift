@@ -352,7 +352,7 @@ struct ProfileView: View {
 
     private func exportReport() {
         shareURL = AllergistReport.makePDF(
-            name: session.isDemo ? MockData.userName : (store.displayName.isEmpty ? (store.email ?? "AllergyFit user") : store.displayName),
+            name: session.isDemo ? MockData.userName : (store.displayName.isEmpty ? (store.email ?? "SafeFuel user") : store.displayName),
             allergens: AllergenCatalog.names(for: session.allergenSlugs),
             goal: store.goalLabel,
             calories: store.targetCalories,

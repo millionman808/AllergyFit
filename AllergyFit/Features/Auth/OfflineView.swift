@@ -23,7 +23,7 @@ struct OfflineView: View {
                     .font(.system(size: 52, weight: .semibold))
                     .foregroundStyle(Theme.Colors.caution)
 
-                Text("AllergyFit is temporarily offline")
+                Text("SafeFuel is temporarily offline")
                     .font(Theme.Fonts.title)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Colors.textPrimary)

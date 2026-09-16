@@ -36,7 +36,7 @@ struct RootView: View {
     private var splash: some View {
         ZStack {
             Theme.Colors.background.ignoresSafeArea()
-            Text("AllergyFit")
+            Text("SafeFuel")
                 .font(Theme.Fonts.stat(40))
                 .foregroundStyle(Theme.Colors.volt)
         }

@@ -55,7 +55,7 @@ struct InsightsView: View {
             Text("No patterns yet")
                 .font(Theme.Fonts.headline)
                 .foregroundStyle(Theme.Colors.textPrimary)
-            Text("Log meals and reaction check-ins. When an ingredient repeats near a symptom, AllergyFit can surface a possible pattern here.")
+            Text("Log meals and reaction check-ins. When an ingredient repeats near a symptom, SafeFuel can surface a possible pattern here.")
                 .font(Theme.Fonts.caption)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .multilineTextAlignment(.center)

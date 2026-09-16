@@ -1,7 +1,7 @@
 import AppIntents
 import Foundation
 
-/// "Hey Siri, log a meal in AllergyFit."
+/// "Hey Siri, log a meal in SafeFuel."
 ///
 /// Runs the same pipeline as the in-app logger — Claude identifies the foods,
 /// USDA supplies every number — then speaks back an allergen verdict. The
@@ -25,7 +25,7 @@ struct LogMealIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
         guard let userId = try? await Backend.client.auth.session.user.id else {
-            return .result(dialog: "Open AllergyFit and sign in first, then I can log your meals.")
+            return .result(dialog: "Open SafeFuel and sign in first, then I can log your meals.")
         }
 
         let slugs = SessionStore.cachedAllergenSlugs
@@ -39,7 +39,7 @@ struct LogMealIntent: AppIntent {
                 allergens: slugs,
                 estimateOnly: true)
         } catch {
-            return .result(dialog: "I couldn't reach AllergyFit just now. Try again in a moment.")
+            return .result(dialog: "I couldn't reach SafeFuel just now. Try again in a moment.")
         }
 
         guard let meal = response.meal, meal.totals.calories > 0 else {

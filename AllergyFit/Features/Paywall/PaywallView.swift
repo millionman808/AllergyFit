@@ -18,7 +18,7 @@ struct PaywallView: View {
     @State private var selected: Package?
     @State private var busy = false
 
-    private let privacyURL = URL(string: "https://allergyfit-app.web.app/privacy.html")!
+    private let privacyURL = URL(string: "https://safefuel-app.web.app/privacy.html")!
 
     var body: some View {
         ZStack {

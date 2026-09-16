@@ -40,7 +40,7 @@ final class ReminderManager: ObservableObject {
         UserDefaults.standard.set(on, forKey: "reminder.symptom")
         guard on else { center.removePendingNotificationRequests(withIdentifiers: ["checkin.symptom"]); return }
         guard await ensureAuthorized() else { symptomReminderOn = false; UserDefaults.standard.set(false, forKey: "reminder.symptom"); return }
-        schedule(id: "checkin.symptom", title: "How are you feeling?", body: "A 30-second check-in helps AllergyFit spot patterns.", hour: 20, minute: 30)
+        schedule(id: "checkin.symptom", title: "How are you feeling?", body: "A 30-second check-in helps SafeFuel spot patterns.", hour: 20, minute: 30)
     }
 
     private func removeMealReminders() {

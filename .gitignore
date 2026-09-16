@@ -14,3 +14,4 @@ build/
 .env.*
 .tmp/
 artifacts/
+marketing/tools/.venv/

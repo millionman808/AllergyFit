@@ -542,7 +542,7 @@ struct SymptomLogView: View {
                     }
                     .disabled(!canSave || isSaving || saved)
 
-                    Text("If you're experiencing a severe reaction, use your epinephrine and call emergency services. AllergyFit is not a medical device.")
+                    Text("If you're experiencing a severe reaction, use your epinephrine and call emergency services. SafeFuel is not a medical device.")
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.textTertiary)
                 }

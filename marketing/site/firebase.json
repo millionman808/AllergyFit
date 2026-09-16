@@ -1,0 +1,6 @@
+{
+  "hosting": [
+    { "target": "safefuel", "public": "public", "ignore": ["firebase.json", "**/.*"] },
+    { "target": "legacy",   "public": "public", "ignore": ["firebase.json", "**/.*"] }
+  ]
+}

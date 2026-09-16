@@ -67,7 +67,7 @@ enum BarcodeService {
         let fields = "product_name,brands,image_front_small_url,allergens_tags,traces_tags,serving_size,nutriments"
         let url = URL(string: "https://world.openfoodfacts.org/api/v2/product/\(barcode).json?fields=\(fields)")!
         var request = URLRequest(url: url)
-        request.setValue("AllergyFit/0.1 (iOS)", forHTTPHeaderField: "User-Agent")
+        request.setValue("SafeFuel/1.0 (iOS)", forHTTPHeaderField: "User-Agent")
         request.timeoutInterval = 20
 
         let (data, _) = try await URLSession.shared.data(for: request)

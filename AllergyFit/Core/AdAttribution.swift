@@ -52,7 +52,7 @@ enum AdAttribution {
         if AdConfig.metaEnabled {
             Settings.shared.appID = AdConfig.metaAppID
             Settings.shared.clientToken = AdConfig.metaClientToken
-            Settings.shared.displayName = "AllergyFit"
+            Settings.shared.displayName = "SafeFuel"
             Settings.shared.isAutoLogAppEventsEnabled = true
             // Off until ATT is granted — see applyTrackingAuthorization.
             Settings.shared.isAdvertiserIDCollectionEnabled = false

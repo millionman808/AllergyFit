@@ -101,7 +101,7 @@ struct AuthView: View {
                 Spacer()
 
                 VStack(spacing: 8) {
-                    Text("AllergyFit")
+                    Text("SafeFuel")
                         .font(Theme.Fonts.stat(44))
                         .foregroundStyle(Theme.Colors.volt)
                     Text("Train hard. Eat with confidence.")

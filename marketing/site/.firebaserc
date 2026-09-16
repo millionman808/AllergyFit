@@ -1,0 +1,7 @@
+{
+  "projects": { "default": "launchpad-sites-agency" },
+  "targets": { "launchpad-sites-agency": { "hosting": {
+    "safefuel": ["safefuel-app"],
+    "legacy":   ["allergyfit-app"]
+  } } }
+}

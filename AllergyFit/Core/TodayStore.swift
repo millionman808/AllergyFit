@@ -43,13 +43,22 @@ final class TodayStore: ObservableObject {
     var consumedCarbs: Int { meals.reduce(0) { $0 + $1.carbs } }
     var consumedFat: Int { meals.reduce(0) { $0 + $1.fat } }
 
-    /// Dynamic target: Base targets scale up when you burn energy through training.
-    var dynamicTargetCalories: Int { targetCalories + activeCaloriesBurned }
+    // MARK: - Cycle-Aware Athletic Fueling
+    var isCycleTrackingActive: Bool { CycleManager.shared.state.isEnabled }
+    var cyclePhase: CyclePhase { CycleManager.shared.state.activePhase() }
+    var cycleDay: Int { CycleManager.shared.state.currentDay() }
+    var cycleCalorieAdjustment: Int { CycleManager.shared.state.calorieAdjustment() }
+    var cycleProteinAdjustment: Int { CycleManager.shared.state.proteinAdjustment() }
+
+    /// Dynamic target: Base targets scale up when you burn energy through training,
+    /// and dynamically expand during the luteal phase (+150 kcal) for hormonal support.
+    var dynamicTargetCalories: Int { targetCalories + activeCaloriesBurned + cycleCalorieAdjustment }
+    var dynamicTargetProtein: Int { targetProtein + cycleProteinAdjustment }
     var remainingCalories: Int { max(0, dynamicTargetCalories - consumedCalories) }
 
     /// Bevel-inspired daily nutrition quality score (0–100)
     var nutritionScore: NutritionScoreBreakdown {
-        let pRatio = targetProtein > 0 ? min(1.0, Double(consumedProtein) / Double(targetProtein)) : 0.0
+        let pRatio = dynamicTargetProtein > 0 ? min(1.0, Double(consumedProtein) / Double(dynamicTargetProtein)) : 0.0
         let cRatio = targetCarbs > 0 ? min(1.0, Double(consumedCarbs) / Double(targetCarbs)) : 0.0
         let fRatio = targetFat > 0 ? min(1.0, Double(consumedFat) / Double(targetFat)) : 0.0
         let macroScore = Int(((pRatio * 0.5 + cRatio * 0.3 + fRatio * 0.2) * 40).rounded())

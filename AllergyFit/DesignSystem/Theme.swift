@@ -1,56 +1,79 @@
 import SwiftUI
 import UIKit
 
-/// AllergyFit design tokens — "Bold & Athletic"
-/// Adaptive light/dark palette; volt green signature accent.
+/// SafeFuel design tokens — "Old Money Athletic Club & Heritage Pavilion"
+/// Sunlit alabaster, British racing green, saddle leather, and burnished brass.
 enum Theme {
 
     // MARK: - Colors
     enum Colors {
-        static let background = Color.dyn(0xF3F5EE, 0x0B0D10)
-        static let surface = Color.dyn(0xFFFFFF, 0x15181E)
-        static let surfaceRaised = Color.dyn(0xE7EADF, 0x222833)
+        // Heritage Club Base Tones
+        static let background = Color.dyn(0xFAF8F5, 0x0E1310) // Sunlit ecru linen in light, dark forest in dark
+        static let surface = Color.dyn(0xFFFFFF, 0x161D18)
+        static let surfaceRaised = Color.dyn(0xF0ECE1, 0x222C24)
 
-        /// Signature accent: neon mint (bright on dark, deepened in light mode for contrast).
-        static let volt = Color.dyn(0x0FA57E, 0x5FF2C2)
-        /// Text/icons placed ON a mint-filled control — white on the deep light-mode
-        /// mint, near-black on the bright dark-mode mint (best contrast in each).
-        static let onVolt = Color.dyn(0xFFFFFF, 0x062018)
+        // Signature Heritage Tones
+        static let racingGreen = Color(hex: 0x143424) // British Racing Green
+        static let saddleLeather = Color(hex: 0x7E4924) // English Bridle Leather
+        static let antiqueBrass = Color(hex: 0xC5A059) // Burnished Brass / Gold
+        static let waxCrimson = Color(hex: 0x9B1D20) // Sealing Wax Red
+        static let carraraMarble = Color(hex: 0xF3EFEA) // Polished Italian Marble
+        static let parchmentBorder = Color.dyn(0xE8E2D7, 0x2B372E)
 
-        /// Allergy-safe status: distinct grass green so it never reads as the mint accent.
-        static let safe = Color.dyn(0x17913F, 0x3BE06B)
+        /// Primary accent: British Racing Green in light mode, polished brass in dark mode.
+        static let volt = Color.dyn(0x143424, 0xD4AF37)
+        /// Text/icons placed on a primary filled button.
+        static let onVolt = Color.dyn(0xFFFFFF, 0x0E1310)
+
+        /// Status indicators
+        static let safe = Color.dyn(0x1A6038, 0x3BE06B)
         static let caution = Color.dyn(0xB45309, 0xFBBF24)
-        static let danger = Color.dyn(0xDC2626, 0xF87171)
+        static let danger = Color.dyn(0x9B1D20, 0xF87171)
 
-        static let protein = Color.dyn(0x2563EB, 0x60A5FA)
-        static let carbs = Color.dyn(0xDB2777, 0xF472B6)
-        static let fat = Color.dyn(0xD97706, 0xFBBF24)
+        // Macro Nutrition Ledger Colors
+        static let protein = Color.dyn(0x1F4E79, 0x60A5FA)
+        static let carbs = Color.dyn(0x9A3B5A, 0xF472B6)
+        static let fat = Color.dyn(0xA8651E, 0xFBBF24)
 
-        static let textPrimary = Color.dyn(0x191D23, 0xF4F6F8)
-        static let textSecondary = Color.dyn(0x555F6C, 0x9AA3AF)
-        static let textTertiary = Color.dyn(0x98A0AB, 0x5C6470)
+        // Editorial Typography Inks
+        static let textPrimary = Color.dyn(0x191D1A, 0xF5F6F4)
+        static let textSecondary = Color.dyn(0x525B54, 0x9EA8A0)
+        static let textTertiary = Color.dyn(0x8A948C, 0x5D685F)
     }
 
     // MARK: - Typography
     enum Fonts {
+        /// Editorial Serif for major hero numbers and ledger amounts
         static func stat(_ size: CGFloat) -> Font {
-            .system(size: size, weight: .heavy, design: .rounded)
+            .system(size: size, weight: .semibold, design: .serif)
         }
-        static let title = Font.system(.title2, design: .rounded).weight(.bold)
-        static let headline = Font.system(.headline, design: .rounded).weight(.semibold)
-        static let body = Font.system(.body, design: .rounded)
-        static let caption = Font.system(.caption, design: .rounded).weight(.medium)
+
+        /// Bespoke Club Display headline (Baskerville / Serif)
+        static func display(_ size: CGFloat) -> Font {
+            if UIFont(name: "Baskerville-SemiBold", size: size) != nil {
+                return Font.custom("Baskerville-SemiBold", size: size)
+            }
+            return Font.system(size: size, weight: .semibold, design: .serif)
+        }
+
+        /// Subheadings and section banners
+        static let title = Font.system(.title2, design: .serif).weight(.semibold)
+        static let headline = Font.system(.headline, design: .serif).weight(.medium)
+        static let body = Font.system(.body, design: .default)
+        static let caption = Font.system(.caption, design: .default).weight(.medium)
+
+        /// High-end club ledger tag font (use with .tracking(2.0))
+        static func clubTag(_ size: CGFloat = 11) -> Font {
+            .system(size: size, weight: .bold, design: .default)
+        }
     }
 
     // MARK: - Metrics
     enum Metrics {
-        static let cornerRadius: CGFloat = 20
+        static let cornerRadius: CGFloat = 16
         static let cardPadding: CGFloat = 16
-        static let screenPadding: CGFloat = 16
+        static let screenPadding: CGFloat = 18
         static let spacing: CGFloat = 12
-        /// Bottom clearance so the last item in a scroll view clears the custom
-        /// tab bar (bar + home indicator). The bar is drawn over the content, so
-        /// every scrolling screen must pad by this or its last row is unreachable.
         static let tabBarClearance: CGFloat = 104
     }
 }
@@ -83,6 +106,11 @@ struct CardBackground: ViewModifier {
             .padding(Theme.Metrics.cardPadding)
             .background(Theme.Colors.surface)
             .clipShape(RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous)
+                    .strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.03), radius: 6, y: 3)
     }
 }
 
@@ -91,17 +119,15 @@ extension View {
 }
 
 // MARK: - Press microinteraction (#23)
-/// Subtle shrink on tap so every button feels alive. ~200ms, springy.
 struct PressableButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .opacity(configuration.isPressed ? 0.9 : 1)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .opacity(configuration.isPressed ? 0.92 : 1)
             .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
 
 extension View {
-    /// Apply the springy press animation to a primary button.
     func pressable() -> some View { buttonStyle(PressableButtonStyle()) }
 }

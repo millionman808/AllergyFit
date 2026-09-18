@@ -3,18 +3,10 @@ import AuthenticationServices
 import Supabase
 import GoogleSignIn
 
-/// Highest-converting pre-account onboarding funnel.
-/// Features 10 total slides with smooth directional sliding animations:
-/// - Step 0: Welcome & Value Hook
-/// - Step 1: Biological Sex / Gender profile (Male vs Female with specific physiology)
-/// - Step 2: Allergens & Food Sensitivities (Top 14 + Custom + "No Allergies")
-/// - Step 3: Severity & Reaction Tolerance (Mild, Moderate, Severe/Anaphylaxis)
-/// - Step 4: Fitness Goal (Gender-specific: Muscle/Strength vs Lean Tone/Vitality)
-/// - Step 5: Wearables & Activity (Apple Watch, Fitbit, Garmin, Whoop, iPhone)
-/// - Step 6: Personal Stats & Gender-specific BMR calculation
-/// - Step 7: Dynamic Plan Generation & Gender-tailored Blueprint reveal
-/// - Step 8 (Second-to-last slide): Account creation (Apple, Google, Email, or Guest)
-/// - Step 9 (Final slide): Zero-scroll single-screen Paywall with 3s hard lock & 3-day free trial
+/// The "Old Money Athletic Club Kitchen" Onboarding Experience.
+/// Features a persistent Carrara marble prep counter, tactile physical kitchen stations,
+/// flat-lay tailored apparel (no mannequins), apothecary ingredient jars,
+/// mechanical brass balance scales, and unfolding cardstock menu blueprints.
 struct PreAuthOnboardingView: View {
     @EnvironmentObject var session: SessionStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -45,9 +37,9 @@ struct PreAuthOnboardingView: View {
     private let total = 10
     private let allAllergens = MockData.allAllergens
 
-    /// Standard list plus anything the user typed themselves.
+    /// Standard pantry provision jars plus custom entries
     private var allTriggerOptions: [String] {
-        ["No allergies (Track nutrition)", "Peanuts", "Tree nuts", "Milk/Dairy", "Eggs", "Gluten/Wheat", "Soy", "Fish", "Shellfish", "Sesame"] + draft.customAllergens
+        ["No Allergens (Track Fuel)", "Peanuts", "Tree Nuts", "Milk / Dairy", "Eggs", "Gluten / Wheat", "Soy", "Fish", "Shellfish", "Sesame"] + draft.customAllergens
     }
 
     var body: some View {
@@ -55,7 +47,7 @@ struct PreAuthOnboardingView: View {
             Theme.Colors.background.ignoresSafeArea()
 
             if step == 9 {
-                // Final slide: Paywall directly embedded
+                // Final Slide: The Honorary Club Membership Card (Paywall)
                 PaywallView(source: "onboarding", onDismiss: {
                     finish()
                 })
@@ -63,13 +55,15 @@ struct PreAuthOnboardingView: View {
             } else {
                 VStack(spacing: 0) {
                     topBar
+                        .padding(.top, 8)
+                        .padding(.horizontal, 20)
 
                     ScrollView {
                         VStack(alignment: .leading, spacing: 20) {
                             content
                         }
                         .padding(.horizontal, 22)
-                        .padding(.top, 8)
+                        .padding(.top, 10)
                         .padding(.bottom, 24)
                         .id(step)
                         .transition(reduceMotion ? .opacity : .directionalSlide(forward: isMovingForward))
@@ -80,17 +74,21 @@ struct PreAuthOnboardingView: View {
                     if step != 8 {
                         footer
                     }
+
+                    // Persistent Marble & Brass Kitchen Prep Counter
+                    PrepCounterSurface()
                 }
             }
         }
-        .alert("Add a trigger", isPresented: $showCustomTrigger) {
-            TextField("e.g. mango, sulphites", text: $customTriggerText)
+        .alert("Add a Custom Provision", isPresented: $showCustomTrigger) {
+            TextField("e.g. Mango, Sulphites, Nightshades", text: $customTriggerText)
                 .textInputAutocapitalization(.never)
             Button("Cancel", role: .cancel) {}
-            Button("Add") { addCustomTrigger() }
+            Button("Add Provision") { addCustomTrigger() }
         } message: {
-            Text("Name anything you need to avoid that isn't in the list.")
+            Text("Specify any ingredient that must be quarantined from your meals.")
         }
+        .preferredColorScheme(.light)
     }
 
     private func addCustomTrigger() {
@@ -110,9 +108,11 @@ struct PreAuthOnboardingView: View {
         HStack(spacing: 12) {
             Button { back() } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.racingGreen)
                     .frame(width: 34, height: 34)
+                    .background(Theme.Colors.surface, in: Circle())
+                    .overlay(Circle().strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1))
             }
             .opacity(step == 0 ? 0 : 1)
             .disabled(step == 0)
@@ -120,47 +120,51 @@ struct PreAuthOnboardingView: View {
             HStack(spacing: 4) {
                 ForEach(0..<total, id: \.self) { i in
                     Capsule()
-                        .fill(i <= step ? Theme.Colors.volt : Theme.Colors.surfaceRaised)
-                        .frame(height: i == step ? 5 : 3)
+                        .fill(i <= step ? Theme.Colors.racingGreen : Theme.Colors.surfaceRaised)
+                        .frame(height: i == step ? 4 : 2.5)
                 }
             }
             .animation(.spring(response: 0.35), value: step)
 
             if !session.isSignedIn && step == 0 {
-                Button("Sign in") {
+                Button {
                     if let onSignIn { onSignIn() } else { finish() }
+                } label: {
+                    Text("SIGN IN")
+                        .font(Theme.Fonts.clubTag(10))
+                        .tracking(1.5)
+                        .foregroundStyle(Theme.Colors.racingGreen)
                 }
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.volt)
-                .fontWeight(.semibold)
             } else {
-                Color.clear.frame(width: 48, height: 34)
+                Color.clear.frame(width: 50, height: 34)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
     }
 
     private var footer: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             Button { advance() } label: {
-                HStack(spacing: 6) {
-                    Text(step == 7 ? "Review & Save Plan" : "Continue")
+                HStack(spacing: 8) {
+                    Text(step == 7 ? "Review & Seal Blueprint" : "Proceed")
+                        .font(Theme.Fonts.headline)
                     Image(systemName: "arrow.right")
-                        .font(.system(size: 13, weight: .bold))
+                        .font(.system(size: 12, weight: .bold))
                 }
-                .font(Theme.Fonts.headline)
-                .foregroundStyle(Theme.Colors.onVolt)
+                .foregroundStyle(Color.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(canAdvance ? Theme.Colors.volt : Theme.Colors.surfaceRaised,
-                            in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .frame(height: 54)
+                .background(canAdvance ? Theme.Colors.racingGreen : Theme.Colors.surfaceRaised,
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .strokeBorder(Theme.Colors.antiqueBrass.opacity(canAdvance ? 0.35 : 0), lineWidth: 1)
+                )
             }
             .disabled(!canAdvance)
             .pressable()
         }
         .padding(.horizontal, 22)
-        .padding(.bottom, 14)
+        .padding(.bottom, 6)
     }
 
     private var canAdvance: Bool {
@@ -212,23 +216,29 @@ struct PreAuthOnboardingView: View {
 
     @ViewBuilder private var content: some View {
         switch step {
-        case 0: welcomeStep
-        case 1: genderStep
-        case 2: triggersStep
-        case 3: severityStep
-        case 4: goalStep
-        case 5: wearableStep
-        case 6: statsStep
-        case 7: calculationAndPayoffStep
-        case 8: accountCreationStep
+        case 0: porticoWelcomeStep
+        case 1: wardrobeLockerStep
+        case 2: pantryLarderStep
+        case 3: quarantineTrayStep
+        case 4: trainingAnnexStep
+        case 5: timepieceValetStep
+        case 6: scalesAndLedgerStep
+        case 7: chefsTableStep
+        case 8: memberRegistryStep
         default: EmptyView()
         }
     }
 
-    private func header(_ title: String, _ sub: String) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
+    private func header(_ title: String, _ sub: String, tag: String? = nil) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let tag {
+                Text(tag.uppercased())
+                    .font(Theme.Fonts.clubTag(10))
+                    .tracking(2.5)
+                    .foregroundStyle(Theme.Colors.antiqueBrass)
+            }
             Text(title)
-                .font(Theme.Fonts.stat(31))
+                .font(Theme.Fonts.display(28))
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(sub)
@@ -238,32 +248,48 @@ struct PreAuthOnboardingView: View {
         }
     }
 
-    // MARK: - Slide 0: Welcome / Hook
+    // MARK: - Slide 0: The Club Portico (Welcome)
 
-    private var welcomeStep: some View {
+    private var porticoWelcomeStep: some View {
         VStack(alignment: .leading, spacing: 20) {
+            // Club Crest Insignia Plaque
             ZStack {
-                Circle().fill(Theme.Colors.volt).frame(width: 76, height: 76)
-                    .shadow(color: Theme.Colors.volt.opacity(0.45), radius: 18, y: 6)
-                Image(systemName: "bolt.shield.fill")
-                    .font(.system(size: 34, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.onVolt)
+                Circle()
+                    .fill(Theme.Colors.racingGreen)
+                    .frame(width: 74, height: 74)
+                    .overlay(Circle().strokeBorder(Theme.Colors.antiqueBrass, lineWidth: 2))
+                    .shadow(color: Theme.Colors.racingGreen.opacity(0.35), radius: 14, y: 5)
+
+                Image(systemName: "laurel.leading")
+                    .font(.system(size: 26, weight: .light))
+                    .foregroundStyle(Theme.Colors.antiqueBrass)
+                    .offset(x: -12)
+
+                Image(systemName: "shield.checkered")
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(Color.white)
+
+                Image(systemName: "laurel.trailing")
+                    .font(.system(size: 26, weight: .light))
+                    .foregroundStyle(Theme.Colors.antiqueBrass)
+                    .offset(x: 12)
             }
-            .padding(.top, 16)
+            .padding(.top, 10)
             .revealIn(0)
 
-            header("Train hard.\nEat safe.",
-                   "The complete fueling system for fitness enthusiasts with food allergies and intolerances.")
+            header("SafeFuel Pavilion",
+                   "The private nutrition and athletic fueling club for athletes with food sensitivities.",
+                   tag: "Est. 2026 • Member Admission")
                 .revealIn(1)
 
             VStack(alignment: .leading, spacing: 12) {
-                bullet("checkmark.shield.fill", "Zero-trace allergen screening on every meal")
+                bulletPill("shield.checkered", "Zero-Trace Allergen Quarantine", "Every ingredient screened against your personal sensitivity matrix.")
                     .revealIn(2)
-                bullet("bolt.heart.fill", "Live calorie burn sync with your smartwatch")
+                bulletPill("bolt.heart.fill", "Live Chronometer Calibration", "Dynamic caloric replenishment synced from your smartwatch.")
                     .revealIn(3)
-                bullet("gauge.with.needle.fill", "Daily Fuel Score & recovery nutrition balance")
+                bulletPill("gauge.with.needle.fill", "Daily Nutrition Recovery Score", "Precision 0–100 fuel quality ledger and micronutrient balance.")
                     .revealIn(4)
-                bullet("fork.knife", "Custom meal plans matched to your macros and triggers")
+                bulletPill("fork.knife", "Bespoke Chef Meal Blueprints", "Weekly chef-crafted culinary plans strictly devoid of your triggers.")
                     .revealIn(5)
             }
             .padding(.top, 4)
@@ -272,12 +298,12 @@ struct PreAuthOnboardingView: View {
                 Button {
                     if let onSignIn { onSignIn() } else { finish() }
                 } label: {
-                    HStack(spacing: 4) {
-                        Text("Already have an account?")
+                    HStack(spacing: 6) {
+                        Text("Already inscribed in the club registry?")
                             .foregroundStyle(Theme.Colors.textSecondary)
                         Text("Sign in")
-                            .foregroundStyle(Theme.Colors.volt)
-                            .fontWeight(.semibold)
+                            .foregroundStyle(Theme.Colors.racingGreen)
+                            .font(Theme.Fonts.headline)
                     }
                     .font(Theme.Fonts.caption)
                     .padding(.top, 6)
@@ -287,126 +313,289 @@ struct PreAuthOnboardingView: View {
         }
     }
 
-    private func bullet(_ icon: String, _ text: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.subheadline)
-                .foregroundStyle(Theme.Colors.volt)
-                .frame(width: 34, height: 34)
-                .background(Theme.Colors.volt.opacity(0.13),
-                            in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-            Text(text)
-                .font(Theme.Fonts.body)
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+    private func bulletPill(_ icon: String, _ title: String, _ desc: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(Theme.Colors.racingGreen.opacity(0.08))
+                    .frame(width: 32, height: 32)
+                Image(systemName: icon)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.racingGreen)
+            }
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold, design: .serif))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Text(desc)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
-    // MARK: - Slide 1: Gender / Biological Sex
+    // MARK: - Slide 1: The Wardrobe (Tailored Apparel / Gender Intake)
 
-    private var genderStep: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            header("Which best describes you?",
-                   "We only use this to estimate how many calories your body burns. It changes the math, nothing else.")
+    private var wardrobeLockerStep: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            header("The Member's Wardrobe",
+                   "Select your profile. Basal metabolic rate, hormone regulation, and protein synthesis thresholds differ by biological sex.",
+                   tag: "Locker Suite • Step I")
                 .revealIn(0)
 
-            HStack(spacing: 12) {
-                genderCard("Male", icon: "figure.stand", isSelected: draft.gender == "Male")
-                genderCard("Female", icon: "figure.stand.dress", isSelected: draft.gender == "Female")
+            HStack(spacing: 14) {
+                // Gentleman's Kit Card
+                outfitCard(
+                    title: "Gentleman",
+                    subtitle: "MSJ +5 kcal baseline",
+                    imageName: "GentlemansKit",
+                    fallbackPath: "/Users/elischafer/Developer/AllergyFit/AllergyFit/Resources/Assets.xcassets/GentlemansKit.imageset/gentlemans_kit.jpg",
+                    tag: "LOCKER 01",
+                    gender: "Male",
+                    isSelected: draft.gender == "Male",
+                    bullets: ["2.0g/kg protein synthesis", "Power & strength density", "Zinc & magnesium recovery"]
+                )
+                .revealIn(1)
+
+                // Lady's Kit Card
+                outfitCard(
+                    title: "Lady",
+                    subtitle: "MSJ -161 kcal baseline",
+                    imageName: "LadysKit",
+                    fallbackPath: "/Users/elischafer/Developer/AllergyFit/AllergyFit/Resources/Assets.xcassets/LadysKit.imageset/ladys_kit.jpg",
+                    tag: "LOCKER 02",
+                    gender: "Female",
+                    isSelected: draft.gender == "Female",
+                    bullets: ["1.8g/kg lean muscle tone", "Cycle-aware hormone fuel", "Iron & calcium shield"]
+                )
+                .revealIn(2)
+            }
+        }
+    }
+
+    private func outfitCard(title: String, subtitle: String, imageName: String, fallbackPath: String,
+                            tag: String, gender: String, isSelected: Bool, bullets: [String]) -> some View {
+        Button {
+            Haptics.tap()
+            draft.gender = gender
+        } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                // Top Tag & Lock In
+                HStack {
+                    Text(tag)
+                        .font(Theme.Fonts.clubTag(9))
+                        .tracking(1.5)
+                        .foregroundStyle(isSelected ? Theme.Colors.antiqueBrass : Theme.Colors.textTertiary)
+
+                    Spacer()
+
+                    if isSelected {
+                        WaxSealStamp(text: "SF", size: 24)
+                    } else {
+                        Circle()
+                            .strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1)
+                            .frame(width: 18, height: 18)
+                    }
+                }
+
+                // Flat-lay Outfit Photograph
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Theme.Colors.surfaceRaised)
+                        .frame(height: 145)
+
+                    if let uiImage = UIImage(named: imageName) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 145)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    } else if let bundlePath = Bundle.main.path(forResource: imageName, ofType: "jpg"),
+                              let uiImage = UIImage(contentsOfFile: bundlePath) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 145)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    } else if let uiImage = UIImage(contentsOfFile: fallbackPath) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 145)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    } else {
+                        Image(systemName: "tshirt.fill")
+                            .font(.system(size: 40))
+                            .foregroundStyle(Theme.Colors.racingGreen)
+                    }
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(isSelected ? Theme.Colors.antiqueBrass : Color.clear, lineWidth: 1.5)
+                )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(Theme.Fonts.display(18))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text(subtitle)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(bullets, id: \.self) { b in
+                        HStack(spacing: 4) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 8, weight: .bold))
+                                .foregroundStyle(isSelected ? Theme.Colors.racingGreen : Theme.Colors.textTertiary)
+                            Text(b)
+                                .font(.system(size: 10))
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                                .lineLimit(1)
+                        }
+                    }
+                }
+            }
+            .padding(12)
+            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(isSelected ? Theme.Colors.racingGreen : Theme.Colors.parchmentBorder,
+                                  lineWidth: isSelected ? 2 : 1)
+            )
+            .shadow(color: Color.black.opacity(isSelected ? 0.08 : 0.02), radius: 8, y: 4)
+            .opacity(isSelected ? 1.0 : 0.75)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Slide 2: The Club Pantry (Allergen Jars)
+
+    private var pantryLarderStep: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            header("The Member's Pantry",
+                   "Select every provision to be quarantined from your kitchen. Stamped items will never appear in your meals.",
+                   tag: "Larder & Quarantine • Step II")
+                .revealIn(0)
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                ForEach(allTriggerOptions, id: \.self) { item in
+                    apothecaryJarCard(item)
+                }
             }
             .revealIn(1)
 
-            Text("You can change this any time in Profile.")
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.textTertiary)
-                .revealIn(2)
+            Button {
+                customTriggerText = ""
+                showCustomTrigger = true
+            } label: {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(Theme.Colors.antiqueBrass)
+                    Text("Add Custom Quarantined Provision")
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.racingGreen)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 46)
+                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1))
+            }
+            .revealIn(2)
         }
     }
 
-    private func genderCard(_ gender: String, icon: String, isSelected: Bool) -> some View {
-        Button {
+    private func apothecaryJarCard(_ name: String) -> some View {
+        let isExcluded = draft.allergenNames.contains(name)
+        return Button {
             Haptics.tap()
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { draft.gender = gender }
-        } label: {
-            VStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .fill(isSelected ? Theme.Colors.volt : Theme.Colors.surfaceRaised)
-                        .frame(width: 64, height: 64)
-                    Image(systemName: icon)
-                        .font(.system(size: 30, weight: .medium))
-                        .foregroundStyle(isSelected ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
+            if isExcluded {
+                draft.allergenNames.remove(name)
+            } else {
+                if name.contains("No Allergens") {
+                    draft.allergenNames.removeAll()
+                } else {
+                    draft.allergenNames.remove("No Allergens (Track Fuel)")
                 }
-                Text(gender)
-                    .font(Theme.Fonts.headline)
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(isSelected ? Theme.Colors.volt : Theme.Colors.textTertiary)
+                draft.allergenNames.insert(name)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 26)
-            .background(isSelected ? Theme.Colors.volt.opacity(0.10) : Theme.Colors.surface,
-                        in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        } label: {
+            HStack(spacing: 8) {
+                ZStack {
+                    // Vintage Ceramic Jar Icon
+                    Image(systemName: isExcluded ? "xmark.shield.fill" : "cylinder.split.1x2.fill")
+                        .font(.system(size: 15))
+                        .foregroundStyle(isExcluded ? Theme.Colors.waxCrimson : Theme.Colors.antiqueBrass)
+                }
+
+                Text(name)
+                    .font(.system(size: 12, weight: .medium, design: .serif))
+                    .foregroundStyle(isExcluded ? Theme.Colors.waxCrimson : Theme.Colors.textPrimary)
+                    .lineLimit(1)
+
+                Spacer(minLength: 0)
+
+                if isExcluded {
+                    Text("EXCLUDE")
+                        .font(Theme.Fonts.clubTag(8))
+                        .tracking(1.0)
+                        .foregroundStyle(Color.white)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Theme.Colors.waxCrimson, in: Capsule())
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 11)
+            .background(isExcluded ? Theme.Colors.waxCrimson.opacity(0.06) : Theme.Colors.surface,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(isSelected ? Theme.Colors.volt : Color.clear, lineWidth: 1.5)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(isExcluded ? Theme.Colors.waxCrimson.opacity(0.6) : Theme.Colors.parchmentBorder, lineWidth: 1)
             )
-            .scaleEffect(isSelected ? 1.0 : 0.97)
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
-    // MARK: - Slide 2: Allergens & Triggers
+    // MARK: - Slide 3: The Quarantine Tray (Severity Inspection)
 
-    private var triggersStep: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            header("What do you need to avoid?",
-                   "Select all allergens and sensitivities that apply. You can change this anytime.")
+    private var quarantineTrayStep: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            header("Quarantine Protocol",
+                   "Calibrate cross-contamination threshold inspection for each flagged ingredient.",
+                   tag: "Inspection Tray • Step III")
                 .revealIn(0)
 
-            FlowChips(items: allTriggerOptions,
-                      selected: $draft.allergenNames,
-                      onAddCustom: { customTriggerText = ""; showCustomTrigger = true })
-                .revealIn(1)
-
-            Text("Don't see your trigger? Tap **+ Add custom** to type anything.")
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.textTertiary)
-                .revealIn(2)
-        }
-    }
-
-    // MARK: - Slide 3: Severity
-
-    private var severityStep: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            header("How severe is each reaction?",
-                   "SafeFuel strictly customizes cross-contact warnings based on your tolerance.")
-                .revealIn(0)
-
-            let filteredTriggers = draft.allergenNames.filter { !$0.contains("No allergies") }
+            let filteredTriggers = draft.allergenNames.filter { !$0.contains("No Allergens") }
             if filteredTriggers.isEmpty {
-                VStack(spacing: 10) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 36))
-                        .foregroundStyle(Theme.Colors.safe)
-                    Text("No Triggers Selected")
-                        .font(Theme.Fonts.headline)
+                VStack(spacing: 12) {
+                    WaxSealStamp(text: "CLEAR", size: 42, color: Theme.Colors.racingGreen)
+                    Text("Pantry Cleared")
+                        .font(Theme.Fonts.display(20))
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("SafeFuel will focus purely on your \(draft.gender.lowercased()) macro targets and workout fueling.")
+                    Text("No quarantine restrictions active. SafeFuel will focus purely on your \(draft.gender.lowercased()) macro targets.")
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.textSecondary)
                         .multilineTextAlignment(.center)
                 }
+                .frame(maxWidth: .infinity)
                 .card()
             } else {
                 ForEach(Array(Array(filteredTriggers).sorted().enumerated()), id: \.element) { idx, name in
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(name)
-                            .font(Theme.Fonts.headline)
-                            .foregroundStyle(Theme.Colors.textPrimary)
+                        HStack {
+                            Text(name)
+                                .font(.system(size: 15, weight: .semibold, design: .serif))
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                            Spacer()
+                            Text("PROTOCOL")
+                                .font(Theme.Fonts.clubTag(9))
+                                .tracking(1.5)
+                                .foregroundStyle(Theme.Colors.antiqueBrass)
+                        }
 
                         HStack(spacing: 6) {
                             ForEach(Sensitivity.allCases) { s in
@@ -415,14 +604,18 @@ struct PreAuthOnboardingView: View {
                                     draft.severityByName[name] = s.rawValue
                                 } label: {
                                     Text(s.short)
-                                        .font(.system(size: 12, weight: .semibold))
+                                        .font(.system(size: 11, weight: .semibold))
                                         .frame(maxWidth: .infinity)
-                                        .frame(height: 38)
-                                        .background(selected(name) == s ? s.color.opacity(0.9)
+                                        .frame(height: 36)
+                                        .background(selected(name) == s ? Theme.Colors.racingGreen
                                                                         : Theme.Colors.surface,
-                                                    in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                        .foregroundStyle(selected(name) == s ? Theme.Colors.onVolt
+                                                    in: RoundedRectangle(cornerRadius: 10))
+                                        .foregroundStyle(selected(name) == s ? Color.white
                                                                              : Theme.Colors.textSecondary)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .strokeBorder(selected(name) == s ? Theme.Colors.antiqueBrass : Theme.Colors.parchmentBorder, lineWidth: 1)
+                                        )
                                 }
                             }
                         }
@@ -438,51 +631,65 @@ struct PreAuthOnboardingView: View {
         Sensitivity(rawValue: draft.severityByName[name] ?? "moderate") ?? .moderate
     }
 
-    // MARK: - Slide 4: Goal (Gender-Specific)
+    // MARK: - Slide 4: The Training Annex (Athletic Goal)
 
-    private var goalStep: some View {
+    private var trainingAnnexStep: some View {
         let isFemale = draft.gender == "Female"
-        let goals: [(String, String, String)] = isFemale ? [
-            ("Build Lean Muscle & Tone", "Sculpt lean muscle with 1.8g/kg protein and hormonal balance", "figure.strengthtraining.traditional"),
-            ("Maintain & Vitality", "Steady energy, balanced metabolism, and cycle-aware fueling", "figure.run"),
-            ("Fat Loss & Definition", "Hormone-sparing caloric deficit to shed fat while toning", "flame.fill")
+        let goals: [(String, String, String, String)] = isFemale ? [
+            ("Build Lean Muscle & Tone", "Sculpting with 1.8g/kg protein threshold", "figure.strengthtraining.traditional", "HYPERTROPHY"),
+            ("Maintain & Vitality", "Steady endocrine energy & cycle-aware balance", "figure.run", "EQUILIBRIUM"),
+            ("Fat Loss & Definition", "Hormone-sparing gradual caloric deficit", "flame.fill", "DEFICIT")
         ] : [
-            ("Build Muscle & Strength", "Hypertrophy focus with 2.0g/kg protein surplus", "figure.strengthtraining.traditional"),
-            ("Maintain & Performance", "High-output athletic conditioning and peak power", "figure.run"),
-            ("Cut & Definition", "Controlled deficit to shed fat while sparing maximum muscle", "flame.fill")
+            ("Build Muscle & Strength", "Hypertrophy focus with 2.0g/kg protein surplus", "figure.strengthtraining.traditional", "SURPLUS"),
+            ("Maintain & Performance", "High-output athletic power & conditioning", "figure.run", "EQUILIBRIUM"),
+            ("Cut & Definition", "Precision deficit sparing maximum muscle tissue", "flame.fill", "DEFICIT")
         ]
 
-        return VStack(alignment: .leading, spacing: 18) {
-            header("What is your primary training goal?",
-                   "We calibrate your daily calories and protein breakdown around your \(draft.gender.lowercased()) biology.")
+        return VStack(alignment: .leading, spacing: 16) {
+            header("The Training Annex",
+                   "Select your primary objective to calibrate your daily calories and macronutrient ledger.",
+                   tag: "Athletic Program • Step IV")
                 .revealIn(0)
 
             ForEach(Array(goals.enumerated()), id: \.element.0) { idx, item in
                 let targetKey = item.0.contains("Build") ? "Build muscle" : item.0.contains("Cut") || item.0.contains("Fat") ? "Cut" : "Maintain"
+                let isSelected = draft.goal == targetKey
+
                 Button {
                     Haptics.tap()
                     draft.goal = targetKey
                 } label: {
                     HStack(spacing: 14) {
-                        Image(systemName: item.2)
-                            .font(.system(size: 20))
-                            .foregroundStyle(draft.goal == targetKey ? Theme.Colors.volt : Theme.Colors.textSecondary)
-                            .frame(width: 36, height: 36)
-                            .background(Theme.Colors.surfaceRaised, in: Circle())
+                        ZStack {
+                            Circle()
+                                .fill(isSelected ? Theme.Colors.racingGreen : Theme.Colors.surfaceRaised)
+                                .frame(width: 42, height: 42)
+                            Image(systemName: item.2)
+                                .font(.system(size: 18))
+                                .foregroundStyle(isSelected ? Theme.Colors.antiqueBrass : Theme.Colors.textSecondary)
+                        }
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(item.0)
-                                .font(Theme.Fonts.headline)
-                                .foregroundStyle(Theme.Colors.textPrimary)
+                            HStack {
+                                Text(item.0)
+                                    .font(.system(size: 15, weight: .semibold, design: .serif))
+                                    .foregroundStyle(Theme.Colors.textPrimary)
+                                Spacer()
+                                Text(item.3)
+                                    .font(Theme.Fonts.clubTag(9))
+                                    .tracking(1.5)
+                                    .foregroundStyle(isSelected ? Theme.Colors.antiqueBrass : Theme.Colors.textTertiary)
+                            }
                             Text(item.1)
-                                .font(Theme.Fonts.caption)
+                                .font(.system(size: 11))
                                 .foregroundStyle(Theme.Colors.textSecondary)
                         }
-                        Spacer()
-                        Image(systemName: draft.goal == targetKey ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(draft.goal == targetKey ? Theme.Colors.volt : Theme.Colors.textTertiary)
                     }
                     .card()
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius)
+                            .strokeBorder(isSelected ? Theme.Colors.racingGreen : Color.clear, lineWidth: 1.5)
+                    )
                 }
                 .buttonStyle(.plain)
                 .revealIn(idx + 1)
@@ -490,46 +697,57 @@ struct PreAuthOnboardingView: View {
         }
     }
 
-    // MARK: - Slide 5: Wearable & Activity Tracking
+    // MARK: - Slide 5: The Timepiece Valet (Wearables)
 
-    private var wearableStep: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            header("Which device tracks your workouts?",
-                   "SafeFuel syncs with Apple Health to automatically adjust your calories when you train.")
+    private var timepieceValetStep: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            header("The Timepiece Valet",
+                   "SafeFuel synchronizes with your personal chronometer via Apple Health to adjust daily intake when training.",
+                   tag: "Smart Chronometer • Step V")
                 .revealIn(0)
 
-            let wearables = [
-                ("Apple Watch", "applewatch", "Live heart rate & workout calories sync natively"),
-                ("Fitbit / Google Pixel", "sensor.tag.radiowaves.forward.fill", "Bridges runs, steps & strain into SafeFuel"),
-                ("Garmin / Whoop / Oura", "waveform.path.ecg", "Syncs high-strain recovery data via HealthKit"),
-                ("iPhone Only", "iphone", "Tracks daily steps and active movement automatically")
+            let timepieces = [
+                ("Apple Watch", "applewatch", "Natively captures active calories, heart rate & workout sessions"),
+                ("Fitbit / Google Pixel", "sensor.tag.radiowaves.forward.fill", "Bridges steps, daily strain & cardio exertion via HealthKit"),
+                ("Garmin / Whoop / Oura", "waveform.path.ecg", "Synchronizes recovery HRV and high-intensity strain data"),
+                ("iPhone Only", "iphone", "Records ambient daily steps and estimated active movement")
             ]
 
-            ForEach(Array(wearables.enumerated()), id: \.element.0) { idx, w in
+            ForEach(Array(timepieces.enumerated()), id: \.element.0) { idx, w in
+                let isSelected = draft.wearable == w.0
                 Button {
                     Haptics.tap()
                     draft.wearable = w.0
                 } label: {
                     HStack(spacing: 14) {
-                        Image(systemName: w.1)
-                            .font(.system(size: 20))
-                            .foregroundStyle(draft.wearable == w.0 ? Theme.Colors.volt : Theme.Colors.textSecondary)
-                            .frame(width: 36, height: 36)
-                            .background(Theme.Colors.surfaceRaised, in: Circle())
+                        ZStack {
+                            Circle()
+                                .fill(isSelected ? Theme.Colors.racingGreen : Theme.Colors.surfaceRaised)
+                                .frame(width: 40, height: 40)
+                            Image(systemName: w.1)
+                                .font(.system(size: 18))
+                                .foregroundStyle(isSelected ? Theme.Colors.antiqueBrass : Theme.Colors.textSecondary)
+                        }
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(w.0)
-                                .font(Theme.Fonts.headline)
+                                .font(.system(size: 15, weight: .semibold, design: .serif))
                                 .foregroundStyle(Theme.Colors.textPrimary)
                             Text(w.2)
-                                .font(Theme.Fonts.caption)
+                                .font(.system(size: 11))
                                 .foregroundStyle(Theme.Colors.textSecondary)
                         }
                         Spacer()
-                        Image(systemName: draft.wearable == w.0 ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(draft.wearable == w.0 ? Theme.Colors.volt : Theme.Colors.textTertiary)
+                        if isSelected {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(Theme.Colors.racingGreen)
+                        }
                     }
                     .card()
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius)
+                            .strokeBorder(isSelected ? Theme.Colors.racingGreen : Color.clear, lineWidth: 1.5)
+                    )
                 }
                 .buttonStyle(.plain)
                 .revealIn(idx + 1)
@@ -537,73 +755,82 @@ struct PreAuthOnboardingView: View {
         }
     }
 
-    // MARK: - Slide 6: Personal Stats (Gender-Specific BMR)
+    // MARK: - Slide 6: The Club Scales (Metrics & BMR)
 
-    private var statsStep: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            header("Your metrics",
-                   "Used for precision Mifflin-St Jeor \(draft.gender.lowercased()) metabolic calculations.")
-            stepper("Training days / week", value: $draft.trainingDays, range: 0...7, suffix: " days")
-            stepper("Weight", value: $draft.weightLb, range: 70...500, suffix: " lb", by: 5)
-            stepper("Height (ft)", value: $draft.heightFeet, range: 3...7, suffix: "'")
-            stepper("Height (in)", value: $draft.heightInches, range: 0...11, suffix: "\"")
-            stepper("Age", value: $draft.age, range: 13...100, suffix: " yrs")
+    private var scalesAndLedgerStep: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            header("The Club Balance Scales",
+                   "Precision physical metrics used for Mifflin-St Jeor metabolic expenditure calculations.",
+                   tag: "Registry Ledger • Step VI")
+                .revealIn(0)
+
+            stepperRow("Training frequency", value: $draft.trainingDays, range: 0...7, suffix: " days / wk")
+            stepperRow("Weight", value: $draft.weightLb, range: 70...500, suffix: " lb", by: 5)
+            stepperRow("Height (ft)", value: $draft.heightFeet, range: 3...7, suffix: "'")
+            stepperRow("Height (in)", value: $draft.heightInches, range: 0...11, suffix: "\"")
+            stepperRow("Age", value: $draft.age, range: 13...100, suffix: " yrs")
 
             HStack(spacing: 10) {
-                Image(systemName: "info.circle.fill")
-                    .foregroundStyle(Theme.Colors.volt)
-                    .font(.system(size: 15))
+                Image(systemName: "scalemass.fill")
+                    .foregroundStyle(Theme.Colors.antiqueBrass)
+                    .font(.system(size: 16))
                 let isFemale = draft.gender == "Female"
-                Text(isFemale ? "Using female BMR formula (-161 kcal factor) for basal metabolic calibration."
-                              : "Using male BMR formula (+5 kcal factor) for basal metabolic calibration.")
-                    .font(.system(size: 11, weight: .medium))
+                Text(isFemale ? "Calibrated to female basal metabolism (-161 kcal factor) for hormonal and energy balance."
+                              : "Calibrated to male basal metabolism (+5 kcal factor) for lean mass synthesis and power.")
+                    .font(.system(size: 11, weight: .medium, design: .serif))
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
-            .padding(10)
-            .background(Theme.Colors.volt.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+            .padding(12)
+            .background(Theme.Colors.antiqueBrass.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.Colors.antiqueBrass.opacity(0.3), lineWidth: 1))
         }
     }
 
-    private func stepper(_ label: String, value: Binding<Int>, range: ClosedRange<Int>,
-                         suffix: String, by: Int = 1) -> some View {
+    private func stepperRow(_ label: String, value: Binding<Int>, range: ClosedRange<Int>,
+                            suffix: String, by: Int = 1) -> some View {
         HStack {
-            Text(label).font(Theme.Fonts.body).foregroundStyle(Theme.Colors.textSecondary)
+            Text(label)
+                .font(.system(size: 14, weight: .medium, design: .serif))
+                .foregroundStyle(Theme.Colors.textSecondary)
             Spacer()
             Button {
                 if value.wrappedValue - by >= range.lowerBound {
                     Haptics.tap(); value.wrappedValue -= by
                 }
             } label: {
-                Image(systemName: "minus").font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                    .frame(width: 34, height: 34)
+                Image(systemName: "minus")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Theme.Colors.racingGreen)
+                    .frame(width: 32, height: 32)
                     .background(Theme.Colors.surfaceRaised, in: Circle())
             }
             Text("\(value.wrappedValue)\(suffix)")
-                .font(Theme.Fonts.headline).foregroundStyle(Theme.Colors.textPrimary)
-                .frame(minWidth: 64)
+                .font(.system(size: 15, weight: .bold, design: .serif).monospacedDigit())
+                .foregroundStyle(Theme.Colors.textPrimary)
+                .frame(minWidth: 68)
             Button {
                 if value.wrappedValue + by <= range.upperBound {
                     Haptics.tap(); value.wrappedValue += by
                 }
             } label: {
-                Image(systemName: "plus").font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Theme.Colors.onVolt)
-                    .frame(width: 34, height: 34)
-                    .background(Theme.Colors.volt, in: Circle())
+                Image(systemName: "plus")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Color.white)
+                    .frame(width: 32, height: 32)
+                    .background(Theme.Colors.racingGreen, in: Circle())
             }
         }
         .card()
     }
 
-    // MARK: - Slide 7: Dynamic Plan Generation & Gender Blueprint Reveal
+    // MARK: - Slide 7: The Chef's Table (Calculation & Blueprint)
 
-    private var calculationAndPayoffStep: some View {
-        VStack(alignment: .leading, spacing: 20) {
+    private var chefsTableStep: some View {
+        VStack(alignment: .leading, spacing: 18) {
             if !calculationComplete {
-                generatingCard
+                engravedCalculatingCard
             } else {
-                planRevealCard
+                unfoldingMenuBlueprint
             }
         }
         .task {
@@ -613,63 +840,65 @@ struct PreAuthOnboardingView: View {
         }
     }
 
-    private var generatingCard: some View {
-        VStack(spacing: 24) {
+    private var engravedCalculatingCard: some View {
+        VStack(spacing: 22) {
             Spacer().frame(height: 10)
 
             ZStack {
                 Circle()
-                    .stroke(Theme.Colors.surfaceRaised, lineWidth: 8)
-                    .frame(width: 130, height: 130)
+                    .stroke(Theme.Colors.surfaceRaised, lineWidth: 6)
+                    .frame(width: 120, height: 120)
 
                 Circle()
                     .trim(from: 0, to: calculationProgress)
-                    .stroke(Theme.Colors.volt, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                    .frame(width: 130, height: 130)
+                    .stroke(Theme.Colors.antiqueBrass, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                    .frame(width: 120, height: 120)
                     .rotationEffect(.degrees(-90))
                     .animation(.linear(duration: 0.2), value: calculationProgress)
 
-                VStack(spacing: 2) {
+                VStack(spacing: 1) {
                     Text("\(Int(calculationProgress * 100))%")
-                        .font(Theme.Fonts.stat(32))
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Text(draft.gender.uppercased())
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
-                        .foregroundStyle(Theme.Colors.volt)
+                        .font(.system(size: 28, weight: .bold, design: .serif))
+                        .foregroundStyle(Theme.Colors.racingGreen)
+                    Text("CALIBRATING")
+                        .font(Theme.Fonts.clubTag(9))
+                        .tracking(1.5)
+                        .foregroundStyle(Theme.Colors.antiqueBrass)
                 }
             }
             .frame(maxWidth: .infinity)
 
-            VStack(spacing: 8) {
+            VStack(spacing: 6) {
                 Text(phaseTitle)
-                    .font(Theme.Fonts.headline)
+                    .font(Theme.Fonts.display(20))
                     .foregroundStyle(Theme.Colors.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Applying your \(draft.allergenNames.count) triggers, \(draft.gender.lowercased()) baseline, and \(draft.wearable) sync.")
+                Text("Applying your quarantine list, \(draft.gender.lowercased()) biology, and \(draft.wearable) synchronization.")
                     .font(Theme.Fonts.caption)
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
             }
 
             VStack(alignment: .leading, spacing: 10) {
-                calcCheckItem(title: "Allergen matrix screening", done: calculationProgress >= 0.25)
-                calcCheckItem(title: "\(draft.gender) metabolic expenditure (-161/+5 factor)", done: calculationProgress >= 0.50)
-                calcCheckItem(title: "Wearable energy balance integration", done: calculationProgress >= 0.75)
-                calcCheckItem(title: "\(draft.gender) macro blueprint optimization", done: calculationProgress >= 0.98)
+                inspectionLine("Larder quarantine matrix screening", done: calculationProgress >= 0.25)
+                inspectionLine("\(draft.gender) basal metabolic expenditure calibrated", done: calculationProgress >= 0.50)
+                inspectionLine("Chronometer workout strain integration verified", done: calculationProgress >= 0.75)
+                inspectionLine("SafeFuel Bespoke Chef Blueprint generated", done: calculationProgress >= 0.98)
             }
-            .padding(16)
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding(14)
+            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1))
         }
     }
 
-    private func calcCheckItem(title: String, done: Bool) -> some View {
+    private func inspectionLine(_ title: String, done: Bool) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: done ? "checkmark.circle.fill" : "circle")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(done ? Theme.Colors.volt : Theme.Colors.textTertiary)
+            Image(systemName: done ? "checkmark.seal.fill" : "circle")
+                .font(.system(size: 14))
+                .foregroundStyle(done ? Theme.Colors.racingGreen : Theme.Colors.textTertiary)
             Text(title)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 12, weight: .medium, design: .serif))
                 .foregroundStyle(done ? Theme.Colors.textPrimary : Theme.Colors.textTertiary)
             Spacer()
         }
@@ -677,10 +906,10 @@ struct PreAuthOnboardingView: View {
 
     private var phaseTitle: String {
         switch calculationPhase {
-        case 0: return "Analyzing Allergy Triggers..."
-        case 1: return "Calibrating \(draft.gender) BMR Baseline..."
-        case 2: return "Optimizing Protein & Nutrient Ratios..."
-        default: return "Finalizing Your \(draft.gender) Plan..."
+        case 0: return "Quarantining Ingredients..."
+        case 1: return "Calibrating \(draft.gender) Metabolism..."
+        case 2: return "Balancing Macronutrient Ledger..."
+        default: return "Finalizing Club Blueprint..."
         }
     }
 
@@ -695,96 +924,107 @@ struct PreAuthOnboardingView: View {
                     else if calculationProgress >= 0.25 { calculationPhase = 1 }
                 }
             }
-            try? await Task.sleep(nanoseconds: 200_000_000)
+            try? await Task.sleep(nanoseconds: 180_000_000)
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 calculationComplete = true
             }
             Haptics.success()
-            // The first value moment: they've just seen their own numbers.
-            // Ask for tracking here — after the payoff lands, before the
-            // account step and well before the paywall. Never on top of it.
-            try? await Task.sleep(nanoseconds: 1_200_000_000)
-            await AdAttribution.requestTrackingIfNeeded()
         }
     }
 
-    private var planRevealCard: some View {
+    private var unfoldingMenuBlueprint: some View {
         let t = draft.targets
         let isFemale = draft.gender == "Female"
-        return VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 8) {
-                Image(systemName: "sparkles")
-                    .foregroundStyle(Theme.Colors.volt)
+        return VStack(alignment: .leading, spacing: 16) {
+            HStack {
                 Text("\(draft.gender.uppercased()) FUEL BLUEPRINT LOCKED")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                    .foregroundStyle(Theme.Colors.volt)
+                    .font(Theme.Fonts.clubTag(10))
+                    .tracking(2.0)
+                    .foregroundStyle(Theme.Colors.antiqueBrass)
+                Spacer()
+                WaxSealStamp(text: "SEALED", size: 24, color: Theme.Colors.racingGreen)
             }
 
-            header("Your plan is locked in.",
-                   "Customized for \(draft.goal.lowercased()), \(draft.gender.lowercased()) physiology, and your personal triggers.")
+            header("Your Daily Nutrition Ledger",
+                   "Formulated for \(draft.goal.lowercased()), \(draft.gender.lowercased()) physiology, and \(draft.trainingDays) training days per week.")
 
+            // Four Ledger Tiles
             HStack(spacing: 8) {
-                target(t.calories.formatted(.number.grouping(.automatic)), "calories", Theme.Colors.volt)
-                target("\(t.protein)g", "protein", Theme.Colors.protein)
-                target("\(t.carbs)g", "carbs", Theme.Colors.carbs)
-                target("\(t.fat)g", "fat", Theme.Colors.fat)
+                ledgerTile(t.calories.formatted(.number.grouping(.automatic)), "calories", Theme.Colors.racingGreen)
+                ledgerTile("\(t.protein)g", "protein", Theme.Colors.protein)
+                ledgerTile("\(t.carbs)g", "carbs", Theme.Colors.carbs)
+                ledgerTile("\(t.fat)g", "fat", Theme.Colors.fat)
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Label("100% Allergen Shield Active", systemImage: "shield.checkerboard")
-                    .font(Theme.Fonts.headline)
-                    .foregroundStyle(Theme.Colors.safe)
-                let activeAllergens = Array(draft.allergenNames.filter { !$0.contains("No allergies") })
-                Text(activeAllergens.isEmpty ? "All standard food logging protected." : activeAllergens.sorted().joined(separator: " · "))
-                    .font(Theme.Fonts.body)
+            // Allergen Shield Card
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Image(systemName: "shield.checkered")
+                        .foregroundStyle(Theme.Colors.safe)
+                    Text("Pantry Quarantine Protocol Active")
+                        .font(.system(size: 13, weight: .bold, design: .serif))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                }
+                let activeAllergens = Array(draft.allergenNames.filter { !$0.contains("No Allergens") })
+                Text(activeAllergens.isEmpty ? "All provisions cleared for standard culinary logging."
+                                             : activeAllergens.sorted().joined(separator: " · "))
+                    .font(.system(size: 12))
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .card()
 
+            // Micronutrient Shield Card
             HStack(spacing: 10) {
                 Image(systemName: isFemale ? "heart.circle.fill" : "bolt.circle.fill")
-                    .foregroundStyle(Theme.Colors.volt)
+                    .foregroundStyle(Theme.Colors.antiqueBrass)
                     .font(.system(size: 20))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(isFemale ? "Female Micronutrient Shield" : "Male Performance Shield")
-                        .font(.system(size: 13, weight: .bold))
+                    Text(isFemale ? "Lady's Micronutrient Protocol" : "Gentleman's Power Protocol")
+                        .font(.system(size: 13, weight: .bold, design: .serif))
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    Text(isFemale ? "Iron & Calcium prioritized for bone density & sustained stamina."
-                                  : "Zinc & Magnesium prioritized for lean muscle synthesis & power.")
+                    Text(isFemale ? "Iron & Calcium prioritized for bone density and sustained stamina."
+                                  : "Zinc & Magnesium prioritized for lean mass synthesis and power.")
                         .font(.system(size: 11))
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }
             }
             .padding(12)
-            .background(Theme.Colors.volt.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(Theme.Colors.antiqueBrass.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.Colors.antiqueBrass.opacity(0.3), lineWidth: 1))
         }
     }
 
-    private func target(_ v: String, _ l: String, _ c: Color) -> some View {
-        VStack(spacing: 3) {
-            Text(v).font(Theme.Fonts.stat(19)).foregroundStyle(c)
-            Text(l).font(.system(size: 11, weight: .medium, design: .rounded))
+    private func ledgerTile(_ val: String, _ label: String, _ color: Color) -> some View {
+        VStack(spacing: 2) {
+            Text(val)
+                .font(.system(size: 17, weight: .bold, design: .serif).monospacedDigit())
+                .foregroundStyle(color)
+            Text(label.uppercased())
+                .font(Theme.Fonts.clubTag(9))
+                .tracking(1.0)
                 .foregroundStyle(Theme.Colors.textTertiary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1))
     }
 
-    // MARK: - Slide 8: Account Creation (Second-to-Last Slide)
+    // MARK: - Slide 8: The Member Registry (Account Creation)
 
-    private var accountCreationStep: some View {
+    private var memberRegistryStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            header("Save your \(draft.gender.lowercased()) plan",
-                   "Create an account to backup your targets, allergen shield, and workout history.")
+            header("The Club Registry",
+                   "Inscribe your name in the club roll to secure your blueprint, quarantine list, and chronometer history.",
+                   tag: "Registry Enrollment • Step VIII")
 
             if let authErrorMessage {
                 Text(authErrorMessage)
                     .font(Theme.Fonts.caption)
                     .foregroundStyle(Theme.Colors.danger)
                     .padding(10)
-                    .background(Theme.Colors.danger.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                    .background(Theme.Colors.danger.opacity(0.10), in: RoundedRectangle(cornerRadius: 10))
             }
 
             VStack(spacing: 12) {
@@ -794,9 +1034,9 @@ struct PreAuthOnboardingView: View {
                 } onCompletion: { result in
                     Task { await handleApple(result) }
                 }
-                .signInWithAppleButtonStyle(.white)
+                .signInWithAppleButtonStyle(.black)
                 .frame(height: 52)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 // Continue with Google
                 Button {
@@ -811,15 +1051,16 @@ struct PreAuthOnboardingView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
                     .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1))
                 }
                 .pressable()
                 .disabled(authBusy)
 
                 HStack {
-                    Rectangle().fill(Theme.Colors.surfaceRaised).frame(height: 1)
-                    Text("or use email").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
-                    Rectangle().fill(Theme.Colors.surfaceRaised).frame(height: 1)
+                    Rectangle().fill(Theme.Colors.parchmentBorder).frame(height: 1)
+                    Text("or with email").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
+                    Rectangle().fill(Theme.Colors.parchmentBorder).frame(height: 1)
                 }
                 .padding(.vertical, 4)
 
@@ -837,17 +1078,18 @@ struct PreAuthOnboardingView: View {
                 } label: {
                     Group {
                         if authBusy {
-                            ProgressView().tint(Theme.Colors.onVolt)
+                            ProgressView().tint(Color.white)
                         } else {
-                            Text(isSigningUp ? "Create Account & Continue" : "Sign In & Continue")
+                            Text(isSigningUp ? "Inscribe & Proceed" : "Sign In & Proceed")
                                 .font(Theme.Fonts.headline)
                         }
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
-                    .background(Theme.Colors.volt)
-                    .foregroundStyle(Theme.Colors.onVolt)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(Theme.Colors.racingGreen)
+                    .foregroundStyle(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.Colors.antiqueBrass.opacity(0.35), lineWidth: 1))
                 }
                 .pressable()
                 .disabled(authBusy || email.isEmpty || password.isEmpty)
@@ -859,11 +1101,23 @@ struct PreAuthOnboardingView: View {
                         authErrorMessage = nil
                     }
                 } label: {
-                    Text(isSigningUp ? "Already have an account? Sign in" : "New user? Create an account")
+                    Text(isSigningUp ? "Already enrolled in registry? Sign in" : "New member? Enroll an account")
                         .font(Theme.Fonts.caption)
-                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .foregroundStyle(Theme.Colors.racingGreen)
                 }
 
+                Divider().padding(.top, 4)
+
+                Button {
+                    Haptics.tap()
+                    session.isDemo = true
+                    isMovingForward = true
+                    withAnimation { step = 9 }
+                } label: {
+                    Text("Enter on Guest Pass / Skip for now")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                }
             }
         }
     }

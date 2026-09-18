@@ -98,6 +98,12 @@ struct OnboardingDraft: Codable, Equatable {
         try await Backend.client.from("profiles").update(update)
             .eq("id", value: userId).execute()
 
+        if isFemale {
+            await MainActor.run {
+                CycleManager.shared.enableForLadyAthlete()
+            }
+        }
+
         struct ARow: Codable { let id: Int; let slug: String }
         let known: [ARow] = try await Backend.client
             .from("allergens").select("id, slug").execute().value

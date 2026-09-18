@@ -10,6 +10,7 @@
 		0024B3F51409FC17DD35639A /* OfflineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE7F11C332AE11247EF20A1 /* OfflineView.swift */; };
 		01F35C772624406092C554F5 /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0720F266E4BA50D0D73ADAB /* SupabaseClient.swift */; };
 		0C2AD9806B993977C21F04AE /* ProfileSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */; };
+		FC1234567890123456789004 /* CycleFuelingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1234567890123456789003 /* CycleFuelingSheet.swift */; };
 		0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 288435BEE80ED02056790322 /* LogView.swift */; };
 		0E69B9D03E02968533C62DFC /* KitchenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA3C1C99F72F50117DEFD37 /* KitchenView.swift */; };
 		10B759CAE590044693BD86FC /* AdAttribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E2520DEB6FB27AD1EDD29A /* AdAttribution.swift */; };
@@ -55,6 +56,7 @@
 		BE6FAD4E24A404232EFF037D /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97EAF00C421B8C1D38B8C78 /* MockData.swift */; };
 		C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */; };
 		C99086EB3F6DBD5E9F838B64 /* TargetsCalc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657934F1F4717B05B3594FE8 /* TargetsCalc.swift */; };
+		FC1234567890123456789002 /* CyclePhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1234567890123456789001 /* CyclePhase.swift */; };
 		CC483688F69F37C1C2DFE555 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */; };
 		CF6246F215255401EE7FFECC /* OnboardingDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD59E75F8DCC6578F90185A /* OnboardingDraft.swift */; };
 		D4AC7AD83F9C8D8ED1E06968 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = CF8908F9A809B906D3B24B07 /* RevenueCat */; };
@@ -90,6 +92,7 @@
 		3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIMealLogView.swift; sourceTree = "<group>"; };
 		401DB052060890B31FDF1D97 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSheets.swift; sourceTree = "<group>"; };
+		FC1234567890123456789003 /* CycleFuelingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleFuelingSheet.swift; sourceTree = "<group>"; };
 		435D00CFDC2A3BABE993C79C /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		46DC741932CA1D866BAA0ECE /* AdConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdConfig.swift; sourceTree = "<group>"; };
@@ -103,6 +106,7 @@
 		62AF4EC9F170CBFD837F5677 /* HealthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthManager.swift; sourceTree = "<group>"; };
 		62BF64A56EBFEB046681A669 /* LogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogService.swift; sourceTree = "<group>"; };
 		657934F1F4717B05B3594FE8 /* TargetsCalc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetsCalc.swift; sourceTree = "<group>"; };
+		FC1234567890123456789001 /* CyclePhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyclePhase.swift; sourceTree = "<group>"; };
 		6F12C9AFA9A9B34DB6B5EC4D /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		71A272564201D4B8EE1BC16C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		792FDCDB66B7E209DB4D5832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -166,6 +170,7 @@
 				440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */,
 				B0720F266E4BA50D0D73ADAB /* SupabaseClient.swift */,
 				657934F1F4717B05B3594FE8 /* TargetsCalc.swift */,
+				FC1234567890123456789001 /* CyclePhase.swift */,
 				DEB40B07CADF21863ED0324E /* TodayStore.swift */,
 			);
 			path = Core;
@@ -237,6 +242,7 @@
 				C74451300BC2755697537A29 /* FeedbackView.swift */,
 				C0507A56BCFDF2BD045EC66E /* LabScanView.swift */,
 				41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */,
+				FC1234567890123456789003 /* CycleFuelingSheet.swift */,
 				FB23C130F988B920D45F1B18 /* ProfileStore.swift */,
 				5362C1AB2997D74FFD7C7339 /* ProfileView.swift */,
 			);
@@ -504,6 +510,7 @@
 				8FD41D9A4843A4728E015364 /* PlanView.swift in Sources */,
 				6224ECEE0BAB2640A0B8475F /* PreAuthOnboardingView.swift in Sources */,
 				0C2AD9806B993977C21F04AE /* ProfileSheets.swift in Sources */,
+				FC1234567890123456789004 /* CycleFuelingSheet.swift in Sources */,
 				EF89115C95A61DE67114E10C /* ProfileStore.swift in Sources */,
 				37EF3047980F19F78008A831 /* ProfileView.swift in Sources */,
 				27360A1A1A3C55C2F8D052EF /* PurchasesManager.swift in Sources */,
@@ -518,6 +525,7 @@
 				1B38CFAB4165A5C14EF11E83 /* Skeleton.swift in Sources */,
 				01F35C772624406092C554F5 /* SupabaseClient.swift in Sources */,
 				C99086EB3F6DBD5E9F838B64 /* TargetsCalc.swift in Sources */,
+				FC1234567890123456789002 /* CyclePhase.swift in Sources */,
 				A3C51CCFEEA239E89FB19F9F /* Theme.swift in Sources */,
 				8C039AF88FB9F89606CC8BF0 /* TodayStore.swift in Sources */,
 				9976C58153C1C451F1895485 /* TrendsView.swift in Sources */,
@@ -536,7 +544,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -689,7 +697,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;

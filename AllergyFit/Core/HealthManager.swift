@@ -31,6 +31,7 @@ final class HealthManager: ObservableObject {
         if let distCyc = HKObjectType.quantityType(forIdentifier: .distanceCycling) { s.insert(distCyc) }
         if let hr = HKObjectType.quantityType(forIdentifier: .heartRate) { s.insert(hr) }
         if let rhr = HKObjectType.quantityType(forIdentifier: .restingHeartRate) { s.insert(rhr) }
+        if let flow = HKObjectType.categoryType(forIdentifier: .menstrualFlow) { s.insert(flow) }
         return s
     }
 
@@ -104,10 +105,31 @@ final class HealthManager: ObservableObject {
         self.todaySteps = s
         self.currentHeartRate = h.current
         self.restingHeartRate = h.resting
+
+        if CycleManager.shared.state.isEnabled {
+            if let latestCycleStart = await fetchLatestMenstrualCycleStart() {
+                CycleManager.shared.updateLastPeriodStartDate(latestCycleStart, syncedFromHealth: true)
+            }
+        }
         #endif
     }
 
     #if canImport(HealthKit)
+    func fetchLatestMenstrualCycleStart() async -> Date? {
+        guard let flowType = HKObjectType.categoryType(forIdentifier: .menstrualFlow) else { return nil }
+        let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: flowType, predicate: nil, limit: 1, sortDescriptors: [sort]) { _, samples, _ in
+                guard let sample = samples?.first else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                continuation.resume(returning: sample.startDate)
+            }
+            store.execute(query)
+        }
+    }
+
     func fetchTodayWorkouts() async -> [HealthWorkoutSummary] {
         let startOfDay = Calendar.current.startOfDay(for: Date())
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: Date(), options: .strictStartDate)
@@ -294,6 +316,7 @@ final class HealthManager: ObservableObject {
     }
     #else
     func refreshTodayHealth() async {}
+    func fetchLatestMenstrualCycleStart() async -> Date? { nil }
     private func startBackgroundObserver() {}
     #endif
 }

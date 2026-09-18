@@ -4,7 +4,7 @@ struct ProfileView: View {
     @EnvironmentObject var session: SessionStore
     @StateObject private var store = ProfileStore()
     @StateObject private var health = HealthManager()
-    @AppStorage("appearance") private var appearance = "dark"
+    @AppStorage("appearance") private var appearance = "light"
 
     @State private var navPath: [String] = {
         UserDefaults.standard.bool(forKey: "showLabScan") ? ["labscan"] : []
@@ -12,6 +12,7 @@ struct ProfileView: View {
     @State private var showTriggers = false
     @State private var showGoals = false
     @State private var showDietary = false
+    @State private var showCycleFueling = false
     @State private var showFeedback = false
     @State private var showWearablesGuide = false
     @State private var confirmDelete = false
@@ -52,6 +53,7 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showGoals) { GoalsEditorView(store: store) }
             .sheet(isPresented: $showDietary) { DietaryPrefsView(store: store) }
+            .sheet(isPresented: $showCycleFueling) { CycleFuelingSheet() }
             .sheet(isPresented: $showFeedback) { FeedbackView() }
             .sheet(isPresented: $showWearablesGuide) { WearablesGuideSheet(health: health) }
             .sheet(item: $shareURL) { url in ShareSheet(items: [url]) }
@@ -275,6 +277,7 @@ struct ProfileView: View {
             settingsGroup("Nutrition") {
                 Button { showGoals = true } label: { settingsRow("Goals & targets", "target") }
                 Button { showDietary = true } label: { settingsRow("Dietary preferences", "leaf.fill") }
+                Button { showCycleFueling = true } label: { settingsRow("Cycle-Aware Fueling", "moon.stars.fill") }
             }
             settingsGroup("App") {
                 appearanceRow

@@ -30,25 +30,30 @@ struct HighlightHeadline: View {
         return Text(before)
             + Text(highlight)
                 .foregroundColor(Theme.Colors.volt)
-                .underline(true, color: Theme.Colors.volt.opacity(0.55))
+                .underline(true, color: Theme.Colors.antiqueBrass)
             + Text(after)
     }
 }
 
 // MARK: - Palette for tiles and chips
 
+/// The club's colours: racing green, brass, sealing-wax red, slate, plum,
+/// sand. Six, so a list of triggers stays legible but never looks like a
+/// rainbow.
 enum HeroTint: CaseIterable {
     case mint, coral, amber, sky, lilac, sand
     var color: Color {
         switch self {
-        case .mint:  return Theme.Colors.volt
-        case .coral: return Color(hex: 0xFF7A6B)
-        case .amber: return Color(hex: 0xFFC24D)
-        case .sky:   return Color(hex: 0x64B5FF)
-        case .lilac: return Color(hex: 0xC792F5)
-        case .sand:  return Color(hex: 0xE8C9A0)
+        case .mint:  return Theme.Colors.racingGreen
+        case .coral: return Theme.Colors.waxCrimson
+        case .amber: return Theme.Colors.antiqueBrass
+        case .sky:   return Color.dyn(0x2E5A7A, 0x7FA7C9)   // slate
+        case .lilac: return Color.dyn(0x6A3D6E, 0xB98BC0)   // plum
+        case .sand:  return Color.dyn(0xB08A5A, 0xD9BE95)   // sand
         }
     }
+    /// White text reads on every heritage tint except sand and brass.
+    var wantsDarkText: Bool { self == .amber || self == .sand }
     static func at(_ i: Int) -> HeroTint { allCases[i % allCases.count] }
 }
 
@@ -67,9 +72,9 @@ struct FoodTileGrid: View {
             ForEach(Array(foods.enumerated()), id: \.offset) { i, food in
                 ZStack {
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .fill(HeroTint.at(i).color.opacity(0.16))
+                        .fill(HeroTint.at(i).color.opacity(0.14))
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .strokeBorder(HeroTint.at(i).color.opacity(0.28), lineWidth: 1)
+                        .strokeBorder(HeroTint.at(i).color.opacity(0.35), lineWidth: 1)
                     Text(food).font(.system(size: 44))
                 }
                 .aspectRatio(1, contentMode: .fit)
@@ -130,15 +135,15 @@ struct SwatchCard: View {
             .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .strokeBorder(selected ? tint.color : Theme.Colors.surfaceRaised, lineWidth: selected ? 1.5 : 1)
+                    .strokeBorder(selected ? tint.color : Theme.Colors.parchmentBorder, lineWidth: selected ? 1.5 : 1)
             )
-            .shadow(color: .black.opacity(0.4), radius: 18, y: 10)
+            .shadow(color: .black.opacity(0.14), radius: 18, y: 10)
             .padding(.horizontal, 52)
             // The food sits on the corner like a sticker, half over the card edge.
             Text(emoji)
                 .font(.system(size: 58))
                 .rotationEffect(.degrees(12))
-                .shadow(color: .black.opacity(0.35), radius: 8, y: 6)
+                .shadow(color: .black.opacity(0.18), radius: 8, y: 6)
                 .offset(x: 128, y: -62)
         }
         .frame(height: 190)
@@ -170,8 +175,8 @@ struct StackedInsightCards: View {
                 .padding(18)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.Colors.surfaceRaised, lineWidth: 1))
-                .shadow(color: .black.opacity(0.35), radius: 14, y: 8)
+                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1))
+                .shadow(color: .black.opacity(0.12), radius: 14, y: 8)
                 .rotationEffect(.degrees(shown ? Double(i - 1) * 2.0 : 0))
                 .offset(x: CGFloat(i - 1) * 8, y: CGFloat(i) * 104)
                 .opacity(shown ? 1 : 0)
@@ -227,8 +232,8 @@ struct TodayPreviewCard: View {
         }
         .padding(18)
         .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(Theme.Colors.surfaceRaised, lineWidth: 1))
-        .shadow(color: Theme.Colors.volt.opacity(0.18), radius: 30, y: 14)
+        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1))
+        .shadow(color: Theme.Colors.racingGreen.opacity(0.14), radius: 30, y: 14)
     }
 
     private func ring<C: View>(_ p: Double, _ c: Color, size: CGFloat, width: CGFloat, @ViewBuilder _ center: () -> C) -> some View {
@@ -285,8 +290,8 @@ struct ColorChips: View {
                         .lineLimit(1)
                         .padding(.horizontal, 16).padding(.vertical, 11)
                         .background(on ? tint.color : Theme.Colors.surface, in: Capsule())
-                        .foregroundStyle(on ? (tint == .mint || tint == .amber || tint == .sand ? Theme.Colors.onVolt : Color.white) : Theme.Colors.textSecondary)
-                        .overlay(Capsule().strokeBorder(on ? .clear : Theme.Colors.surfaceRaised, lineWidth: 1))
+                        .foregroundStyle(on ? (tint.wantsDarkText ? Color(hex: 0x1A1A14) : Color.white) : Theme.Colors.textSecondary)
+                        .overlay(Capsule().strokeBorder(on ? .clear : Theme.Colors.parchmentBorder, lineWidth: 1))
                         .scaleEffect(on ? 1.04 : 1)
                 }
                 .buttonStyle(.plain)
@@ -361,6 +366,78 @@ struct GotItCard: View {
         .padding(22)
         .frame(maxWidth: .infinity)
         .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Theme.Colors.surfaceRaised, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1))
+    }
+}
+
+
+// MARK: - Club crest (welcome)
+
+/// Racing-green medallion with a brass ring — the club's mark.
+struct ClubCrest: View {
+    var size: CGFloat = 64
+    var body: some View {
+        ZStack {
+            Circle().fill(Theme.Colors.racingGreen)
+            Circle().strokeBorder(Theme.Colors.antiqueBrass, lineWidth: size * 0.05)
+            Image(systemName: "laurel.leading")
+                .font(.system(size: size * 0.36, weight: .regular))
+                .foregroundStyle(Theme.Colors.antiqueBrass)
+                .offset(x: -size * 0.2)
+            Image(systemName: "laurel.trailing")
+                .font(.system(size: size * 0.36, weight: .regular))
+                .foregroundStyle(Theme.Colors.antiqueBrass)
+                .offset(x: size * 0.2)
+            Image(systemName: "shield.lefthalf.filled")
+                .font(.system(size: size * 0.3, weight: .semibold))
+                .foregroundStyle(.white)
+        }
+        .frame(width: size, height: size)
+        .shadow(color: Theme.Colors.racingGreen.opacity(0.25), radius: 10, y: 6)
+    }
+}
+
+// MARK: - Locker card (gender)
+
+/// The member's kit, photographed flat on marble. The photo carries the
+/// meaning; the copy underneath stays plain.
+struct LockerCard: View {
+    let image: String
+    let tag: String
+    let title: String
+    let isSelected: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(tag.uppercased())
+                    .font(Theme.Fonts.clubTag(10)).tracking(1.8)
+                    .foregroundStyle(Theme.Colors.antiqueBrass)
+                Spacer()
+                ZStack {
+                    Circle().fill(isSelected ? Theme.Colors.waxCrimson : Color.clear)
+                        .overlay(Circle().strokeBorder(isSelected ? .clear : Theme.Colors.parchmentBorder, lineWidth: 1.5))
+                        .frame(width: 24, height: 24)
+                    if isSelected {
+                        Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                    }
+                }
+            }
+            Image(image)
+                .resizable()
+                .aspectRatio(1, contentMode: .fill)
+                .frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(isSelected ? Theme.Colors.antiqueBrass : Color.clear, lineWidth: 1.5))
+            Text(title)
+                .font(Theme.Fonts.stat(22))
+                .foregroundStyle(Theme.Colors.textPrimary)
+        }
+        .padding(14)
+        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .strokeBorder(isSelected ? Theme.Colors.racingGreen : Theme.Colors.parchmentBorder, lineWidth: isSelected ? 1.5 : 1))
+        .shadow(color: .black.opacity(isSelected ? 0.10 : 0.05), radius: 12, y: 6)
     }
 }

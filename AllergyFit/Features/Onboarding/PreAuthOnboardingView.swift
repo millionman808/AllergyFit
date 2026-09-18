@@ -256,14 +256,11 @@ struct PreAuthOnboardingView: View {
 
     private var welcomeStep: some View {
         VStack(alignment: .leading, spacing: 22) {
-            HStack(spacing: 10) {
-                ZStack {
-                    Circle().fill(Theme.Colors.volt).frame(width: 40, height: 40)
-                    Image(systemName: "bolt.shield.fill")
-                        .font(.system(size: 19, weight: .semibold))
-                        .foregroundStyle(Theme.Colors.onVolt)
-                }
-                Text("SafeFuel").font(Theme.Fonts.stat(20)).foregroundStyle(Theme.Colors.textPrimary)
+            VStack(alignment: .leading, spacing: 14) {
+                ClubCrest(size: 60)
+                Text("Est. 2026 · Member admission")
+                    .font(Theme.Fonts.clubTag(11)).tracking(2.2)
+                    .foregroundStyle(Theme.Colors.antiqueBrass)
             }
             .padding(.top, 6)
             .revealIn(0)
@@ -370,56 +367,41 @@ struct PreAuthOnboardingView: View {
 
     private var genderStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            header("Which best describes you?",
-                   "We only use this to estimate how many calories your body burns. It changes the math, nothing else.")
+            Text("Locker suite")
+                .font(Theme.Fonts.clubTag(11)).tracking(2.2)
+                .foregroundStyle(Theme.Colors.antiqueBrass)
                 .revealIn(0)
+            HighlightHeadline(text: "Which kit is yours?", highlight: "yours")
+                .revealIn(0)
+            Text("We only use this to estimate how many calories your body burns. It changes the math, nothing else.")
+                .font(Theme.Fonts.body)
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .revealIn(1)
 
-            HStack(spacing: 12) {
-                genderCard("Male", icon: "figure.stand", isSelected: draft.gender == "Male")
-                genderCard("Female", icon: "figure.stand.dress", isSelected: draft.gender == "Female")
+            HStack(alignment: .top, spacing: 12) {
+                Button {
+                    Haptics.tap()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { draft.gender = "Male" }
+                } label: {
+                    LockerCard(image: "GentlemansKit", tag: "Locker 01", title: "Male", isSelected: draft.gender == "Male")
+                }
+                .buttonStyle(.plain)
+                Button {
+                    Haptics.tap()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { draft.gender = "Female" }
+                } label: {
+                    LockerCard(image: "LadysKit", tag: "Locker 02", title: "Female", isSelected: draft.gender == "Female")
+                }
+                .buttonStyle(.plain)
             }
-            .revealIn(1)
+            .revealIn(2)
 
             Text("You can change this any time in Profile.")
                 .font(Theme.Fonts.caption)
                 .foregroundStyle(Theme.Colors.textTertiary)
-                .revealIn(2)
+                .revealIn(3)
         }
-    }
-
-    private func genderCard(_ gender: String, icon: String, isSelected: Bool) -> some View {
-        Button {
-            Haptics.tap()
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { draft.gender = gender }
-        } label: {
-            VStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .fill(isSelected ? Theme.Colors.volt : Theme.Colors.surfaceRaised)
-                        .frame(width: 64, height: 64)
-                    Image(systemName: icon)
-                        .font(.system(size: 30, weight: .medium))
-                        .foregroundStyle(isSelected ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
-                }
-                Text(gender)
-                    .font(Theme.Fonts.headline)
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(isSelected ? Theme.Colors.volt : Theme.Colors.textTertiary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 26)
-            .background(isSelected ? Theme.Colors.volt.opacity(0.10) : Theme.Colors.surface,
-                        in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(isSelected ? Theme.Colors.volt : Color.clear, lineWidth: 1.5)
-            )
-            .scaleEffect(isSelected ? 1.0 : 0.97)
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     // MARK: - Slide 2: Allergens & Triggers

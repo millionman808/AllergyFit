@@ -5,7 +5,7 @@ import GoogleSignIn
 struct AllergyFitApp: App {
     @StateObject private var session = SessionStore()
     @StateObject private var purchases = PurchasesManager.shared
-    @AppStorage("appearance") private var appearance = "dark"
+    @AppStorage("appearance") private var appearance = "light"
     @Environment(\.scenePhase) private var scenePhase
 
     init() {

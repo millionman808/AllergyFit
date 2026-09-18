@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "ladys_kit.jpg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

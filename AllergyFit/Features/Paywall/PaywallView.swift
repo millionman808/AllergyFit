@@ -1,10 +1,9 @@
 import SwiftUI
 import RevenueCat
 
-/// High-converting, single-screen paywall with a 3-second hard lock.
-/// Fits entirely on one screen without scrolling on any device.
-/// Shows all features, 3-day free trial pricing, and reveals an 'X' button
-/// in the top corner after 3 seconds for free version access.
+/// Old Money Heritage Athletic Club Membership Paywall.
+/// Single-screen, zero scrolling, 3-second hard lock on top-corner dismiss,
+/// 3-day free trial member pass, and dark green & burnished brass palette.
 struct PaywallView: View {
     var source: String = "unknown"
     var onDismiss: (() -> Void)? = nil
@@ -28,26 +27,26 @@ struct PaywallView: View {
             VStack(spacing: 0) {
                 topBar
                     .padding(.top, 6)
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 22)
 
                 Spacer(minLength: 4)
 
-                headline
+                clubCardHero
                     .padding(.horizontal, 20)
 
                 Spacer(minLength: 8)
 
-                featuresCard
-                    .padding(.horizontal, 18)
+                privilegesList
+                    .padding(.horizontal, 20)
 
                 Spacer(minLength: 8)
 
-                pricingCard
-                    .padding(.horizontal, 18)
+                membershipTierCard
+                    .padding(.horizontal, 20)
 
                 if let err = purchases.purchaseError {
                     Text(err)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.danger)
                         .multilineTextAlignment(.center)
                         .padding(.top, 4)
@@ -57,12 +56,12 @@ struct PaywallView: View {
                 Spacer(minLength: 8)
 
                 ctaSection
-                    .padding(.horizontal, 18)
+                    .padding(.horizontal, 20)
 
                 Spacer(minLength: 4)
 
                 footerSection
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 22)
                     .padding(.bottom, 8)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -71,7 +70,7 @@ struct PaywallView: View {
             await purchases.loadOfferings()
             selected = preferredPackage
 
-            // 3-second hard paywall: the X button remains hidden for 3 seconds
+            // 3-second hard lock before close button appears
             try? await Task.sleep(nanoseconds: 3_000_000_000)
             withAnimation(.spring(response: 0.45, dampingFraction: 0.8)) {
                 canDismiss = true
@@ -79,20 +78,24 @@ struct PaywallView: View {
         }
     }
 
-    // MARK: - Header & 3-Second Close Button
+    // MARK: - Header & 3-Second Delayed Close
 
     private var topBar: some View {
         HStack {
-            HStack(spacing: 5) {
-                Image(systemName: "crown.fill")
+            HStack(spacing: 6) {
+                Image(systemName: "shield.fill")
                     .font(.system(size: 11, weight: .bold))
-                Text("PRO ACCESS")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                Text("CLUB PRIVILEGES")
+                    .font(Theme.Fonts.clubTag(10))
+                    .tracking(2.0)
             }
-            .foregroundStyle(Theme.Colors.volt)
+            .foregroundStyle(Theme.Colors.antiqueBrass)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(Theme.Colors.volt.opacity(0.14), in: Capsule())
+            .background(Theme.Colors.antiqueBrass.opacity(0.14), in: Capsule())
+            .overlay(
+                Capsule().strokeBorder(Theme.Colors.antiqueBrass.opacity(0.4), lineWidth: 1)
+            )
 
             Spacer()
 
@@ -102,30 +105,33 @@ struct PaywallView: View {
                     closePaywall()
                 } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 13, weight: .bold))
+                        .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(Theme.Colors.textSecondary)
                         .frame(width: 32, height: 32)
                         .background(Theme.Colors.surface, in: Circle())
+                        .overlay(
+                            Circle().strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1)
+                        )
                 }
-                .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                .transition(.opacity.combined(with: .scale(scale: 0.85)))
                 .accessibilityLabel("Close and use free version")
             } else {
-                Color.clear
-                    .frame(width: 32, height: 32)
+                Color.clear.frame(width: 32, height: 32)
             }
         }
         .frame(height: 36)
     }
 
-    // MARK: - Headline
+    // MARK: - Metal Club Card Hero
 
-    private var headline: some View {
+    private var clubCardHero: some View {
         VStack(spacing: 4) {
-            Text("Unlock SafeFuel Pro")
-                .font(Theme.Fonts.stat(28))
+            Text("SafeFuel Athletic Club")
+                .font(Theme.Fonts.display(26))
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .multilineTextAlignment(.center)
-            Text("Train at your peak. Eat with 100% confidence.")
+
+            Text("Full Member Admission & Allergen Quarantine Protocol")
                 .font(Theme.Fonts.caption)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .multilineTextAlignment(.center)
@@ -133,45 +139,49 @@ struct PaywallView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Features List (Compact Single-Screen Layout)
+    // MARK: - Privileges Grid (Compact Single-Screen)
 
-    private var featuresCard: some View {
-        VStack(spacing: 9) {
-            featureRow(icon: "shield.checkerboard",
-                       title: "100% Allergen Shield",
-                       desc: "Instant AI meal scans & zero-cross-contamination flags.")
-            featureRow(icon: "bolt.heart.fill",
-                       title: "Dynamic Workout Fueling",
-                       desc: "Auto-syncs Apple Watch, Fitbit, Garmin & Strava calories.")
-            featureRow(icon: "gauge.with.needle.fill",
-                       title: "Daily Fuel & Recovery Score",
-                       desc: "Bevel-inspired 0–100 nutrition score and macro balance.")
-            featureRow(icon: "drop.fill",
-                       title: "Smart Hydration & Strength Lifts",
-                       desc: "Multi-beverage logging & sets/reps volume tracking.")
-            featureRow(icon: "fork.knife",
-                       title: "Custom Safe Meal Plans",
-                       desc: "Weekly recipes strictly built around your personal triggers.")
+    private var privilegesList: some View {
+        VStack(spacing: 8) {
+            privilegeRow(icon: "shield.checkerboard",
+                         title: "Zero-Trace Allergen Shield",
+                         desc: "AI food & label screening with strict trigger quarantine.")
+            privilegeRow(icon: "bolt.heart.fill",
+                         title: "Dynamic Smartwatch Calorie Sync",
+                         desc: "Apple Watch, Fitbit, Garmin & Strava workout balancing.")
+            privilegeRow(icon: "gauge.with.needle.fill",
+                         title: "Daily Nutrition & Fuel Score",
+                         desc: "0–100 recovery index & micronutrient adherence breakdown.")
+            privilegeRow(icon: "drop.fill",
+                         title: "Hydration & Strength Ledger",
+                         desc: "Multi-beverage hydration tracking and lifted volume comparison.")
+            privilegeRow(icon: "fork.knife",
+                         title: "Bespoke Chef Meal Plans",
+                         desc: "Weekly recipes strictly built around your personal triggers.")
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1)
+        )
     }
 
-    private func featureRow(icon: String, title: String, desc: String) -> some View {
+    private func privilegeRow(icon: String, title: String, desc: String) -> some View {
         HStack(spacing: 11) {
             ZStack {
                 Circle()
-                    .fill(Theme.Colors.volt.opacity(0.15))
+                    .fill(Theme.Colors.racingGreen.opacity(0.10))
                     .frame(width: 28, height: 28)
                 Image(systemName: icon)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.volt)
+                    .foregroundStyle(Theme.Colors.racingGreen)
             }
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 13, weight: .semibold, design: .serif))
                     .foregroundStyle(Theme.Colors.textPrimary)
                 Text(desc)
                     .font(.system(size: 11, weight: .regular))
@@ -182,35 +192,37 @@ struct PaywallView: View {
         }
     }
 
-    // MARK: - Pricing & 3-Day Free Trial
+    // MARK: - Membership Card Pricing
 
-    private var pricingCard: some View {
+    private var membershipTierCard: some View {
         VStack(spacing: 6) {
             HStack {
-                HStack(spacing: 4) {
+                HStack(spacing: 5) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 10, weight: .bold))
-                    Text("3-DAY FREE TRIAL INCLUDED")
-                        .font(.system(size: 10, weight: .heavy, design: .rounded))
+                    Text("3-DAY HONORARY GUEST PASS")
+                        .font(Theme.Fonts.clubTag(9))
+                        .tracking(1.5)
                 }
-                .foregroundStyle(Theme.Colors.onVolt)
+                .foregroundStyle(Color.white)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Theme.Colors.volt, in: Capsule())
+                .background(Theme.Colors.racingGreen, in: Capsule())
 
                 Spacer()
 
-                Text("SAVE 60%")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .foregroundStyle(Theme.Colors.volt)
+                Text("BEST VALUE")
+                    .font(Theme.Fonts.clubTag(10))
+                    .tracking(1.5)
+                    .foregroundStyle(Theme.Colors.antiqueBrass)
             }
 
             HStack(alignment: .center, spacing: 10) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("$0.00 Due Today")
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 15, weight: .bold, design: .serif))
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("Try full Pro free for 3 days. Cancel anytime.")
+                    Text("Complimentary 3 days access. Cancel anytime.")
                         .font(.system(size: 11))
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }
@@ -219,8 +231,8 @@ struct PaywallView: View {
 
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("$39.99/yr")
-                        .font(.system(size: 15, weight: .heavy, design: .rounded))
-                        .foregroundStyle(Theme.Colors.volt)
+                        .font(.system(size: 15, weight: .bold, design: .serif))
+                        .foregroundStyle(Theme.Colors.racingGreen)
                     Text("$3.33 / month")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(Theme.Colors.textTertiary)
@@ -228,14 +240,14 @@ struct PaywallView: View {
             }
         }
         .padding(12)
-        .background(Theme.Colors.volt.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Theme.Colors.volt.opacity(0.8), lineWidth: 1.5)
+                .strokeBorder(Theme.Colors.antiqueBrass.opacity(0.8), lineWidth: 1.5)
         )
     }
 
-    // MARK: - CTA Button
+    // MARK: - CTA Section
 
     private var ctaSection: some View {
         VStack(spacing: 6) {
@@ -258,29 +270,33 @@ struct PaywallView: View {
                         ProgressView().tint(Theme.Colors.onVolt)
                     } else {
                         HStack(spacing: 8) {
-                            Text("Start 3-Day Free Trial")
-                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                            Text("Claim 3-Day Honorary Pass")
+                                .font(Theme.Fonts.headline)
                             Image(systemName: "arrow.right")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 13, weight: .bold))
                         }
                     }
                 }
-                .foregroundStyle(Theme.Colors.onVolt)
+                .foregroundStyle(Color.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
-                .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .background(Theme.Colors.racingGreen, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .strokeBorder(Theme.Colors.antiqueBrass.opacity(0.35), lineWidth: 1)
+                )
             }
             .disabled(busy)
             .pressable()
 
-            Text("Renews at $39.99/year after 3 days. Cancel anytime in App Store.")
+            Text("Annual billing begins after 3 days. Cancel anytime in Apple Settings.")
                 .font(.system(size: 10, weight: .regular))
                 .foregroundStyle(Theme.Colors.textTertiary)
                 .multilineTextAlignment(.center)
         }
     }
 
-    // MARK: - Footer Links
+    // MARK: - Footer
 
     private var footerSection: some View {
         HStack(spacing: 16) {
@@ -295,17 +311,13 @@ struct PaywallView: View {
             .font(.system(size: 11, weight: .medium))
             .foregroundStyle(Theme.Colors.textSecondary)
 
-            Text("•")
-                .font(.system(size: 10))
-                .foregroundStyle(Theme.Colors.textTertiary)
+            Text("•").font(.system(size: 10)).foregroundStyle(Theme.Colors.textTertiary)
 
             Button("Privacy Policy") { openURL(privacyURL) }
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(Theme.Colors.textTertiary)
 
-            Text("•")
-                .font(.system(size: 10))
-                .foregroundStyle(Theme.Colors.textTertiary)
+            Text("•").font(.system(size: 10)).foregroundStyle(Theme.Colors.textTertiary)
 
             Button("Terms of Use") { openURL(termsURL) }
                 .font(.system(size: 11, weight: .medium))

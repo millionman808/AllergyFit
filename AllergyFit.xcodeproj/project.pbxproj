@@ -51,6 +51,7 @@
 		A6D22112F9EE16D177262629 /* AllergyFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */; };
 		AAB5062C9AE38F124135344A /* LogMealIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2E73B96C8E73278AE0554A /* LogMealIntent.swift */; };
 		B1E2CB180B0E64154364515D /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 5721EC0D9A2599DDB87B397C /* GoogleSignIn */; };
+		B24FC5F69C8A5DFC2C512BB3 /* CyclePhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = C88431C9DBA46255BCD6FDD7 /* CyclePhase.swift */; };
 		BAE85554D15597AD58224A29 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 71A272564201D4B8EE1BC16C /* Assets.xcassets */; };
 		BE6FAD4E24A404232EFF037D /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97EAF00C421B8C1D38B8C78 /* MockData.swift */; };
 		C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */; };
@@ -62,6 +63,7 @@
 		DC7863094C15E7011C3A45D5 /* RecipeGenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DEF73895F654D9DEAFDA4DB /* RecipeGenService.swift */; };
 		E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F527FD29D3656B651EA45656 /* DashboardView.swift */; };
 		E9B542284387651505FF9574 /* OnboardingHeroes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67EF5ADEF6F6AC978423988D /* OnboardingHeroes.swift */; };
+		EC2E373B01AEE66AFD3516DF /* CycleFuelingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881A9D8C56A414C5A7BA9A87 /* CycleFuelingSheet.swift */; };
 		ECDC65A210B2BA6CE22A6D8F /* BarcodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256B3452AAC3E00918051DEE /* BarcodeScannerView.swift */; };
 		EF89115C95A61DE67114E10C /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB23C130F988B920D45F1B18 /* ProfileStore.swift */; };
 		F5D23EA1C97019CA9F806FCB /* BarcodeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200FA7100116F8B798CEBA44 /* BarcodeService.swift */; };
@@ -113,6 +115,7 @@
 		804C128508222131CC8A9491 /* AIRecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIRecipeView.swift; sourceTree = "<group>"; };
 		80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergenKeywords.swift; sourceTree = "<group>"; };
 		865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchasesManager.swift; sourceTree = "<group>"; };
+		881A9D8C56A414C5A7BA9A87 /* CycleFuelingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleFuelingSheet.swift; sourceTree = "<group>"; };
 		8A1290F9B93141E82026A592 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		9DAB4D05FE16724A93EEF2FE /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		A97EAF00C421B8C1D38B8C78 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
@@ -123,6 +126,7 @@
 		C0507A56BCFDF2BD045EC66E /* LabScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabScanView.swift; sourceTree = "<group>"; };
 		C3F636FEBB89315BECB31D0E /* VoltIntroSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoltIntroSheet.swift; sourceTree = "<group>"; };
 		C74451300BC2755697537A29 /* FeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
+		C88431C9DBA46255BCD6FDD7 /* CyclePhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyclePhase.swift; sourceTree = "<group>"; };
 		D7C63BE8C8482C61ACD9CCF8 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		DA1FD5F5554C1673BC732B82 /* QuickAddMealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAddMealView.swift; sourceTree = "<group>"; };
 		DEB40B07CADF21863ED0324E /* TodayStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayStore.swift; sourceTree = "<group>"; };
@@ -158,6 +162,7 @@
 				B6E2520DEB6FB27AD1EDD29A /* AdAttribution.swift */,
 				46DC741932CA1D866BAA0ECE /* AdConfig.swift */,
 				80552EA8BD3574F3B7F5F56C /* AllergenKeywords.swift */,
+				C88431C9DBA46255BCD6FDD7 /* CyclePhase.swift */,
 				6F12C9AFA9A9B34DB6B5EC4D /* Haptics.swift */,
 				62AF4EC9F170CBFD837F5677 /* HealthManager.swift */,
 				A97EAF00C421B8C1D38B8C78 /* MockData.swift */,
@@ -236,6 +241,7 @@
 		750F89CED5115065489F8737 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				881A9D8C56A414C5A7BA9A87 /* CycleFuelingSheet.swift */,
 				C74451300BC2755697537A29 /* FeedbackView.swift */,
 				C0507A56BCFDF2BD045EC66E /* LabScanView.swift */,
 				41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */,
@@ -485,6 +491,8 @@
 				549D1F0CB1C27341ABE5BC71 /* Confetti.swift in Sources */,
 				366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */,
 				764EE38CD7AEE1DFBB76C2D9 /* CookModeView.swift in Sources */,
+				EC2E373B01AEE66AFD3516DF /* CycleFuelingSheet.swift in Sources */,
+				B24FC5F69C8A5DFC2C512BB3 /* CyclePhase.swift in Sources */,
 				E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */,
 				2BC10D6940F27F748FF1E61C /* DayPlanView.swift in Sources */,
 				2C66A6CF4169282BEC90554E /* FeedbackView.swift in Sources */,
@@ -540,7 +548,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -693,7 +701,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;

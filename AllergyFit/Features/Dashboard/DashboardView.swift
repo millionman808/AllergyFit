@@ -10,6 +10,7 @@ struct DashboardView: View {
     @State private var showQuickAdd = false
     @State private var showTrends = false
     @State private var showNutritionScore = false
+    @State private var showCycleSheet = false
     @State private var loggingPlanMealID: UUID?
     @State private var planLogError: String?
     var onOpenPlan: () -> Void = {}
@@ -25,6 +26,9 @@ struct DashboardView: View {
                         nutritionScorePill
                         dailyPlanCard
                         activityAndWorkoutsCard
+                        if store.isCycleTrackingActive {
+                            cycleConciergeCard
+                        }
                         calorieCard
                         macroRow
                         mealsSection
@@ -61,6 +65,9 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $showNutritionScore) {
                 NutritionScoreSheet(score: store.nutritionScore)
+            }
+            .sheet(isPresented: $showCycleSheet) {
+                CycleFuelingSheet()
             }
             .alert("Couldn't log that meal", isPresented: Binding(
                 get: { planLogError != nil },
@@ -450,10 +457,62 @@ struct DashboardView: View {
         .card()
     }
 
+    private var cycleConciergeCard: some View {
+        Button {
+            showCycleSheet = true
+        } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(store.cyclePhase.accentColor.opacity(0.14))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: store.cyclePhase.icon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(store.cyclePhase.accentColor)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text("\(store.cyclePhase.title.uppercased()) PHASE • DAY \(store.cycleDay)")
+                            .font(.system(size: 10, weight: .bold, design: .serif))
+                            .tracking(1.2)
+                            .foregroundStyle(store.cyclePhase.accentColor)
+
+                        if store.cycleCalorieAdjustment > 0 {
+                            Text("+\(store.cycleCalorieAdjustment) KCAL")
+                                .font(.system(size: 9, weight: .heavy, design: .rounded))
+                                .foregroundStyle(Theme.Colors.onVolt)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(store.cyclePhase.accentColor, in: Capsule())
+                        }
+                    }
+
+                    Text(store.cyclePhase.coachingSummary)
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer(minLength: 4)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.textTertiary)
+            }
+            .card()
+        }
+        .buttonStyle(.plain)
+    }
+
     private var calorieCard: some View {
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 10) {
                 budgetRow("flame.fill", "Budget", store.targetCalories, Theme.Colors.volt)
+                if store.cycleCalorieAdjustment > 0 {
+                    budgetRow("moon.stars.fill", "Hormone Fuel", store.cycleCalorieAdjustment, store.cyclePhase.accentColor)
+                }
                 if store.activeCaloriesBurned > 0 {
                     budgetRow("bolt.fill", "Active Burn", store.activeCaloriesBurned, Theme.Colors.caution)
                 }

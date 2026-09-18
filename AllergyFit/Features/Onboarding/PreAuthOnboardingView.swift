@@ -314,7 +314,7 @@ struct PreAuthOnboardingView: View {
         VStack(alignment: .leading, spacing: 22) {
             HighlightHeadline(text: "Every number from the USDA database. Never guessed.", highlight: "Never guessed.")
                 .revealIn(0)
-            SwatchCard(tint: .coral, emoji: "🍳", title: "325 calories",
+            SwatchCard(tint: .coral, symbol: "checkmark.seal.fill", title: "325 calories",
                        subtitle: "Scrambled eggs, toast & butter\n18g protein · 28g carbs · 14g fat",
                        badge: "USDA verified", tilt: -7)
                 .padding(.top, 8)
@@ -494,10 +494,10 @@ struct PreAuthOnboardingView: View {
     // MARK: - Slide 4: Goal (Gender-Specific)
 
     private var goalStep: some View {
-        let goals: [(key: String, title: String, sub: String, emoji: String, tint: HeroTint)] = [
-            ("Build muscle", "Build muscle", "A modest surplus and more protein.", "💪", .mint),
-            ("Maintain",     "Stay where I am", "Hold your weight, eat well, train well.", "⚖️", .sky),
-            ("Cut",          "Lean out", "A careful deficit that keeps your muscle.", "🔥", .coral),
+        let goals: [(key: String, title: String, sub: String, symbol: String, tint: HeroTint)] = [
+            ("Build muscle", "Build muscle", "A modest surplus and more protein.", "figure.strengthtraining.traditional", .mint),
+            ("Maintain",     "Stay where I am", "Hold your weight, eat well, train well.", "scalemass.fill", .sky),
+            ("Cut",          "Lean out", "A careful deficit that keeps your muscle.", "flame.fill", .coral),
         ]
         return VStack(alignment: .leading, spacing: 14) {
             HighlightHeadline(text: "What are you training for?", highlight: "training for")
@@ -507,7 +507,7 @@ struct PreAuthOnboardingView: View {
                     Haptics.tap()
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { draft.goal = g.key }
                 } label: {
-                    SwatchCard(tint: g.tint, emoji: g.emoji, title: g.title, subtitle: g.sub,
+                    SwatchCard(tint: g.tint, symbol: g.symbol, title: g.title, subtitle: g.sub,
                                selected: draft.goal == g.key, tilt: i.isMultiple(of: 2) ? -5 : 5)
                 }
                 .buttonStyle(.plain)

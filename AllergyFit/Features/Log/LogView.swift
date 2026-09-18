@@ -414,8 +414,9 @@ struct WorkoutLogView: View {
             // Volume comparison card
             let (metaphor, count) = LiftedVolumeComparison.compare(totalVolumeLb: totalVolumeLb)
             HStack(spacing: 14) {
-                Text(metaphor.emoji)
-                    .font(.system(size: 38))
+                Image(systemName: metaphor.symbol)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.volt)
                     .frame(width: 50, height: 50)
                     .background(Theme.Colors.volt.opacity(0.12), in: Circle())
                 VStack(alignment: .leading, spacing: 2) {

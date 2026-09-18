@@ -65,7 +65,9 @@ enum HeroTint: CaseIterable {
 struct FoodTileGrid: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shown = false
-    private let foods = ["🥗", "🍣", "🥑", "🍓", "🍗", "🥕", "🫐", "🍠", "🥥"]
+    private let foods = ["leaf.fill", "fish.fill", "carrot.fill",
+                         "frying.pan.fill", "cup.and.saucer.fill", "fork.knife",
+                         "basket.fill", "drop.fill", "flame.fill"]
 
     var body: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
@@ -75,7 +77,9 @@ struct FoodTileGrid: View {
                         .fill(HeroTint.at(i).color.opacity(0.14))
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
                         .strokeBorder(HeroTint.at(i).color.opacity(0.35), lineWidth: 1)
-                    Text(food).font(.system(size: 44))
+                    Image(systemName: food)
+                        .font(.system(size: 30, weight: .medium))
+                        .foregroundStyle(HeroTint.at(i).color)
                 }
                 .aspectRatio(1, contentMode: .fit)
                 .scaleEffect(shown ? 1 : 0.6)
@@ -90,11 +94,11 @@ struct FoodTileGrid: View {
 // MARK: - Floating card on a tilted swatch (trust, goals)
 
 /// A rounded colour swatch rotated a few degrees, with a crisp card floating
-/// over it and a large emoji peeking out from behind — the "photo on torn
-/// paper" effect, without the photo.
+/// over it and a sealed badge on the corner — the "card on torn paper"
+/// effect, without the photo.
 struct SwatchCard: View {
     let tint: HeroTint
-    let emoji: String
+    let symbol: String
     let title: String
     var subtitle: String? = nil
     var badge: String? = nil
@@ -139,12 +143,17 @@ struct SwatchCard: View {
             )
             .shadow(color: .black.opacity(0.14), radius: 18, y: 10)
             .padding(.horizontal, 52)
-            // The food sits on the corner like a sticker, half over the card edge.
-            Text(emoji)
-                .font(.system(size: 58))
-                .rotationEffect(.degrees(12))
-                .shadow(color: .black.opacity(0.18), radius: 8, y: 6)
-                .offset(x: 128, y: -62)
+            // A seal on the corner, half over the card edge.
+            ZStack {
+                Circle().fill(Theme.Colors.surface)
+                Circle().strokeBorder(Theme.Colors.antiqueBrass, lineWidth: 2)
+                Image(systemName: symbol)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(tint.color)
+            }
+            .frame(width: 54, height: 54)
+            .shadow(color: .black.opacity(0.16), radius: 8, y: 5)
+            .offset(x: 128, y: -58)
         }
         .frame(height: 190)
     }

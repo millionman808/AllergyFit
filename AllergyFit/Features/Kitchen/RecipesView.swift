@@ -382,7 +382,7 @@ struct RecipesView: View {
                 Text("No saved recipes yet")
                     .font(Theme.Fonts.headline)
                     .foregroundStyle(Theme.Colors.textPrimary)
-                Text("Tap the ♥ on any recipe to keep it here — or let Volt write one just for you.")
+                Text("Tap the heart on any recipe to keep it here — or let Volt write one just for you.")
                     .font(Theme.Fonts.caption)
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .multilineTextAlignment(.center)

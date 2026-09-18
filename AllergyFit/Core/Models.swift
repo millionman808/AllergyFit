@@ -165,21 +165,21 @@ struct HealthWorkoutSummary: Identifiable, Equatable {
 enum LiftedVolumeComparison {
     struct Metaphor {
         let name: String
-        let emoji: String
+        let symbol: String
         let weightLb: Double
         let funFact: String
     }
 
     static let milestones: [Metaphor] = [
-        Metaphor(name: "Grand Piano", emoji: "🎹", weightLb: 1000, funFact: "a concert Steinway Model D"),
-        Metaphor(name: "Harley Motorcycle", emoji: "🏍️", weightLb: 2500, funFact: "a cruising Harley-Davidson"),
-        Metaphor(name: "Adult Giraffe", emoji: "🦒", weightLb: 4200, funFact: "a full-grown bull giraffe"),
-        Metaphor(name: "Tesla Model Y", emoji: "⚡️", weightLb: 8800, funFact: "an electric dual-motor crossover"),
-        Metaphor(name: "African Bush Elephant", emoji: "🐘", weightLb: 13000, funFact: "the largest land animal on Earth"),
-        Metaphor(name: "T-Rex", emoji: "🦖", weightLb: 18000, funFact: "an apex Cretaceous predator"),
-        Metaphor(name: "London Double-Decker Bus", emoji: "🚌", weightLb: 28000, funFact: "a classic red Routemaster"),
-        Metaphor(name: "Semi Truck Cab", emoji: "🚛", weightLb: 45000, funFact: "a heavy-duty highway hauler"),
-        Metaphor(name: "Blue Whale", emoji: "🐋", weightLb: 120000, funFact: "the heaviest creature to ever exist")
+        Metaphor(name: "Grand Piano", symbol: "pianokeys", weightLb: 1000, funFact: "a concert Steinway Model D"),
+        Metaphor(name: "Harley Motorcycle", symbol: "bicycle", weightLb: 2500, funFact: "a cruising Harley-Davidson"),
+        Metaphor(name: "Adult Giraffe", symbol: "pawprint.fill", weightLb: 4200, funFact: "a full-grown bull giraffe"),
+        Metaphor(name: "Tesla Model Y", symbol: "bolt.car.fill", weightLb: 8800, funFact: "an electric dual-motor crossover"),
+        Metaphor(name: "African Bush Elephant", symbol: "pawprint.fill", weightLb: 13000, funFact: "the largest land animal on Earth"),
+        Metaphor(name: "T-Rex", symbol: "lizard.fill", weightLb: 18000, funFact: "an apex Cretaceous predator"),
+        Metaphor(name: "London Double-Decker Bus", symbol: "bus.fill", weightLb: 28000, funFact: "a classic red Routemaster"),
+        Metaphor(name: "Semi Truck Cab", symbol: "truck.box.fill", weightLb: 45000, funFact: "a heavy-duty highway hauler"),
+        Metaphor(name: "Blue Whale", symbol: "fish.fill", weightLb: 120000, funFact: "the heaviest creature to ever exist")
     ]
 
     static func compare(totalVolumeLb: Double) -> (metaphor: Metaphor, count: Double) {

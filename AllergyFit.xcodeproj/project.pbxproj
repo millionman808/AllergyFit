@@ -61,6 +61,7 @@
 		D7671D347D0879889C12EDFC /* ReminderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB275F388DE7232A4145F13 /* ReminderManager.swift */; };
 		DC7863094C15E7011C3A45D5 /* RecipeGenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DEF73895F654D9DEAFDA4DB /* RecipeGenService.swift */; };
 		E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F527FD29D3656B651EA45656 /* DashboardView.swift */; };
+		E9B542284387651505FF9574 /* OnboardingHeroes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67EF5ADEF6F6AC978423988D /* OnboardingHeroes.swift */; };
 		ECDC65A210B2BA6CE22A6D8F /* BarcodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256B3452AAC3E00918051DEE /* BarcodeScannerView.swift */; };
 		EF89115C95A61DE67114E10C /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB23C130F988B920D45F1B18 /* ProfileStore.swift */; };
 		F5D23EA1C97019CA9F806FCB /* BarcodeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200FA7100116F8B798CEBA44 /* BarcodeService.swift */; };
@@ -103,6 +104,7 @@
 		62AF4EC9F170CBFD837F5677 /* HealthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthManager.swift; sourceTree = "<group>"; };
 		62BF64A56EBFEB046681A669 /* LogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogService.swift; sourceTree = "<group>"; };
 		657934F1F4717B05B3594FE8 /* TargetsCalc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetsCalc.swift; sourceTree = "<group>"; };
+		67EF5ADEF6F6AC978423988D /* OnboardingHeroes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingHeroes.swift; sourceTree = "<group>"; };
 		6F12C9AFA9A9B34DB6B5EC4D /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		71A272564201D4B8EE1BC16C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		792FDCDB66B7E209DB4D5832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -352,6 +354,7 @@
 			isa = PBXGroup;
 			children = (
 				AAD59E75F8DCC6578F90185A /* OnboardingDraft.swift */,
+				67EF5ADEF6F6AC978423988D /* OnboardingHeroes.swift */,
 				8A1290F9B93141E82026A592 /* OnboardingView.swift */,
 				F355062205365F5C256EF2F3 /* PreAuthOnboardingView.swift */,
 				C3F636FEBB89315BECB31D0E /* VoltIntroSheet.swift */,
@@ -498,6 +501,7 @@
 				566B3F9A15CB1EC222A5C94F /* Models.swift in Sources */,
 				0024B3F51409FC17DD35639A /* OfflineView.swift in Sources */,
 				CF6246F215255401EE7FFECC /* OnboardingDraft.swift in Sources */,
+				E9B542284387651505FF9574 /* OnboardingHeroes.swift in Sources */,
 				A09ACEE367E63E404B64C2CC /* OnboardingMotion.swift in Sources */,
 				F94845F6DD0FECFCA22C29CC /* OnboardingView.swift in Sources */,
 				717CAC2C3BCA1A9213AB0753 /* PaywallView.swift in Sources */,
@@ -536,7 +540,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -689,7 +693,7 @@
 				CODE_SIGN_ENTITLEMENTS = AllergyFit/Resources/AllergyFit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = KLD3ENRH42;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;

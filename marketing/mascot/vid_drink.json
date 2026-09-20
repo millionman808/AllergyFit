@@ -1,0 +1,27 @@
+[
+  {
+    "id": "6503c28d-8a02-4f7e-bcc6-ebc586c4e471",
+    "status": "completed",
+    "display_name": "Kling 3.0 Turbo",
+    "job_set_type": "kling3_0_turbo",
+    "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3AgUxKvNX6J4tzmVA0FK6OViTwg/hf_20260920_081232_6503c28d-8a02-4f7e-bcc6-ebc586c4e471.mp4",
+    "created_at": 1789891952.196758,
+    "params": {
+      "prompt": "Drinking: holds a tall glass of cold water with both stubby arms, tilts it up and drinks, a few water droplets splash, then lowers the glass looking refreshed. The exact cute avocado mascot from the reference image, same face, headband and sneakers, keeps its 2D illustrated look. Full body always fully in frame, centered, camera locked and static, no camera movement, no zoom. Background is a flat solid bright chroma-key green, nothing else in the scene. Smooth looping animation, soft squash-and-stretch, no text.",
+      "medias": [
+        {
+          "data": {
+            "id": "e46dd712-1fc9-48e6-84f8-99a72bada38f",
+            "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3AgUxKvNX6J4tzmVA0FK6OViTwg/e46dd712-1fc9-48e6-84f8-99a72bada38f.png",
+            "type": "media_input"
+          },
+          "role": "start_image"
+        }
+      ],
+      "duration": 5,
+      "resolution": "720p",
+      "width": 720,
+      "height": 720
+    }
+  }
+]

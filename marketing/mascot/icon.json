@@ -1,0 +1,28 @@
+[
+  {
+    "id": "91b3b8b2-16d9-4ca1-92c8-086fdbf193d4",
+    "status": "completed",
+    "display_name": "Nano Banana Pro",
+    "job_set_type": "nano_banana_2",
+    "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3AgUxKvNX6J4tzmVA0FK6OViTwg/hf_20260920_081117_91b3b8b2-16d9-4ca1-92c8-086fdbf193d4.png",
+    "created_at": 1789891877.188213,
+    "params": {
+      "width": 2048,
+      "height": 2048,
+      "aspect_ratio": "1:1",
+      "resolution": "2k",
+      "batch_size": 1,
+      "input_images": [
+        {
+          "id": "5362a79d-9d5b-495d-89c8-3c80af881a30",
+          "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3AgUxKvNX6J4tzmVA0FK6OViTwg/5362a79d-9d5b-495d-89c8-3c80af881a30.png",
+          "type": "media_input"
+        }
+      ],
+      "input_image": null,
+      "application": null,
+      "surface": null,
+      "prompt": "iOS app icon, square, filling the frame edge to edge. The exact avocado mascot from the reference image — same face, same headband, same colours — shown from the headband down to just below the pit belly, large and centered, smiling, one arm flexing. Background is a solid deep British racing green with a very subtle radial vignette. A thin burnished brass circular ring sits behind the character like an enamel club pin, the character overlapping its lower edge slightly. Soft modern retro illustration with light grain, muted premium palette. No text, no letters, no words, no rounded corners, nothing outside the square."
+    }
+  }
+]

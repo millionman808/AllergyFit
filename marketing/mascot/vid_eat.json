@@ -1,0 +1,27 @@
+[
+  {
+    "id": "7baa41c6-24bb-4c97-ba7d-b761066eba5f",
+    "status": "completed",
+    "display_name": "Kling 3.0 Turbo",
+    "job_set_type": "kling3_0_turbo",
+    "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3AgUxKvNX6J4tzmVA0FK6OViTwg/hf_20260920_081231_7baa41c6-24bb-4c97-ba7d-b761066eba5f.mp4",
+    "created_at": 1789891951.73015,
+    "params": {
+      "prompt": "Eating: holds a small wooden bowl of salad in one arm and lifts a wooden spoon to its mouth with the other, chews happily, eyes squint with delight, then lowers the spoon. The exact cute avocado mascot from the reference image, same face, headband and sneakers, keeps its 2D illustrated look. Full body always fully in frame, centered, camera locked and static, no camera movement, no zoom. Background is a flat solid bright chroma-key green, nothing else in the scene. Smooth looping animation, soft squash-and-stretch, no text.",
+      "medias": [
+        {
+          "data": {
+            "id": "7ca954b4-ba73-4b76-913e-93cfd02a6ad4",
+            "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3AgUxKvNX6J4tzmVA0FK6OViTwg/7ca954b4-ba73-4b76-913e-93cfd02a6ad4.png",
+            "type": "media_input"
+          },
+          "role": "start_image"
+        }
+      ],
+      "duration": 5,
+      "resolution": "720p",
+      "width": 720,
+      "height": 720
+    }
+  }
+]

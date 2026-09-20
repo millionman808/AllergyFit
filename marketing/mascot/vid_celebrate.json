@@ -1,0 +1,27 @@
+[
+  {
+    "id": "7185a894-ae79-427d-a00d-06567f7b9283",
+    "status": "completed",
+    "display_name": "Kling 3.0 Turbo",
+    "job_set_type": "kling3_0_turbo",
+    "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3AgUxKvNX6J4tzmVA0FK6OViTwg/hf_20260920_081240_7185a894-ae79-427d-a00d-06567f7b9283.mp4",
+    "created_at": 1789891960.209511,
+    "params": {
+      "prompt": "Celebration: jumps into the air flexing both arms, lands with a little bounce and a big smile, then settles back to the idle pose. The exact cute avocado mascot from the reference image, same face, headband and sneakers, keeps its 2D illustrated look. Full body always fully in frame, centered, camera locked and static, no camera movement, no zoom. Background is a flat solid bright chroma-key green, nothing else in the scene. Smooth looping animation, soft squash-and-stretch, no text.",
+      "medias": [
+        {
+          "data": {
+            "id": "1175c859-ddd1-4c0e-81f7-003fe7fe9660",
+            "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3AgUxKvNX6J4tzmVA0FK6OViTwg/1175c859-ddd1-4c0e-81f7-003fe7fe9660.png",
+            "type": "media_input"
+          },
+          "role": "start_image"
+        }
+      ],
+      "duration": 5,
+      "resolution": "720p",
+      "width": 720,
+      "height": 720
+    }
+  }
+]

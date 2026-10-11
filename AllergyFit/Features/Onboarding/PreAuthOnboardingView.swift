@@ -272,7 +272,7 @@ struct PreAuthOnboardingView: View {
                 .padding(.top, 4)
                 .revealIn(2)
 
-            Text("Macros you can trust, checked against your triggers. For allergies, intolerances and sensitivities.")
+            Text("Calories you can trust, checked against your triggers — so you can reach your goal without setting off your stomach.")
                 .font(Theme.Fonts.body)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -495,12 +495,12 @@ struct PreAuthOnboardingView: View {
 
     private var goalStep: some View {
         let goals: [(key: String, title: String, sub: String, symbol: String, tint: HeroTint)] = [
-            ("Build muscle", "Build muscle", "A modest surplus and more protein.", "figure.strengthtraining.traditional", .mint),
-            ("Maintain",     "Stay where I am", "Hold your weight, eat well, train well.", "scalemass.fill", .sky),
-            ("Cut",          "Lean out", "A careful deficit that keeps your muscle.", "flame.fill", .coral),
+            ("Cut",          "Lose weight", "A gentle deficit that still leaves you energy.", "arrow.down.right.circle.fill", .mint),
+            ("Maintain",     "Stay where I am", "Hold steady, eat well, feel good.", "scalemass.fill", .sky),
+            ("Build muscle", "Build muscle", "A modest surplus and more protein.", "figure.strengthtraining.traditional", .coral),
         ]
         return VStack(alignment: .leading, spacing: 14) {
-            HighlightHeadline(text: "What are you training for?", highlight: "training for")
+            HighlightHeadline(text: "What are you hoping for?", highlight: "hoping for")
                 .revealIn(0)
             ForEach(Array(goals.enumerated()), id: \.element.key) { i, g in
                 Button {

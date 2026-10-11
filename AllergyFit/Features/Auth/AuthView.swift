@@ -104,7 +104,7 @@ struct AuthView: View {
                     Text("SafeFuel")
                         .font(Theme.Fonts.stat(44))
                         .foregroundStyle(Theme.Colors.volt)
-                    Text("Train hard. Eat with confidence.")
+                    Text("Eat safe. Reach your goal.")
                         .font(Theme.Fonts.headline)
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }

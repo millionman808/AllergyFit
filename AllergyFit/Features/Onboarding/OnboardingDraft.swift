@@ -57,6 +57,11 @@ struct OnboardingDraft: Codable, Equatable {
         case "Build muscle": calories += isFemale ? 250 : 350
         default: break
         }
+        // Never recommend eating below what the body burns at rest, and never
+        // below the clinical floor for unsupervised dieting (1200 / 1500).
+        // A weight-loss app that hands someone a 900 kcal target is a safety
+        // problem first and an App Store review problem second.
+        calories = max(calories, max(bmr, isFemale ? 1200 : 1500))
         let proteinMultiplier = isFemale ? 1.8 : 2.0
         let fatMultiplier = isFemale ? 1.0 : 0.9
         let protein = Int((kg * proteinMultiplier).rounded())

@@ -17,6 +17,9 @@ enum TargetsCalc {
         case "build": calories += 300
         default: break
         }
+        // Same floor as OnboardingDraft.targets — see the note there. This
+        // path has no sex, so it uses the lower (more cautious) bound.
+        calories = max(calories, max(bmr, 1200))
         let protein = Int((weightKg * 1.9).rounded())
         let fat = Int((weightKg * 0.9).rounded())
         let carbs = max(Int(((calories - Double(protein * 4) - Double(fat * 9)) / 4).rounded()), 0)

@@ -381,7 +381,7 @@ struct PlanView: View {
 
     private var planWithVoltButton: some View {
         Button { showDayPlan = true } label: {
-            VoltActionCard(title: "Plan \(PlanStore.dayNames[selectedDay]) with Volt",
+            VoltActionCard(title: "Plan \(PlanStore.dayNames[selectedDay]) with Pip",
                            subtitle: "Around \(dailyTarget) kcal, checked against your listed triggers")
         }
     }
@@ -572,7 +572,7 @@ struct PlannedMealRow: View {
 
             if meal.isCompleted {
                 HStack {
-                    Label("Logged as eaten", systemImage: "checkmark.circle.fill")
+                    Label("Fed to Pip • Safe", systemImage: "checkmark.seal.fill")
                         .font(Theme.Fonts.caption.weight(.bold))
                         .foregroundStyle(Theme.Colors.safe)
                         .transition(.move(edge: .leading).combined(with: .opacity))
@@ -592,8 +592,8 @@ struct PlannedMealRow: View {
                     } label: {
                         HStack(spacing: 6) {
                             if isLogging { ProgressView().tint(Theme.Colors.onVolt) }
-                            Image(systemName: "checkmark")
-                            Text(isLogging ? "Logging" : "Log as eaten")
+                            Image(systemName: "fork.knife")
+                            Text(isLogging ? "Feeding..." : "Feed to Pip")
                         }
                         .font(Theme.Fonts.caption.weight(.bold))
                         .foregroundStyle(Theme.Colors.onVolt)

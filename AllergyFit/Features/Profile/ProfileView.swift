@@ -19,6 +19,8 @@ struct ProfileView: View {
     @State private var deleting = false
     @State private var deleteError: String?
     @State private var shareURL: URL?
+    @AppStorage("fuelFriendName") private var friendName: String = "Pip"
+    @AppStorage("fuelFriendPetCount") private var friendPetCount: Int = 0
 
     var body: some View {
         NavigationStack(path: $navPath) {
@@ -27,6 +29,7 @@ struct ProfileView: View {
                 ScrollView {
                     VStack(spacing: Theme.Metrics.spacing) {
                         headerCard
+                        companionCard
                         completionCard
                         allergenCard
                         goalsCard
@@ -106,6 +109,38 @@ struct ProfileView: View {
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             Spacer()
+        }
+        .card()
+    }
+
+    private var companionCard: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Theme.Colors.finchButter, Theme.Colors.finchPeach.opacity(0.85)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 48, height: 48)
+                Image(systemName: "sparkles")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Theme.Colors.finchRose)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Fuel Companion · \(friendName)")
+                    .font(Theme.Fonts.headline)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Text("\(friendPetCount) celebrations & pets logged")
+                    .font(Theme.Fonts.caption)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
+            Spacer()
+            Image(systemName: "heart.fill")
+                .foregroundStyle(Theme.Colors.finchRose)
+                .font(.system(size: 16))
         }
         .card()
     }

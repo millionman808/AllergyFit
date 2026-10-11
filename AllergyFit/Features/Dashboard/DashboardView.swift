@@ -7,6 +7,7 @@ struct DashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var store = TodayStore()
     @StateObject private var trends = TrendsStore()
+    @StateObject private var friendStore = FuelFriendStore()
     @State private var showQuickAdd = false
     @State private var showTrends = false
     @State private var showNutritionScore = false
@@ -22,21 +23,30 @@ struct DashboardView: View {
                 Theme.Colors.background.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: Theme.Metrics.spacing) {
-                        greetingRow
-                        nutritionScorePill
+                        topHeader
+                        FuelFriendStageView(
+                            friendStore: friendStore,
+                            calories: store.consumedCalories,
+                            targetCalories: store.dynamicTargetCalories,
+                            protein: store.consumedProtein,
+                            targetProtein: store.targetProtein,
+                            water: store.waterGlasses,
+                            waterGoal: store.waterGoal,
+                            mealCount: store.meals.count,
+                            allergens: session.allergensForAI
+                        )
+                        almaMacroQuadCard
                         dailyPlanCard
                         activityAndWorkoutsCard
                         if store.isCycleTrackingActive {
                             cycleConciergeCard
                         }
-                        calorieCard
-                        macroRow
                         mealsSection
                         TrendsCard(store: trends) { showTrends = true }
-                        streakCard
                         waterCard
                     }
                     .padding(.horizontal, Theme.Metrics.screenPadding)
+                    .padding(.top, 8)
                     .padding(.bottom, Theme.Metrics.tabBarClearance)
                 }
                 .refreshable { await store.refresh() }
@@ -45,7 +55,7 @@ struct DashboardView: View {
                     undoSnackbar(deleted)
                 }
             }
-            .navigationTitle("Today")
+            .navigationBarHidden(true)
             .onAppear {
                 store.configure(session: session)
                 trends.configure(session: session, targetCalories: store.targetCalories)
@@ -58,6 +68,7 @@ struct DashboardView: View {
             .sheet(isPresented: $showQuickAdd) {
                 QuickAddMealView { name, type, cal, p, c, f in
                     store.addMeal(name: name, mealType: type, calories: cal, protein: p, carbs: c, fat: f)
+                    friendStore.feed(mealName: name)
                 }
             }
             .sheet(isPresented: $showTrends) {
@@ -80,42 +91,185 @@ struct DashboardView: View {
         }
     }
 
-    /// Time-aware personal greeting (#25 Delight).
-    private var greetingRow: some View {
-        HStack {
-            Text(greeting)
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.textSecondary)
+    // MARK: - Top Header (Finch Style — Friend Greeting, Hearts & Streak Pill)
+
+    private var topHeader: some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(todayDateFormatted.uppercased())
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.finchPeach)
+                Text("Today with \(friendStore.name)")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+            }
+
             Spacer()
+
+            // Hearts Count from petting
+            Button {
+                friendStore.pet()
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.Colors.finchRose)
+                    Text("\(friendStore.hearts)")
+                        .font(.system(size: 13, weight: .heavy, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(Theme.Colors.surface, in: Capsule())
+                .overlay(
+                    Capsule().stroke(Theme.Colors.parchmentBorder.opacity(0.8), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
+            }
+            .buttonStyle(.plain)
+
+            // Streak Pill
+            HStack(spacing: 5) {
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 13))
+                    .foregroundStyle(store.loggedToday ? Theme.Colors.finchButter : Theme.Colors.textTertiary)
+                Text("\(store.mealStreak)")
+                    .font(.system(size: 13, weight: .heavy, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(Theme.Colors.surface, in: Capsule())
+            .overlay(
+                Capsule().stroke(Theme.Colors.parchmentBorder.opacity(0.8), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
         }
-        .padding(.top, 2)
+        .padding(.top, 4)
     }
 
-    private var nutritionScorePill: some View {
-        Button {
-            showNutritionScore = true
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "sparkles")
-                    .font(.caption)
-                    .foregroundStyle(Color(hex: store.nutritionScore.ratingColorHex))
-                Text("Daily Fuel Score: \(store.nutritionScore.totalScore)/100")
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                Text("· \(store.nutritionScore.ratingLabel)")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
+    private var todayDateFormatted: String {
+        let f = DateFormatter()
+        f.dateFormat = "EEEE, MMM d"
+        return f.string(from: Date())
+    }
+
+    // MARK: - Finch 4-Ring Macro Row (Calories, Protein, Carbs, Fat)
+
+    private var almaMacroQuadCard: some View {
+        VStack(spacing: 16) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("DAILY FUEL TARGETS")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .tracking(1.1)
                     .foregroundStyle(Theme.Colors.textSecondary)
                 Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.textTertiary)
+                Text("\(store.remainingCalories.formatted()) cal left")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.volt)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(Theme.Colors.surface, in: Capsule())
-            .overlay(Capsule().stroke(Color(hex: store.nutritionScore.ratingColorHex).opacity(0.35), lineWidth: 1))
+
+            HStack(spacing: 0) {
+                almaRing(
+                    title: "Calories",
+                    current: "\(store.consumedCalories)",
+                    target: "\(store.dynamicTargetCalories)",
+                    unit: "",
+                    progress: store.dynamicTargetCalories > 0 ? Double(store.consumedCalories) / Double(store.dynamicTargetCalories) : 0,
+                    color: Theme.Colors.caloriesRing
+                )
+
+                almaRing(
+                    title: "Protein",
+                    current: "\(store.consumedProtein)g",
+                    target: "\(store.targetProtein)g",
+                    unit: "",
+                    progress: store.targetProtein > 0 ? Double(store.consumedProtein) / Double(store.targetProtein) : 0,
+                    color: Theme.Colors.protein
+                )
+
+                almaRing(
+                    title: "Carbs",
+                    current: "\(store.consumedCarbs)g",
+                    target: "\(store.targetCarbs)g",
+                    unit: "",
+                    progress: store.targetCarbs > 0 ? Double(store.consumedCarbs) / Double(store.targetCarbs) : 0,
+                    color: Theme.Colors.carbs
+                )
+
+                almaRing(
+                    title: "Fat",
+                    current: "\(store.consumedFat)g",
+                    target: "\(store.targetFat)g",
+                    unit: "",
+                    progress: store.targetFat > 0 ? Double(store.consumedFat) / Double(store.targetFat) : 0,
+                    color: Theme.Colors.fat
+                )
+            }
+
+            if store.activeCaloriesBurned > 0 || store.cycleCalorieAdjustment > 0 {
+                HStack(spacing: 12) {
+                    if store.activeCaloriesBurned > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bolt.fill")
+                                .font(.system(size: 11))
+                                .foregroundStyle(Theme.Colors.caution)
+                            Text("+\(store.activeCaloriesBurned) active burn")
+                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                        }
+                    }
+                    if store.cycleCalorieAdjustment > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "moon.stars.fill")
+                                .font(.system(size: 11))
+                                .foregroundStyle(store.cyclePhase.accentColor)
+                            Text("+\(store.cycleCalorieAdjustment) hormone fuel")
+                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                        }
+                    }
+                    Spacer()
+                }
+                .padding(.top, 2)
+            }
         }
-        .buttonStyle(.plain)
+        .card()
+    }
+
+    private func almaRing(title: String, current: String, target: String, unit: String, progress: Double, color: Color) -> some View {
+        VStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .stroke(color.opacity(0.18), lineWidth: 6.5)
+                Circle()
+                    .trim(from: 0, to: min(max(progress, 0), 1))
+                    .stroke(color, style: StrokeStyle(lineWidth: 6.5, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: progress)
+
+                VStack(spacing: 0) {
+                    Text(current)
+                        .font(.system(size: 13, weight: .heavy, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 4)
+            }
+            .frame(width: 66, height: 66)
+
+            VStack(spacing: 1) {
+                Text(title)
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Text("of \(target)")
+                    .font(.system(size: 9, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textTertiary)
+                    .lineLimit(1)
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private var activityAndWorkoutsCard: some View {
@@ -250,13 +404,13 @@ struct DashboardView: View {
     private var dailyPlanCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
-                Text("TODAY'S PLAN")
+                Text("FEED \(friendStore.name.uppercased())")
                     .font(.system(size: 11, weight: .bold, design: .rounded))
                     .tracking(1.1)
-                    .foregroundStyle(Theme.Colors.volt)
+                    .foregroundStyle(Theme.Colors.finchPeach)
                 Spacer()
                 if !todaysPlan.isEmpty {
-                    Text("\(todaysPlan.filter(\.isCompleted).count) of \(todaysPlan.count) eaten")
+                    Text("\(todaysPlan.filter(\.isCompleted).count) of \(todaysPlan.count) fed")
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }
@@ -266,26 +420,26 @@ struct DashboardView: View {
                 HStack(spacing: 14) {
                     Image(systemName: "calendar.badge.plus")
                         .font(.title2)
-                        .foregroundStyle(Theme.Colors.volt)
+                        .foregroundStyle(Theme.Colors.finchPeach)
                         .frame(width: 48, height: 48)
-                        .background(Theme.Colors.volt.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(Theme.Colors.finchPeach.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Give today a food plan")
+                        Text("Give \(friendStore.name) a food plan")
                             .font(Theme.Fonts.headline)
                             .foregroundStyle(Theme.Colors.textPrimary)
-                        Text("Volt can build meals around your targets and listed triggers.")
+                        Text("Prepare nourishing meals checked against your listed triggers.")
                             .font(Theme.Fonts.caption)
                             .foregroundStyle(Theme.Colors.textSecondary)
                     }
                 }
-                Button("Plan today", action: onOpenPlan)
+                Button("Plan meals", action: onOpenPlan)
                     .font(Theme.Fonts.headline)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
                     .foregroundStyle(Theme.Colors.onVolt)
-                    .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .buttonStyle(.plain)
-                Button("Check a meal instead", action: onCheckFood)
+                Button("Quick log a snack instead", action: onCheckFood)
                     .font(Theme.Fonts.caption.weight(.bold))
                     .foregroundStyle(Theme.Colors.volt)
                     .buttonStyle(.plain)
@@ -311,15 +465,15 @@ struct DashboardView: View {
                                 if loggingPlanMealID == meal.id {
                                     ProgressView().tint(Theme.Colors.onVolt)
                                 } else {
-                                    Image(systemName: "checkmark")
+                                    Image(systemName: "fork.knife")
                                 }
-                                Text(loggingPlanMealID == meal.id ? "Logging" : "Log as eaten")
+                                Text(loggingPlanMealID == meal.id ? "Feeding..." : "Feed to \(friendStore.name)")
                             }
                             .font(Theme.Fonts.headline)
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
                             .foregroundStyle(Theme.Colors.onVolt)
-                            .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                            .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                         }
                         .buttonStyle(.plain)
                         .disabled(loggingPlanMealID != nil)
@@ -328,7 +482,7 @@ struct DashboardView: View {
                             .font(Theme.Fonts.headline)
                             .frame(width: 92, height: 44)
                             .foregroundStyle(Theme.Colors.textPrimary)
-                            .background(Theme.Colors.surfaceRaised, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                            .background(Theme.Colors.surfaceRaised, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                             .buttonStyle(.plain)
                     }
                 } else {
@@ -337,10 +491,10 @@ struct DashboardView: View {
                             .font(.title2)
                             .foregroundStyle(Theme.Colors.safe)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Today's plan is complete")
+                            Text("\(friendStore.name) is happily fed for today!")
                                 .font(Theme.Fonts.headline)
                                 .foregroundStyle(Theme.Colors.textPrimary)
-                            Text("Your logged meals can now contribute to weekly insights.")
+                            Text("All planned meals were safely screened without trigger violations.")
                                 .font(Theme.Fonts.caption)
                                 .foregroundStyle(Theme.Colors.textSecondary)
                         }
@@ -386,6 +540,7 @@ struct DashboardView: View {
         Task {
             let success = await planStore.logAsEaten(meal)
             if success {
+                friendStore.feed(mealName: meal.recipe.title)
                 if session.isDemo {
                     store.addMeal(
                         name: meal.recipe.title,
@@ -505,107 +660,6 @@ struct DashboardView: View {
         }
         .buttonStyle(.plain)
     }
-
-    private var calorieCard: some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 10) {
-                budgetRow("flame.fill", "Budget", store.targetCalories, Theme.Colors.volt)
-                if store.cycleCalorieAdjustment > 0 {
-                    budgetRow("moon.stars.fill", "Hormone Fuel", store.cycleCalorieAdjustment, store.cyclePhase.accentColor)
-                }
-                if store.activeCaloriesBurned > 0 {
-                    budgetRow("bolt.fill", "Active Burn", store.activeCaloriesBurned, Theme.Colors.caution)
-                }
-                budgetRow("fork.knife", "Eaten", store.consumedCalories, Theme.Colors.protein)
-            }
-            Spacer(minLength: 0)
-            ZStack {
-                Circle().stroke(Theme.Colors.surfaceRaised, lineWidth: 12)
-                Circle()
-                    .trim(from: 0, to: min(progress, 1))
-                    .stroke(progress > 1 ? Theme.Colors.caution : Theme.Colors.volt,
-                            style: StrokeStyle(lineWidth: 12, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .animation(.spring(response: 0.5), value: progress)
-                VStack(spacing: 0) {
-                    Text("You can eat")
-                        .font(Theme.Fonts.caption)
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                    Text("\(store.remainingCalories.formatted())")
-                        .font(Theme.Fonts.stat(30))
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                        .contentTransition(.numericText())
-                    Text("cal left")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Theme.Colors.textTertiary)
-                }
-            }
-            .frame(width: 132, height: 132)
-        }
-        .frame(maxWidth: .infinity)
-        .card()
-    }
-
-    private func budgetRow(_ icon: String, _ label: String, _ value: Int, _ color: Color) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.subheadline)
-                .foregroundStyle(color)
-                .frame(width: 32, height: 32)
-                .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-            VStack(alignment: .leading, spacing: 0) {
-                Text(label).font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
-                Text("\(value.formatted()) cal").font(Theme.Fonts.headline).foregroundStyle(Theme.Colors.textPrimary)
-            }
-        }
-    }
-
-    private var progress: Double {
-        guard store.dynamicTargetCalories > 0 else { return 0 }
-        return Double(store.consumedCalories) / Double(store.dynamicTargetCalories)
-    }
-
-    private var macroRow: some View {
-        HStack(spacing: Theme.Metrics.spacing) {
-            MacroGauge(label: "Protein", value: Double(store.consumedProtein), target: Double(store.targetProtein), unit: "g", color: Theme.Colors.protein)
-            MacroGauge(label: "Carbs", value: Double(store.consumedCarbs), target: Double(store.targetCarbs), unit: "g", color: Theme.Colors.carbs)
-            MacroGauge(label: "Fat", value: Double(store.consumedFat), target: Double(store.targetFat), unit: "g", color: Theme.Colors.fat)
-        }
-    }
-
-    private var streakCard: some View {
-        HStack {
-            Image(systemName: "flame.fill")
-                .font(.title2)
-                .foregroundStyle(store.loggedToday ? Theme.Colors.volt : Theme.Colors.textTertiary)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Logging streak")
-                    .font(Theme.Fonts.headline)
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                Text(streakSubtitle)
-                    .font(Theme.Fonts.caption)
-                    .foregroundStyle(Theme.Colors.textSecondary)
-            }
-            Spacer()
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text("\(store.mealStreak)")
-                    .font(Theme.Fonts.stat(36))
-                    .foregroundStyle(store.loggedToday ? Theme.Colors.volt : Theme.Colors.textTertiary)
-                    .contentTransition(.numericText())
-                Text(store.mealStreak == 1 ? "day" : "days")
-                    .font(Theme.Fonts.caption)
-                    .foregroundStyle(Theme.Colors.textSecondary)
-            }
-        }
-        .card()
-    }
-
-    private var streakSubtitle: String {
-        if store.mealStreak == 0 { return "Log a meal to start your streak" }
-        if store.loggedToday { return "Logged today — streak updated" }
-        return "Log your first meal to keep it alive"
-    }
-
     private var mealsSection: some View {
         VStack(alignment: .leading, spacing: Theme.Metrics.spacing) {
             HStack {
@@ -654,8 +708,8 @@ struct DashboardView: View {
             HStack {
                 Image(systemName: "drop.fill")
                     .font(.title3)
-                    .foregroundStyle(Theme.Colors.protein)
-                Text("Water")
+                    .foregroundStyle(Theme.Colors.finchSky)
+                Text("\(friendStore.name)'s Water Oasis")
                     .font(Theme.Fonts.headline)
                     .foregroundStyle(Theme.Colors.textPrimary)
                 Spacer()
@@ -672,7 +726,7 @@ struct DashboardView: View {
                     ZStack(alignment: .leading) {
                         Capsule().fill(Theme.Colors.surfaceRaised)
                         Capsule()
-                            .fill(Theme.Colors.protein)
+                            .fill(Theme.Colors.finchSky)
                             .frame(width: geo.size.width * waterProgress)
                             .animation(.spring(response: 0.4), value: store.waterGlasses)
                     }
@@ -691,12 +745,13 @@ struct DashboardView: View {
                 .opacity(store.waterGlasses == 0 ? 0.4 : 1)
                 Button {
                     store.setWater(store.waterGlasses + 1)
+                    friendStore.hydrate()
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(Theme.Colors.onVolt)
                         .frame(width: 40, height: 40)
-                        .background(Theme.Colors.protein, in: Circle())
+                        .background(Theme.Colors.finchSky, in: Circle())
                 }
                 .pressable()
             }
@@ -706,7 +761,7 @@ struct DashboardView: View {
                 ForEach(BeverageType.allCases) { bev in
                     Button {
                         store.logBeverage(bev)
-                        Haptics.tap()
+                        friendStore.hydrate()
                     } label: {
                         VStack(spacing: 3) {
                             Image(systemName: bev.icon)
@@ -741,23 +796,45 @@ struct MealRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: meal.icon)
-                .font(.title3)
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Theme.Colors.volt)
-                .frame(width: 42, height: 42)
-                .background(Theme.Colors.surfaceRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            VStack(alignment: .leading, spacing: 3) {
+                .frame(width: 44, height: 44)
+                .background(Theme.Colors.surfaceRaised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Theme.Colors.parchmentBorder.opacity(0.6), lineWidth: 1)
+                )
+
+            VStack(alignment: .leading, spacing: 4) {
                 Text(meal.name)
                     .font(Theme.Fonts.headline)
                     .foregroundStyle(Theme.Colors.textPrimary)
                     .lineLimit(1)
-                Text("\(meal.mealType) · \(meal.time)")
-                    .font(Theme.Fonts.caption)
-                    .foregroundStyle(Theme.Colors.textSecondary)
+
+                HStack(spacing: 6) {
+                    Text("\(meal.mealType) · \(meal.time)")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+
+                    // Quarantine Screened Tag
+                    HStack(spacing: 3) {
+                        Image(systemName: "checkmark.shield.fill")
+                            .font(.system(size: 9))
+                        Text("Screened Safe")
+                            .font(.system(size: 9, weight: .bold, design: .serif))
+                    }
+                    .foregroundStyle(Theme.Colors.safe)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Theme.Colors.safe.opacity(0.12), in: Capsule())
+                }
             }
+
             Spacer()
-            VStack(alignment: .trailing, spacing: 3) {
+
+            VStack(alignment: .trailing, spacing: 2) {
                 Text("\(meal.calories)")
-                    .font(Theme.Fonts.stat(17))
+                    .font(Theme.Fonts.stat(18))
                     .foregroundStyle(Theme.Colors.textPrimary)
                 Text("kcal")
                     .font(Theme.Fonts.caption)

@@ -9,6 +9,8 @@ struct RootView: View {
         Group {
             if session.isLoading {
                 splash
+            } else if session.isDemo && session.demoOnboarded {
+                MainTabView()
             } else if session.session != nil && session.backendError && session.profileOnboarded == nil {
                 OfflineView(retry: { await session.retry() })
             } else if !seenPreAuth {
@@ -59,6 +61,7 @@ struct MainTabView: View {
     @AppStorage("seenPaywall") private var seenPaywall = false
     @State private var showPaywall = false
     @State private var showVoltIntro = false
+    @State private var showQuickActionSheet = UserDefaults.standard.bool(forKey: "quickAction")
     // One shared plan powers Today, Plan, recipe discovery, and meal completion.
     @StateObject private var planStore = PlanStore()
 
@@ -66,7 +69,12 @@ struct MainTabView: View {
         content
             .environmentObject(planStore)
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                CustomTabBar(selection: $selection)
+                CustomTabBar(selection: $selection, onQuickAction: {
+                    showQuickActionSheet = true
+                })
+            }
+            .sheet(isPresented: $showQuickActionSheet) {
+                AlmaQuickActionSheet()
             }
             .onAppear { planStore.configure(session: session) }
             .task {
@@ -110,7 +118,7 @@ struct MainTabView: View {
         case 4: ProfileView()
         default: DashboardView(
             onOpenPlan: { selection = 1 },
-            onCheckFood: { selection = 2 }
+            onCheckFood: { showQuickActionSheet = true }
         )
         }
     }
@@ -148,17 +156,18 @@ struct InsightsTab: View {
     }
 }
 
-/// Custom bottom bar centered on the repeated product action: check or log food.
+/// Custom bottom bar with Alma-inspired floating frosted aesthetic and central elevated '+' trigger.
 struct CustomTabBar: View {
     @Binding var selection: Int
+    var onQuickAction: () -> Void
 
     private struct Tab { let index: Int; let icon: String; let label: String }
     private let left: [Tab] = [
-        Tab(index: 0, icon: "sun.max.fill", label: "Today"),
+        Tab(index: 0, icon: "house.fill", label: "Today"),
         Tab(index: 1, icon: "calendar", label: "Plan"),
     ]
     private let right: [Tab] = [
-        Tab(index: 3, icon: "waveform.path.ecg", label: "Insights"),
+        Tab(index: 3, icon: "sparkles", label: "Insights"),
         Tab(index: 4, icon: "person.fill", label: "Profile"),
     ]
 
@@ -168,13 +177,24 @@ struct CustomTabBar: View {
             centerButton
             ForEach(right, id: \.index) { tabButton($0) }
         }
-        .padding(.top, 8)
-        .padding(.horizontal, 6)
+        .padding(.top, 6)
+        .padding(.bottom, 6)
+        .padding(.horizontal, 10)
         .background {
-            Theme.Colors.surface
-                .shadow(color: .black.opacity(0.06), radius: 8, y: -2)
-                .ignoresSafeArea()
+            RoundedRectangle(cornerRadius: 32, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 32, style: .continuous)
+                        .fill(Theme.Colors.surface.opacity(0.85))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 32, style: .continuous)
+                        .stroke(Theme.Colors.parchmentBorder.opacity(0.85), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.08), radius: 16, y: 6)
         }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 4)
     }
 
     private func tabButton(_ tab: Tab) -> some View {
@@ -183,12 +203,14 @@ struct CustomTabBar: View {
             selection = tab.index
         } label: {
             VStack(spacing: 4) {
-                Image(systemName: tab.icon).font(.system(size: 20))
-                Text(tab.label).font(.system(size: 10, weight: .medium))
+                Image(systemName: tab.icon)
+                    .font(.system(size: 19, weight: selection == tab.index ? .semibold : .regular))
+                Text(tab.label)
+                    .font(.system(size: 10, weight: selection == tab.index ? .bold : .medium, design: .serif))
             }
             .foregroundStyle(selection == tab.index ? Theme.Colors.volt : Theme.Colors.textTertiary)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
+            .padding(.vertical, 6)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -197,26 +219,21 @@ struct CustomTabBar: View {
     private var centerButton: some View {
         Button {
             Haptics.tap()
-            selection = 2
+            onQuickAction()
         } label: {
-            VStack(spacing: 3) {
-                ZStack {
-                    Circle()
-                        .fill(Theme.Colors.volt)
-                        .frame(width: 58, height: 58)
-                        .shadow(color: Theme.Colors.volt.opacity(0.4), radius: 10, y: 4)
-                    Image(systemName: "viewfinder")
-                        .font(.system(size: 25, weight: .semibold))
-                        .foregroundStyle(Theme.Colors.onVolt)
-                }
-                Text("Check")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(selection == 2 ? Theme.Colors.volt : Theme.Colors.textSecondary)
+            ZStack {
+                Circle()
+                    .fill(Theme.Colors.volt)
+                    .frame(width: 52, height: 52)
+                    .shadow(color: Theme.Colors.volt.opacity(0.35), radius: 10, y: 4)
+                Image(systemName: "plus")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.onVolt)
             }
-            .offset(y: -13)
+            .offset(y: -14)
         }
         .buttonStyle(.plain)
-        .frame(width: 72)
-        .accessibilityLabel("Check or log food")
+        .frame(width: 66)
+        .accessibilityLabel("Track food or ask Concierge")
     }
 }

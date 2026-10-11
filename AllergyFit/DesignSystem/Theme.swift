@@ -1,80 +1,84 @@
 import SwiftUI
 import UIKit
 
-/// SafeFuel design tokens — "Old Money Athletic Club & Heritage Pavilion"
-/// Sunlit alabaster, British racing green, saddle leather, and burnished brass.
+/// SafeFuel design tokens — "Finch Self-Care & Companion Care"
+/// Soft warm cream, friendly pastel accents, chubby rounded typography, and pillowy cards.
 enum Theme {
 
     // MARK: - Colors
     enum Colors {
-        // Heritage Club Base Tones
-        static let background = Color.dyn(0xFAF8F5, 0x0E1310) // Sunlit ecru linen in light, dark forest in dark
-        static let surface = Color.dyn(0xFFFFFF, 0x161D18)
-        static let surfaceRaised = Color.dyn(0xF0ECE1, 0x222C24)
+        // Finch Cozy Canvas Tones
+        static let background = Color.dyn(0xFFFDF7, 0x18191D) // Warm cream linen
+        static let surface = Color.dyn(0xFFFFFF, 0x22242B) // Cloud white
+        static let surfaceRaised = Color.dyn(0xF7F3EA, 0x2C2F38) // Soft almond oat
 
-        // Signature Heritage Tones
-        static let racingGreen = Color(hex: 0x143424) // British Racing Green
-        static let saddleLeather = Color(hex: 0x7E4924) // English Bridle Leather
-        static let antiqueBrass = Color(hex: 0xC5A059) // Burnished Brass / Gold
-        static let waxCrimson = Color(hex: 0x9B1D20) // Sealing Wax Red
-        static let carraraMarble = Color(hex: 0xF3EFEA) // Polished Italian Marble
-        static let parchmentBorder = Color.dyn(0xE8E2D7, 0x2B372E)
+        // Signature Finch Pastel Palette
+        static let finchMint = Color.dyn(0x38A169, 0x48BB78) // Friendly leaf green
+        static let finchPeach = Color.dyn(0xFF8A65, 0xFFA07A) // Warm cozy peach
+        static let finchButter = Color.dyn(0xFBBF24, 0xFCD34D) // Sunny buttercup yellow
+        static let finchSky = Color.dyn(0x38BDF8, 0x60A5FA) // Morning sky blue
+        static let finchLavender = Color.dyn(0xA78BFA, 0xC4B5FD) // Soft mochi lavender
+        static let finchRose = Color.dyn(0xFB7185, 0xFDA4AF) // Sweet strawberry blush
+        static let parchmentBorder = Color.dyn(0xEFEAE0, 0x343844)
 
-        /// Primary accent: British Racing Green in light mode, polished brass in dark mode.
-        static let volt = Color.dyn(0x143424, 0xD4AF37)
-        /// Text/icons placed on a primary filled button.
-        static let onVolt = Color.dyn(0xFFFFFF, 0x0E1310)
+        /// Primary accent: Finch Meadow Mint
+        static let volt = Color.dyn(0x38A169, 0x4ADE80)
+        /// Text/icons on primary button
+        static let onVolt = Color.white
 
         /// Status indicators
-        static let safe = Color.dyn(0x1A6038, 0x3BE06B)
-        static let caution = Color.dyn(0xB45309, 0xFBBF24)
-        static let danger = Color.dyn(0x9B1D20, 0xF87171)
+        static let safe = Color.dyn(0x16A34A, 0x4ADE80)
+        static let caution = Color.dyn(0xD97706, 0xFBBF24)
+        static let danger = Color.dyn(0xE11D48, 0xFB7185)
 
-        // Macro Nutrition Ledger Colors
-        static let protein = Color.dyn(0x1F4E79, 0x60A5FA)
-        static let carbs = Color.dyn(0x9A3B5A, 0xF472B6)
-        static let fat = Color.dyn(0xA8651E, 0xFBBF24)
+        // Macro Nutrition Tones (Warm, edible pastels)
+        static let protein = Color.dyn(0xFF6F61, 0xFB7185) // Salmon coral
+        static let carbs = Color.dyn(0xF59E0B, 0xFBBF24) // Golden honey
+        static let fat = Color.dyn(0x84CC16, 0xA3E635) // Fresh pear olive
+        static let caloriesRing = Color.dyn(0x38A169, 0x4ADE80) // Mint energy ring
 
-        // Editorial Typography Inks
-        static let textPrimary = Color.dyn(0x191D1A, 0xF5F6F4)
-        static let textSecondary = Color.dyn(0x525B54, 0x9EA8A0)
-        static let textTertiary = Color.dyn(0x8A948C, 0x5D685F)
+        // Typography Inks
+        static let textPrimary = Color.dyn(0x2D312E, 0xF3F4F6)
+        static let textSecondary = Color.dyn(0x6B7280, 0x9CA3AF)
+        static let textTertiary = Color.dyn(0x9CA3AF, 0x6B7280)
+
+        // Heritage compatibility aliases
+        static let racingGreen = finchMint
+        static let saddleLeather = finchPeach
+        static let antiqueBrass = finchButter
+        static let waxCrimson = finchRose
+        static let carraraMarble = surfaceRaised
     }
 
-    // MARK: - Typography
+    // MARK: - Typography (Chubby, Warm, Legible Rounded System Fonts)
     enum Fonts {
-        /// Editorial Serif for major hero numbers and ledger amounts
+        /// Chubby rounded numbers for companion stats, calories, streaks
         static func stat(_ size: CGFloat) -> Font {
-            .system(size: size, weight: .semibold, design: .serif)
+            .system(size: size, weight: .heavy, design: .rounded)
         }
 
-        /// Bespoke Club Display headline (Baskerville / Serif)
+        /// Cheerful rounded headlines
         static func display(_ size: CGFloat) -> Font {
-            if UIFont(name: "Baskerville-SemiBold", size: size) != nil {
-                return Font.custom("Baskerville-SemiBold", size: size)
-            }
-            return Font.system(size: size, weight: .semibold, design: .serif)
+            .system(size: size, weight: .bold, design: .rounded)
         }
 
-        /// Subheadings and section banners
-        static let title = Font.system(.title2, design: .serif).weight(.semibold)
-        static let headline = Font.system(.headline, design: .serif).weight(.medium)
-        static let body = Font.system(.body, design: .default)
-        static let caption = Font.system(.caption, design: .default).weight(.medium)
+        static let title = Font.system(.title2, design: .rounded).weight(.bold)
+        static let headline = Font.system(.headline, design: .rounded).weight(.bold)
+        static let body = Font.system(.body, design: .rounded)
+        static let caption = Font.system(.caption, design: .rounded).weight(.semibold)
 
-        /// High-end club ledger tag font (use with .tracking(2.0))
         static func clubTag(_ size: CGFloat = 11) -> Font {
-            .system(size: size, weight: .bold, design: .default)
+            .system(size: size, weight: .bold, design: .rounded)
         }
     }
 
     // MARK: - Metrics
     enum Metrics {
-        static let cornerRadius: CGFloat = 16
-        static let cardPadding: CGFloat = 16
+        static let cornerRadius: CGFloat = 28 // Pillowy Finch corners
+        static let cardPadding: CGFloat = 18
         static let screenPadding: CGFloat = 18
-        static let spacing: CGFloat = 12
-        static let tabBarClearance: CGFloat = 104
+        static let spacing: CGFloat = 14
+        static let tabBarClearance: CGFloat = 115
     }
 }
 
@@ -99,7 +103,7 @@ extension Color {
     }
 }
 
-// MARK: - Reusable card style
+// MARK: - Pillowy Card Style
 struct CardBackground: ViewModifier {
     func body(content: Content) -> some View {
         content
@@ -108,9 +112,9 @@ struct CardBackground: ViewModifier {
             .clipShape(RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.Metrics.cornerRadius, style: .continuous)
-                    .strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1)
+                    .strokeBorder(Theme.Colors.parchmentBorder.opacity(0.7), lineWidth: 1)
             )
-            .shadow(color: Color.black.opacity(0.03), radius: 6, y: 3)
+            .shadow(color: Color.black.opacity(0.04), radius: 14, y: 5)
     }
 }
 
@@ -118,13 +122,13 @@ extension View {
     func card() -> some View { modifier(CardBackground()) }
 }
 
-// MARK: - Press microinteraction (#23)
+// MARK: - Bouncy Finch Press Microinteraction
 struct PressableButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.98 : 1)
-            .opacity(configuration.isPressed ? 0.92 : 1)
-            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.95 : 1)
+            .opacity(configuration.isPressed ? 0.9 : 1)
+            .animation(.spring(response: 0.28, dampingFraction: 0.65), value: configuration.isPressed)
     }
 }
 

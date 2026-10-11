@@ -199,7 +199,7 @@ struct DayPlanView: View {
     private var loadingCard: some View {
         VStack(spacing: 14) {
             ProgressView().controlSize(.large).tint(Theme.Colors.volt)
-            Text("Volt is building your \(PlanStore.dayNames[day]) around \(targets.calories) kcal…")
+            Text("Pip is building your \(PlanStore.dayNames[day]) feast around \(targets.calories) kcal…")
                 .font(Theme.Fonts.headline)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .multilineTextAlignment(.center)

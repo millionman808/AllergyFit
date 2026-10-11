@@ -17,8 +17,8 @@ struct HighlightHeadline: View {
 
     var body: some View {
         styled
-            .font(Theme.Fonts.stat(size))
-            .foregroundStyle(Theme.Colors.textPrimary)
+            .font(Club.Fonts.stat(size))
+            .foregroundStyle(Club.Colors.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .lineSpacing(2)
     }
@@ -29,8 +29,8 @@ struct HighlightHeadline: View {
         let after = String(text[r.upperBound...])
         return Text(before)
             + Text(highlight)
-                .foregroundColor(Theme.Colors.volt)
-                .underline(true, color: Theme.Colors.antiqueBrass)
+                .foregroundColor(Club.Colors.volt)
+                .underline(true, color: Club.Colors.antiqueBrass)
             + Text(after)
     }
 }
@@ -44,9 +44,9 @@ enum HeroTint: CaseIterable {
     case mint, coral, amber, sky, lilac, sand
     var color: Color {
         switch self {
-        case .mint:  return Theme.Colors.racingGreen
-        case .coral: return Theme.Colors.waxCrimson
-        case .amber: return Theme.Colors.antiqueBrass
+        case .mint:  return Club.Colors.racingGreen
+        case .coral: return Club.Colors.waxCrimson
+        case .amber: return Club.Colors.antiqueBrass
         case .sky:   return Color.dyn(0x2E5A7A, 0x7FA7C9)   // slate
         case .lilac: return Color.dyn(0x6A3D6E, 0xB98BC0)   // plum
         case .sand:  return Color.dyn(0xB08A5A, 0xD9BE95)   // sand
@@ -78,10 +78,10 @@ struct FoodTileGrid: View {
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
                         .strokeBorder(HeroTint.at(i).color.opacity(0.35), lineWidth: 1)
                     Image(systemName: food)
-                        .font(.system(size: 30, weight: .medium))
+                        .font(.system(size: 26, weight: .medium))
                         .foregroundStyle(HeroTint.at(i).color)
                 }
-                .aspectRatio(1, contentMode: .fit)
+                .aspectRatio(1.35, contentMode: .fit)   // a touch wider than tall, so the welcome slide fits one screen
                 .scaleEffect(shown ? 1 : 0.6)
                 .opacity(shown ? 1 : 0)
                 .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.7).delay(0.05 * Double(i)), value: shown)
@@ -122,13 +122,13 @@ struct SwatchCard: View {
                         .tracking(1)
                 }
                 Text(title)
-                    .font(Theme.Fonts.stat(20))
-                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .font(Club.Fonts.stat(20))
+                    .foregroundStyle(Club.Colors.textPrimary)
                     .multilineTextAlignment(.center)
                 if let subtitle {
                     Text(subtitle)
-                        .font(Theme.Fonts.caption)
-                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.textSecondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -136,17 +136,17 @@ struct SwatchCard: View {
             .padding(.horizontal, 22)
             .padding(.vertical, 24)
             .frame(maxWidth: .infinity)
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .strokeBorder(selected ? tint.color : Theme.Colors.parchmentBorder, lineWidth: selected ? 1.5 : 1)
+                    .strokeBorder(selected ? tint.color : Club.Colors.parchmentBorder, lineWidth: selected ? 1.5 : 1)
             )
             .shadow(color: .black.opacity(0.14), radius: 18, y: 10)
             .padding(.horizontal, 52)
             // A seal on the corner, half over the card edge.
             ZStack {
-                Circle().fill(Theme.Colors.surface)
-                Circle().strokeBorder(Theme.Colors.antiqueBrass, lineWidth: 2)
+                Circle().fill(Club.Colors.surface)
+                Circle().strokeBorder(Club.Colors.antiqueBrass, lineWidth: 2)
                 Image(systemName: symbol)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(tint.color)
@@ -177,14 +177,14 @@ struct StackedInsightCards: View {
                         .padding(.horizontal, 9).padding(.vertical, 5)
                         .background(item.tint.color.opacity(0.14), in: Capsule())
                     Text(item.text)
-                        .font(Theme.Fonts.headline)
-                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .font(Club.Fonts.headline)
+                        .foregroundStyle(Club.Colors.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(18)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1))
+                .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Club.Colors.parchmentBorder, lineWidth: 1))
                 .shadow(color: .black.opacity(0.12), radius: 14, y: 8)
                 .rotationEffect(.degrees(shown ? Double(i - 1) * 2.0 : 0))
                 .offset(x: CGFloat(i - 1) * 8, y: CGFloat(i) * 104)
@@ -207,42 +207,42 @@ struct TodayPreviewCard: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Today").font(Theme.Fonts.stat(22)).foregroundStyle(Theme.Colors.textPrimary)
-                    Text("Eat with confidence").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
+                    Text("Today").font(Club.Fonts.stat(22)).foregroundStyle(Club.Colors.textPrimary)
+                    Text("Eat with confidence").font(Club.Fonts.caption).foregroundStyle(Club.Colors.textSecondary)
                 }
                 Spacer()
                 ZStack {
-                    Circle().fill(Theme.Colors.volt).frame(width: 34, height: 34)
-                    Image(systemName: "sparkles").font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.Colors.onVolt)
+                    Circle().fill(Club.Colors.volt).frame(width: 34, height: 34)
+                    Image(systemName: "sparkles").font(.system(size: 15, weight: .bold)).foregroundStyle(Club.Colors.onVolt)
                 }
             }
             HStack(spacing: 14) {
-                ring(0.53, Theme.Colors.volt, size: 92, width: 9) {
+                ring(0.53, Club.Colors.volt, size: 92, width: 9) {
                     VStack(spacing: 0) {
-                        Text("1,520").font(Theme.Fonts.stat(20)).foregroundStyle(Theme.Colors.textPrimary)
-                        Text("cal left").font(.system(size: 9, weight: .medium, design: .rounded)).foregroundStyle(Theme.Colors.textTertiary)
+                        Text("1,520").font(Club.Fonts.stat(20)).foregroundStyle(Club.Colors.textPrimary)
+                        Text("cal left").font(.system(size: 9, weight: .medium, design: .rounded)).foregroundStyle(Club.Colors.textTertiary)
                     }
                 }
                 VStack(alignment: .leading, spacing: 8) {
-                    macro("Protein", "78 of 180g", Theme.Colors.protein, 0.43)
-                    macro("Carbs", "166 of 320g", Theme.Colors.carbs, 0.52)
-                    macro("Fat", "37 of 84g", Theme.Colors.fat, 0.44)
+                    macro("Protein", "78 of 180g", Club.Colors.protein, 0.43)
+                    macro("Carbs", "166 of 320g", Club.Colors.carbs, 0.52)
+                    macro("Fat", "37 of 84g", Club.Colors.fat, 0.44)
                 }
             }
             HStack(spacing: 8) {
-                Image(systemName: "checkmark.shield.fill").foregroundStyle(Theme.Colors.safe)
+                Image(systemName: "checkmark.shield.fill").foregroundStyle(Club.Colors.safe)
                 Text("Oat & blueberry bowl · safe for you")
-                    .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
+                    .font(Club.Fonts.caption).foregroundStyle(Club.Colors.textSecondary)
                 Spacer()
-                Text("420").font(Theme.Fonts.caption.weight(.bold)).foregroundStyle(Theme.Colors.textPrimary)
+                Text("420").font(Club.Fonts.caption.weight(.bold)).foregroundStyle(Club.Colors.textPrimary)
             }
             .padding(12)
-            .background(Theme.Colors.surfaceRaised.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(Club.Colors.surfaceRaised.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .padding(18)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1))
-        .shadow(color: Theme.Colors.racingGreen.opacity(0.14), radius: 30, y: 14)
+        .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(Club.Colors.parchmentBorder, lineWidth: 1))
+        .shadow(color: Club.Colors.racingGreen.opacity(0.14), radius: 30, y: 14)
     }
 
     private func ring<C: View>(_ p: Double, _ c: Color, size: CGFloat, width: CGFloat, @ViewBuilder _ center: () -> C) -> some View {
@@ -258,9 +258,9 @@ struct TodayPreviewCard: View {
     private func macro(_ name: String, _ v: String, _ c: Color, _ p: Double) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack {
-                Text(name).font(.system(size: 11, weight: .semibold, design: .rounded)).foregroundStyle(Theme.Colors.textSecondary)
+                Text(name).font(.system(size: 11, weight: .semibold, design: .rounded)).foregroundStyle(Club.Colors.textSecondary)
                 Spacer()
-                Text(v).font(.system(size: 10, weight: .medium, design: .rounded)).foregroundStyle(Theme.Colors.textTertiary)
+                Text(v).font(.system(size: 10, weight: .medium, design: .rounded)).foregroundStyle(Club.Colors.textTertiary)
             }
             GeometryReader { g in
                 ZStack(alignment: .leading) {
@@ -295,12 +295,12 @@ struct ColorChips: View {
                     }
                 } label: {
                     Text(item)
-                        .font(Theme.Fonts.body.weight(on ? .semibold : .regular))
+                        .font(Club.Fonts.body.weight(on ? .semibold : .regular))
                         .lineLimit(1)
                         .padding(.horizontal, 16).padding(.vertical, 11)
-                        .background(on ? tint.color : Theme.Colors.surface, in: Capsule())
-                        .foregroundStyle(on ? (tint.wantsDarkText ? Color(hex: 0x1A1A14) : Color.white) : Theme.Colors.textSecondary)
-                        .overlay(Capsule().strokeBorder(on ? .clear : Theme.Colors.parchmentBorder, lineWidth: 1))
+                        .background(on ? tint.color : Club.Colors.surface, in: Capsule())
+                        .foregroundStyle(on ? (tint.wantsDarkText ? Color(hex: 0x1A1A14) : Color.white) : Club.Colors.textSecondary)
+                        .overlay(Capsule().strokeBorder(on ? .clear : Club.Colors.parchmentBorder, lineWidth: 1))
                         .scaleEffect(on ? 1.04 : 1)
                 }
                 .buttonStyle(.plain)
@@ -309,11 +309,11 @@ struct ColorChips: View {
             if let onAddCustom {
                 Button { Haptics.tap(); onAddCustom() } label: {
                     Label("Something else", systemImage: "plus")
-                        .font(Theme.Fonts.body)
+                        .font(Club.Fonts.body)
                         .padding(.horizontal, 16).padding(.vertical, 11)
-                        .foregroundStyle(Theme.Colors.volt)
-                        .background(Theme.Colors.volt.opacity(0.10), in: Capsule())
-                        .overlay(Capsule().strokeBorder(Theme.Colors.volt.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+                        .foregroundStyle(Club.Colors.volt)
+                        .background(Club.Colors.volt.opacity(0.10), in: Capsule())
+                        .overlay(Capsule().strokeBorder(Club.Colors.volt.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
                 }
                 .buttonStyle(.plain)
             }
@@ -358,24 +358,24 @@ struct GotItCard: View {
     var body: some View {
         VStack(spacing: 14) {
             ZStack {
-                Circle().fill(Theme.Colors.volt.opacity(0.14)).frame(width: 64, height: 64)
-                Image(systemName: "person.fill").font(.system(size: 28)).foregroundStyle(Theme.Colors.volt)
+                Circle().fill(Club.Colors.volt.opacity(0.14)).frame(width: 64, height: 64)
+                Image(systemName: "person.fill").font(.system(size: 28)).foregroundStyle(Club.Colors.volt)
             }
-            Text(name).font(Theme.Fonts.stat(20)).foregroundStyle(Theme.Colors.textPrimary)
+            Text(name).font(Club.Fonts.stat(20)).foregroundStyle(Club.Colors.textPrimary)
             FlowLayout(spacing: 6) {
                 ForEach(Array(chips.enumerated()), id: \.offset) { _, c in
                     Text(c.0)
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
                         .padding(.horizontal, 11).padding(.vertical, 6)
                         .background(c.1.color.opacity(0.22), in: Capsule())
-                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .foregroundStyle(Club.Colors.textPrimary)
                 }
             }
         }
         .padding(22)
         .frame(maxWidth: .infinity)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1))
+        .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Club.Colors.parchmentBorder, lineWidth: 1))
     }
 }
 
@@ -387,22 +387,22 @@ struct ClubCrest: View {
     var size: CGFloat = 64
     var body: some View {
         ZStack {
-            Circle().fill(Theme.Colors.racingGreen)
-            Circle().strokeBorder(Theme.Colors.antiqueBrass, lineWidth: size * 0.05)
+            Circle().fill(Club.Colors.racingGreen)
+            Circle().strokeBorder(Club.Colors.antiqueBrass, lineWidth: size * 0.05)
             Image(systemName: "laurel.leading")
                 .font(.system(size: size * 0.36, weight: .regular))
-                .foregroundStyle(Theme.Colors.antiqueBrass)
+                .foregroundStyle(Club.Colors.antiqueBrass)
                 .offset(x: -size * 0.2)
             Image(systemName: "laurel.trailing")
                 .font(.system(size: size * 0.36, weight: .regular))
-                .foregroundStyle(Theme.Colors.antiqueBrass)
+                .foregroundStyle(Club.Colors.antiqueBrass)
                 .offset(x: size * 0.2)
             Image(systemName: "shield.lefthalf.filled")
                 .font(.system(size: size * 0.3, weight: .semibold))
                 .foregroundStyle(.white)
         }
         .frame(width: size, height: size)
-        .shadow(color: Theme.Colors.racingGreen.opacity(0.25), radius: 10, y: 6)
+        .shadow(color: Club.Colors.racingGreen.opacity(0.25), radius: 10, y: 6)
     }
 }
 
@@ -420,12 +420,12 @@ struct LockerCard: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(tag.uppercased())
-                    .font(Theme.Fonts.clubTag(10)).tracking(1.8)
-                    .foregroundStyle(Theme.Colors.antiqueBrass)
+                    .font(Club.Fonts.clubTag(10)).tracking(1.8)
+                    .foregroundStyle(Club.Colors.antiqueBrass)
                 Spacer()
                 ZStack {
-                    Circle().fill(isSelected ? Theme.Colors.waxCrimson : Color.clear)
-                        .overlay(Circle().strokeBorder(isSelected ? .clear : Theme.Colors.parchmentBorder, lineWidth: 1.5))
+                    Circle().fill(isSelected ? Club.Colors.waxCrimson : Color.clear)
+                        .overlay(Circle().strokeBorder(isSelected ? .clear : Club.Colors.parchmentBorder, lineWidth: 1.5))
                         .frame(width: 24, height: 24)
                     if isSelected {
                         Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
@@ -438,15 +438,81 @@ struct LockerCard: View {
                 .frame(maxWidth: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(isSelected ? Theme.Colors.antiqueBrass : Color.clear, lineWidth: 1.5))
+                    .strokeBorder(isSelected ? Club.Colors.antiqueBrass : Color.clear, lineWidth: 1.5))
             Text(title)
-                .font(Theme.Fonts.stat(22))
-                .foregroundStyle(Theme.Colors.textPrimary)
+                .font(Club.Fonts.stat(22))
+                .foregroundStyle(Club.Colors.textPrimary)
         }
         .padding(14)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .strokeBorder(isSelected ? Theme.Colors.racingGreen : Theme.Colors.parchmentBorder, lineWidth: isSelected ? 1.5 : 1))
+            .strokeBorder(isSelected ? Club.Colors.racingGreen : Club.Colors.parchmentBorder, lineWidth: isSelected ? 1.5 : 1))
         .shadow(color: .black.opacity(isSelected ? 0.10 : 0.05), radius: 12, y: 6)
+    }
+}
+
+// MARK: - Goal option (multi-select)
+
+/// One row on the goal step. Unselected rows sit flat and muted; a selected
+/// row lifts, takes a green border and a filled check, so it's unmistakable
+/// what you've picked. The check is a rounded square, not a circle — the
+/// standard cue that you can pick more than one.
+struct GoalOptionCard: View {
+    let symbol: String
+    let title: String
+    let subtitle: String
+    let isSelected: Bool
+    /// Something else is picked and this isn't — recede a little further.
+    var isDimmed: Bool = false
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isSelected ? Club.Colors.racingGreen : Club.Colors.surfaceRaised)
+                Image(systemName: symbol)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(isSelected ? Club.Colors.onVolt : Club.Colors.textTertiary)
+            }
+            .frame(width: 46, height: 46)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(Club.Fonts.headline)
+                    .foregroundStyle(isSelected ? Club.Colors.textPrimary : Club.Colors.textSecondary)
+                Text(subtitle)
+                    .font(Club.Fonts.caption)
+                    .foregroundStyle(isSelected ? Club.Colors.textSecondary : Club.Colors.textTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 8)
+
+            ZStack {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(isSelected ? Club.Colors.racingGreen : Color.clear)
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .strokeBorder(isSelected ? Color.clear : Club.Colors.parchmentBorder, lineWidth: 1.5)
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Club.Colors.onVolt)
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
+            .frame(width: 26, height: 26)
+        }
+        .padding(16)
+        .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(isSelected ? Club.Colors.racingGreen : Club.Colors.parchmentBorder,
+                              lineWidth: isSelected ? 1.5 : 1)
+        )
+        .shadow(color: .black.opacity(isSelected ? 0.10 : 0), radius: 14, y: 6)
+        .opacity(isDimmed ? 0.62 : 1)
+        .scaleEffect(isSelected ? 1.0 : 0.985)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }

@@ -225,7 +225,10 @@ struct GoalsEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isSaving = false
     private let goals: [(String, String, String)] = [
-        ("cut", "Cut", "flame.fill"), ("build", "Build muscle", "dumbbell.fill"), ("maintain", "Maintain", "scalemass.fill"),
+        ("cut", "Lose weight", "arrow.down.right.circle.fill"),
+        ("recomp", "Lose fat & build muscle", "arrow.triangle.2.circlepath"),
+        ("build", "Build muscle", "dumbbell.fill"),
+        ("maintain", "Keep my weight steady", "scalemass.fill"),
     ]
 
     var body: some View {

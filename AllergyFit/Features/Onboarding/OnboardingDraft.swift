@@ -14,7 +14,13 @@ struct OnboardingDraft: Codable, Equatable {
     /// (e.g. "mango", "sulphites in wine"). Stored as user_allergens.custom_name.
     var customAllergens: [String] = []
     var severityByName: [String: String] = [:]     // display name → severity rawValue
-    var goal: String = "Build muscle"              // Build muscle | Maintain | Cut
+    /// Derived from `goalPicks` by the goal step: Cut | Recomp | Build muscle | Maintain.
+    var goal: String = "Maintain"
+    /// What the person ticked on the goal step — any of lose / build / gut /
+    /// steady. Optional so drafts saved before this existed still decode.
+    var goalPicks: [String]? = nil
+    /// "Calm my gut" — doesn't change calories, changes what the app leads with.
+    var gutFocus: Bool? = nil
     var wearable: String = "Apple Watch"           // Apple Watch | Fitbit | Garmin/Whoop | iPhone only
     var trainingDays: Int = 4
     var weightLb: Int = 175
@@ -54,6 +60,8 @@ struct OnboardingDraft: Codable, Equatable {
         var calories = bmr * activity
         switch goal {
         case "Cut": calories -= isFemale ? 350 : 450
+        // Lose fat and build muscle together: a smaller deficit, same high protein.
+        case "Recomp": calories -= isFemale ? 200 : 250
         case "Build muscle": calories += isFemale ? 250 : 350
         default: break
         }
@@ -72,7 +80,14 @@ struct OnboardingDraft: Codable, Equatable {
 
     /// Write these answers onto the freshly created account.
     func apply(to userId: UUID) async throws {
-        let goalValue = goal == "Cut" ? "cut" : goal == "Build muscle" ? "build" : "maintain"
+        let goalValue: String = {
+            switch goal {
+            case "Cut": return "cut"
+            case "Recomp": return "recomp"
+            case "Build muscle": return "build"
+            default: return "maintain"
+            }
+        }()
         let isFemale = gender.lowercased() == "female"
         let t = targets
         struct ProfileUpdate: Codable {
@@ -87,6 +102,7 @@ struct OnboardingDraft: Codable, Equatable {
             let target_carbs_g: Int
             let target_fat_g: Int
             let onboarding_completed: Bool
+            let gut_focus: Bool
         }
         let update = ProfileUpdate(
             fitness_goal: goalValue,
@@ -99,7 +115,8 @@ struct OnboardingDraft: Codable, Equatable {
             target_protein_g: t.protein,
             target_carbs_g: t.carbs,
             target_fat_g: t.fat,
-            onboarding_completed: true)
+            onboarding_completed: true,
+            gut_focus: gutFocus ?? false)
         try await Backend.client.from("profiles").update(update)
             .eq("id", value: userId).execute()
 

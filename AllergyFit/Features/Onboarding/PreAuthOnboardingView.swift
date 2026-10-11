@@ -65,7 +65,7 @@ struct PreAuthOnboardingView: View {
 
     var body: some View {
         ZStack {
-            Theme.Colors.background.ignoresSafeArea()
+            Club.Colors.background.ignoresSafeArea()
 
             if slide == .paywall {
                 // Final slide: Paywall directly embedded
@@ -124,7 +124,7 @@ struct PreAuthOnboardingView: View {
             Button { back() } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .foregroundStyle(Club.Colors.textSecondary)
                     .frame(width: 34, height: 34)
             }
             .opacity(step == 0 ? 0 : 1)
@@ -133,7 +133,7 @@ struct PreAuthOnboardingView: View {
             HStack(spacing: 4) {
                 ForEach(Slide.gender.rawValue..<total, id: \.self) { i in
                     Capsule()
-                        .fill(i <= step ? Theme.Colors.volt : Theme.Colors.surfaceRaised)
+                        .fill(i <= step ? Club.Colors.volt : Club.Colors.surfaceRaised)
                         .frame(height: i == step ? 5 : 3)
                 }
             }
@@ -144,8 +144,8 @@ struct PreAuthOnboardingView: View {
                 Button("Sign in") {
                     if let onSignIn { onSignIn() } else { finish() }
                 }
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.volt)
+                .font(Club.Fonts.caption)
+                .foregroundStyle(Club.Colors.volt)
                 .fontWeight(.semibold)
             } else {
                 Color.clear.frame(width: 48, height: 34)
@@ -163,15 +163,28 @@ struct PreAuthOnboardingView: View {
                     Image(systemName: "arrow.right")
                         .font(.system(size: 13, weight: .bold))
                 }
-                .font(Theme.Fonts.headline)
-                .foregroundStyle(Theme.Colors.onVolt)
+                .font(Club.Fonts.headline)
+                .foregroundStyle(Club.Colors.onVolt)
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
-                .background(canAdvance ? Theme.Colors.volt : Theme.Colors.surfaceRaised,
+                .background(canAdvance ? Club.Colors.volt : Club.Colors.surfaceRaised,
                             in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
             .disabled(!canAdvance)
             .pressable()
+
+            // Lives in the footer, not the scrolling content — at the bottom of
+            // a long welcome slide it was being cut off behind the button.
+            if slide == .welcome && !session.isSignedIn {
+                Button {
+                    if let onSignIn { onSignIn() } else { finish() }
+                } label: {
+                    Text("I already have an account")
+                        .font(Club.Fonts.headline)
+                        .foregroundStyle(Club.Colors.volt)
+                        .frame(maxWidth: .infinity, minHeight: 36)
+                }
+            }
         }
         .padding(.horizontal, 22)
         .padding(.bottom, 14)
@@ -180,6 +193,7 @@ struct PreAuthOnboardingView: View {
     private var canAdvance: Bool {
         switch slide {
         case .triggers: return !draft.allergenNames.isEmpty
+        case .goal:     return !(draft.goalPicks ?? []).isEmpty
         case .plan:     return calculationComplete
         default:        return true
         }
@@ -242,12 +256,12 @@ struct PreAuthOnboardingView: View {
     private func header(_ title: String, _ sub: String) -> some View {
         VStack(alignment: .leading, spacing: 7) {
             Text(title)
-                .font(Theme.Fonts.stat(31))
-                .foregroundStyle(Theme.Colors.textPrimary)
+                .font(Club.Fonts.stat(31))
+                .foregroundStyle(Club.Colors.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(sub)
-                .font(Theme.Fonts.body)
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .font(Club.Fonts.body)
+                .foregroundStyle(Club.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -259,8 +273,8 @@ struct PreAuthOnboardingView: View {
             VStack(alignment: .leading, spacing: 14) {
                 ClubCrest(size: 60)
                 Text("Est. 2026 · Member admission")
-                    .font(Theme.Fonts.clubTag(11)).tracking(2.2)
-                    .foregroundStyle(Theme.Colors.antiqueBrass)
+                    .font(Club.Fonts.clubTag(11)).tracking(2.2)
+                    .foregroundStyle(Club.Colors.antiqueBrass)
             }
             .padding(.top, 6)
             .revealIn(0)
@@ -273,23 +287,11 @@ struct PreAuthOnboardingView: View {
                 .revealIn(2)
 
             Text("Calories you can trust, checked against your triggers — so you can reach your goal without setting off your stomach.")
-                .font(Theme.Fonts.body)
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .font(Club.Fonts.body)
+                .foregroundStyle(Club.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .revealIn(3)
 
-            if !session.isSignedIn {
-                Button {
-                    if let onSignIn { onSignIn() } else { finish() }
-                } label: {
-                    Text("I already have an account")
-                        .font(Theme.Fonts.headline)
-                        .foregroundStyle(Theme.Colors.volt)
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 2)
-                }
-                .revealIn(4)
-            }
         }
     }
 
@@ -303,8 +305,8 @@ struct PreAuthOnboardingView: View {
                 .padding(.top, 6)
                 .revealIn(1)
             Text("Every meal gets a calorie count and a safe-or-not verdict on the same card. Volt plans your week around both.")
-                .font(Theme.Fonts.body)
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .font(Club.Fonts.body)
+                .foregroundStyle(Club.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .revealIn(2)
         }
@@ -320,8 +322,8 @@ struct PreAuthOnboardingView: View {
                 .padding(.top, 8)
                 .revealIn(1)
             Text("Other apps ask an AI to guess your calories. SafeFuel uses AI for one thing — recognising what's on the plate — and looks every number up in the database dietitians use.")
-                .font(Theme.Fonts.body)
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .font(Club.Fonts.body)
+                .foregroundStyle(Club.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .revealIn(2)
         }
@@ -341,8 +343,8 @@ struct PreAuthOnboardingView: View {
             ])
             .revealIn(1)
             Text("Log good days as well as reactions. When an ingredient keeps turning up before a symptom, SafeFuel tells you.")
-                .font(Theme.Fonts.body)
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .font(Club.Fonts.body)
+                .foregroundStyle(Club.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .revealIn(2)
         }
@@ -352,13 +354,13 @@ struct PreAuthOnboardingView: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.subheadline)
-                .foregroundStyle(Theme.Colors.volt)
+                .foregroundStyle(Club.Colors.volt)
                 .frame(width: 34, height: 34)
-                .background(Theme.Colors.volt.opacity(0.13),
+                .background(Club.Colors.volt.opacity(0.13),
                             in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             Text(text)
-                .font(Theme.Fonts.body)
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .font(Club.Fonts.body)
+                .foregroundStyle(Club.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -368,14 +370,14 @@ struct PreAuthOnboardingView: View {
     private var genderStep: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Locker suite")
-                .font(Theme.Fonts.clubTag(11)).tracking(2.2)
-                .foregroundStyle(Theme.Colors.antiqueBrass)
+                .font(Club.Fonts.clubTag(11)).tracking(2.2)
+                .foregroundStyle(Club.Colors.antiqueBrass)
                 .revealIn(0)
             HighlightHeadline(text: "Which kit is yours?", highlight: "yours")
                 .revealIn(0)
             Text("We only use this to estimate how many calories your body burns. It changes the math, nothing else.")
-                .font(Theme.Fonts.body)
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .font(Club.Fonts.body)
+                .foregroundStyle(Club.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .revealIn(1)
 
@@ -398,8 +400,8 @@ struct PreAuthOnboardingView: View {
             .revealIn(2)
 
             Text("You can change this any time in Profile.")
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.textTertiary)
+                .font(Club.Fonts.caption)
+                .foregroundStyle(Club.Colors.textTertiary)
                 .revealIn(3)
         }
     }
@@ -411,8 +413,8 @@ struct PreAuthOnboardingView: View {
             HighlightHeadline(text: "What do you need to avoid?", highlight: "avoid")
                 .revealIn(0)
             Text("Allergies, intolerances, sensitivities — pick everything that applies. You can change it any time.")
-                .font(Theme.Fonts.body)
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .font(Club.Fonts.body)
+                .foregroundStyle(Club.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .revealIn(1)
 
@@ -444,13 +446,13 @@ struct PreAuthOnboardingView: View {
                 VStack(spacing: 10) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 36))
-                        .foregroundStyle(Theme.Colors.safe)
+                        .foregroundStyle(Club.Colors.safe)
                     Text("No Triggers Selected")
-                        .font(Theme.Fonts.headline)
-                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .font(Club.Fonts.headline)
+                        .foregroundStyle(Club.Colors.textPrimary)
                     Text("SafeFuel will focus purely on your \(draft.gender.lowercased()) macro targets and workout fueling.")
-                        .font(Theme.Fonts.caption)
-                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.textSecondary)
                         .multilineTextAlignment(.center)
                 }
                 .card()
@@ -458,8 +460,8 @@ struct PreAuthOnboardingView: View {
                 ForEach(Array(Array(filteredTriggers).sorted().enumerated()), id: \.element) { idx, name in
                     VStack(alignment: .leading, spacing: 8) {
                         Text(name)
-                            .font(Theme.Fonts.headline)
-                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .font(Club.Fonts.headline)
+                            .foregroundStyle(Club.Colors.textPrimary)
 
                         HStack(spacing: 6) {
                             ForEach(Sensitivity.allCases) { s in
@@ -472,10 +474,10 @@ struct PreAuthOnboardingView: View {
                                         .frame(maxWidth: .infinity)
                                         .frame(height: 38)
                                         .background(selected(name) == s ? s.color.opacity(0.9)
-                                                                        : Theme.Colors.surface,
+                                                                        : Club.Colors.surface,
                                                     in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                        .foregroundStyle(selected(name) == s ? Theme.Colors.onVolt
-                                                                             : Theme.Colors.textSecondary)
+                                        .foregroundStyle(selected(name) == s ? Club.Colors.onVolt
+                                                                             : Club.Colors.textSecondary)
                                 }
                             }
                         }
@@ -494,25 +496,60 @@ struct PreAuthOnboardingView: View {
     // MARK: - Slide 4: Goal (Gender-Specific)
 
     private var goalStep: some View {
-        let goals: [(key: String, title: String, sub: String, symbol: String, tint: HeroTint)] = [
-            ("Cut",          "Lose weight", "A gentle deficit that still leaves you energy.", "arrow.down.right.circle.fill", .mint),
-            ("Maintain",     "Stay where I am", "Hold steady, eat well, feel good.", "scalemass.fill", .sky),
-            ("Build muscle", "Build muscle", "A modest surplus and more protein.", "figure.strengthtraining.traditional", .coral),
+        let options: [(key: String, title: String, sub: String, symbol: String)] = [
+            ("lose",   "Lose weight",           "A gentle deficit that still leaves you energy.", "arrow.down.right"),
+            ("build",  "Build muscle",          "More protein and a little more fuel.",           "figure.strengthtraining.traditional"),
+            ("gut",    "Calm my gut",           "Fewer bloated, uncomfortable days.",             "leaf"),
+            ("steady", "Keep my weight steady", "Eat well and feel good where you are.",          "scalemass"),
         ]
-        return VStack(alignment: .leading, spacing: 14) {
-            HighlightHeadline(text: "What are you hoping for?", highlight: "hoping for")
+        let picks = Set(draft.goalPicks ?? [])
+        return VStack(alignment: .leading, spacing: 12) {
+            HighlightHeadline(text: "What do you want to work on?", highlight: "work on")
                 .revealIn(0)
-            ForEach(Array(goals.enumerated()), id: \.element.key) { i, g in
-                Button {
-                    Haptics.tap()
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { draft.goal = g.key }
-                } label: {
-                    SwatchCard(tint: g.tint, symbol: g.symbol, title: g.title, subtitle: g.sub,
-                               selected: draft.goal == g.key, tilt: i.isMultiple(of: 2) ? -5 : 5)
+            Text("Pick as many as you like.")
+                .font(Club.Fonts.body)
+                .foregroundStyle(Club.Colors.textSecondary)
+                .padding(.bottom, 4)
+                .revealIn(1)
+
+            ForEach(Array(options.enumerated()), id: \.element.key) { i, o in
+                Button { toggleGoal(o.key) } label: {
+                    GoalOptionCard(symbol: o.symbol, title: o.title, subtitle: o.sub,
+                                   isSelected: picks.contains(o.key),
+                                   isDimmed: !picks.isEmpty && !picks.contains(o.key))
                 }
                 .buttonStyle(.plain)
-                .revealIn(i + 1)
+                .revealIn(i + 2)
             }
+
+            if picks.contains("lose") && picks.contains("build") {
+                Label("Both together: a smaller deficit with extra protein, so you lose fat while you build.",
+                      systemImage: "arrow.triangle.2.circlepath")
+                    .font(Club.Fonts.caption)
+                    .foregroundStyle(Club.Colors.textSecondary)
+                    .padding(.top, 2)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+    }
+
+    /// Lose and build combine; "steady" can't sit with either; gut is
+    /// independent. The calorie direction is derived, never asked for.
+    private func toggleGoal(_ key: String) {
+        Haptics.tap()
+        var p = Set(draft.goalPicks ?? [])
+        if p.contains(key) {
+            p.remove(key)
+        } else {
+            p.insert(key)
+            if key == "steady" { p.subtract(["lose", "build"]) }
+            if key == "lose" || key == "build" { p.remove("steady") }
+        }
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.85)) {
+            draft.goalPicks = p.sorted()
+            let lose = p.contains("lose"), build = p.contains("build")
+            draft.goal = lose && build ? "Recomp" : lose ? "Cut" : build ? "Build muscle" : "Maintain"
+            draft.gutFocus = p.contains("gut")
         }
     }
 
@@ -539,21 +576,21 @@ struct PreAuthOnboardingView: View {
                     HStack(spacing: 14) {
                         Image(systemName: w.1)
                             .font(.system(size: 20))
-                            .foregroundStyle(draft.wearable == w.0 ? Theme.Colors.volt : Theme.Colors.textSecondary)
+                            .foregroundStyle(draft.wearable == w.0 ? Club.Colors.volt : Club.Colors.textSecondary)
                             .frame(width: 36, height: 36)
-                            .background(Theme.Colors.surfaceRaised, in: Circle())
+                            .background(Club.Colors.surfaceRaised, in: Circle())
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(w.0)
-                                .font(Theme.Fonts.headline)
-                                .foregroundStyle(Theme.Colors.textPrimary)
+                                .font(Club.Fonts.headline)
+                                .foregroundStyle(Club.Colors.textPrimary)
                             Text(w.2)
-                                .font(Theme.Fonts.caption)
-                                .foregroundStyle(Theme.Colors.textSecondary)
+                                .font(Club.Fonts.caption)
+                                .foregroundStyle(Club.Colors.textSecondary)
                         }
                         Spacer()
                         Image(systemName: draft.wearable == w.0 ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(draft.wearable == w.0 ? Theme.Colors.volt : Theme.Colors.textTertiary)
+                            .foregroundStyle(draft.wearable == w.0 ? Club.Colors.volt : Club.Colors.textTertiary)
                     }
                     .card()
                 }
@@ -577,23 +614,23 @@ struct PreAuthOnboardingView: View {
 
             HStack(spacing: 10) {
                 Image(systemName: "info.circle.fill")
-                    .foregroundStyle(Theme.Colors.volt)
+                    .foregroundStyle(Club.Colors.volt)
                     .font(.system(size: 15))
                 let isFemale = draft.gender == "Female"
                 Text(isFemale ? "Using female BMR formula (-161 kcal factor) for basal metabolic calibration."
                               : "Using male BMR formula (+5 kcal factor) for basal metabolic calibration.")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .foregroundStyle(Club.Colors.textSecondary)
             }
             .padding(10)
-            .background(Theme.Colors.volt.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+            .background(Club.Colors.volt.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
         }
     }
 
     private func stepper(_ label: String, value: Binding<Int>, range: ClosedRange<Int>,
                          suffix: String, by: Int = 1) -> some View {
         HStack {
-            Text(label).font(Theme.Fonts.body).foregroundStyle(Theme.Colors.textSecondary)
+            Text(label).font(Club.Fonts.body).foregroundStyle(Club.Colors.textSecondary)
             Spacer()
             Button {
                 if value.wrappedValue - by >= range.lowerBound {
@@ -601,12 +638,12 @@ struct PreAuthOnboardingView: View {
                 }
             } label: {
                 Image(systemName: "minus").font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .foregroundStyle(Club.Colors.textSecondary)
                     .frame(width: 34, height: 34)
-                    .background(Theme.Colors.surfaceRaised, in: Circle())
+                    .background(Club.Colors.surfaceRaised, in: Circle())
             }
             Text("\(value.wrappedValue)\(suffix)")
-                .font(Theme.Fonts.headline).foregroundStyle(Theme.Colors.textPrimary)
+                .font(Club.Fonts.headline).foregroundStyle(Club.Colors.textPrimary)
                 .frame(minWidth: 64)
             Button {
                 if value.wrappedValue + by <= range.upperBound {
@@ -614,9 +651,9 @@ struct PreAuthOnboardingView: View {
                 }
             } label: {
                 Image(systemName: "plus").font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Theme.Colors.onVolt)
+                    .foregroundStyle(Club.Colors.onVolt)
                     .frame(width: 34, height: 34)
-                    .background(Theme.Colors.volt, in: Circle())
+                    .background(Club.Colors.volt, in: Circle())
             }
         }
         .card()
@@ -645,36 +682,36 @@ struct PreAuthOnboardingView: View {
 
             ZStack {
                 Circle()
-                    .stroke(Theme.Colors.surfaceRaised, lineWidth: 8)
+                    .stroke(Club.Colors.surfaceRaised, lineWidth: 8)
                     .frame(width: 130, height: 130)
 
                 Circle()
                     .trim(from: 0, to: calculationProgress)
-                    .stroke(Theme.Colors.volt, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                    .stroke(Club.Colors.volt, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                     .frame(width: 130, height: 130)
                     .rotationEffect(.degrees(-90))
                     .animation(.linear(duration: 0.2), value: calculationProgress)
 
                 VStack(spacing: 2) {
                     Text("\(Int(calculationProgress * 100))%")
-                        .font(Theme.Fonts.stat(32))
-                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .font(Club.Fonts.stat(32))
+                        .foregroundStyle(Club.Colors.textPrimary)
                     Text(draft.gender.uppercased())
                         .font(.system(size: 10, weight: .bold, design: .rounded))
-                        .foregroundStyle(Theme.Colors.volt)
+                        .foregroundStyle(Club.Colors.volt)
                 }
             }
             .frame(maxWidth: .infinity)
 
             VStack(spacing: 8) {
                 Text(phaseTitle)
-                    .font(Theme.Fonts.headline)
-                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .font(Club.Fonts.headline)
+                    .foregroundStyle(Club.Colors.textPrimary)
                     .multilineTextAlignment(.center)
 
                 Text("Applying your \(draft.allergenNames.count) triggers, \(draft.gender.lowercased()) baseline, and \(draft.wearable) sync.")
-                    .font(Theme.Fonts.caption)
-                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .font(Club.Fonts.caption)
+                    .foregroundStyle(Club.Colors.textSecondary)
                     .multilineTextAlignment(.center)
             }
 
@@ -685,7 +722,7 @@ struct PreAuthOnboardingView: View {
                 calcCheckItem(title: "\(draft.gender) macro blueprint optimization", done: calculationProgress >= 0.98)
             }
             .padding(16)
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
     }
 
@@ -693,10 +730,10 @@ struct PreAuthOnboardingView: View {
         HStack(spacing: 10) {
             Image(systemName: done ? "checkmark.circle.fill" : "circle")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(done ? Theme.Colors.volt : Theme.Colors.textTertiary)
+                .foregroundStyle(done ? Club.Colors.volt : Club.Colors.textTertiary)
             Text(title)
                 .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(done ? Theme.Colors.textPrimary : Theme.Colors.textTertiary)
+                .foregroundStyle(done ? Club.Colors.textPrimary : Club.Colors.textTertiary)
             Spacer()
         }
     }
@@ -740,17 +777,17 @@ struct PreAuthOnboardingView: View {
             HighlightHeadline(text: "Got it. Here's your plan.", highlight: "your plan")
 
             HStack(spacing: 8) {
-                target(t.calories.formatted(.number.grouping(.automatic)), "calories", Theme.Colors.volt)
-                target("\(t.protein)g", "protein", Theme.Colors.protein)
-                target("\(t.carbs)g", "carbs", Theme.Colors.carbs)
-                target("\(t.fat)g", "fat", Theme.Colors.fat)
+                target(t.calories.formatted(.number.grouping(.automatic)), "calories", Club.Colors.volt)
+                target("\(t.protein)g", "protein", Club.Colors.protein)
+                target("\(t.carbs)g", "carbs", Club.Colors.carbs)
+                target("\(t.fat)g", "fat", Club.Colors.fat)
             }
 
             GotItCard(name: "Your profile", chips: gotItChips)
 
             Text("SafeFuel learns as you log, too. Create a free account to save this and start.")
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.textTertiary)
+                .font(Club.Fonts.caption)
+                .foregroundStyle(Club.Colors.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -760,7 +797,16 @@ struct PreAuthOnboardingView: View {
         var out: [(String, HeroTint)] = [(draft.gender, .sky)]
         let triggers = draft.allergenNames.filter { $0 != Self.noTriggers }.sorted()
         for (i, t) in triggers.enumerated() { out.append((t, HeroTint.at(i + 1))) }
-        out.append((draft.goal, .mint))
+        let goalLabel: String = {
+            switch draft.goal {
+            case "Cut": return "Lose weight"
+            case "Recomp": return "Lose fat & build muscle"
+            case "Build muscle": return "Build muscle"
+            default: return "Steady weight"
+            }
+        }()
+        out.append((goalLabel, .mint))
+        if draft.gutFocus == true { out.append(("Calm my gut", .sand)) }
         out.append(("\(draft.trainingDays)× a week", .amber))
         if !draft.wearable.isEmpty { out.append((draft.wearable, .lilac)) }
         return out
@@ -768,13 +814,13 @@ struct PreAuthOnboardingView: View {
 
     private func target(_ v: String, _ l: String, _ c: Color) -> some View {
         VStack(spacing: 3) {
-            Text(v).font(Theme.Fonts.stat(19)).foregroundStyle(c)
+            Text(v).font(Club.Fonts.stat(19)).foregroundStyle(c)
             Text(l).font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(Theme.Colors.textTertiary)
+                .foregroundStyle(Club.Colors.textTertiary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     // MARK: - Slide 8: Account Creation (Second-to-Last Slide)
@@ -786,10 +832,10 @@ struct PreAuthOnboardingView: View {
 
             if let authErrorMessage {
                 Text(authErrorMessage)
-                    .font(Theme.Fonts.caption)
-                    .foregroundStyle(Theme.Colors.danger)
+                    .font(Club.Fonts.caption)
+                    .foregroundStyle(Club.Colors.danger)
                     .padding(10)
-                    .background(Theme.Colors.danger.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                    .background(Club.Colors.danger.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
             }
 
             VStack(spacing: 12) {
@@ -810,7 +856,7 @@ struct PreAuthOnboardingView: View {
                     HStack(spacing: 10) {
                         GoogleGlyph().frame(width: 20, height: 20)
                         Text("Continue with Google")
-                            .font(Theme.Fonts.headline)
+                            .font(Club.Fonts.headline)
                             .foregroundStyle(Color(hex: 0x1F1F1F))
                     }
                     .frame(maxWidth: .infinity)
@@ -822,9 +868,9 @@ struct PreAuthOnboardingView: View {
                 .disabled(authBusy)
 
                 HStack {
-                    Rectangle().fill(Theme.Colors.surfaceRaised).frame(height: 1)
-                    Text("or use email").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
-                    Rectangle().fill(Theme.Colors.surfaceRaised).frame(height: 1)
+                    Rectangle().fill(Club.Colors.surfaceRaised).frame(height: 1)
+                    Text("or use email").font(Club.Fonts.caption).foregroundStyle(Club.Colors.textTertiary)
+                    Rectangle().fill(Club.Colors.surfaceRaised).frame(height: 1)
                 }
                 .padding(.vertical, 4)
 
@@ -842,16 +888,16 @@ struct PreAuthOnboardingView: View {
                 } label: {
                     Group {
                         if authBusy {
-                            ProgressView().tint(Theme.Colors.onVolt)
+                            ProgressView().tint(Club.Colors.onVolt)
                         } else {
                             Text(isSigningUp ? "Create Account & Continue" : "Sign In & Continue")
-                                .font(Theme.Fonts.headline)
+                                .font(Club.Fonts.headline)
                         }
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
-                    .background(Theme.Colors.volt)
-                    .foregroundStyle(Theme.Colors.onVolt)
+                    .background(Club.Colors.volt)
+                    .foregroundStyle(Club.Colors.onVolt)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
                 .pressable()
@@ -865,8 +911,8 @@ struct PreAuthOnboardingView: View {
                     }
                 } label: {
                     Text(isSigningUp ? "Already have an account? Sign in" : "New user? Create an account")
-                        .font(Theme.Fonts.caption)
-                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.textSecondary)
                 }
 
             }

@@ -14,6 +14,7 @@ enum TargetsCalc {
         var calories = bmr * activity
         switch goal {
         case "cut": calories -= 400
+        case "recomp": calories -= 225
         case "build": calories += 300
         default: break
         }

@@ -26,7 +26,12 @@ final class ProfileStore: ObservableObject {
     private var configured = false
 
     var goalLabel: String {
-        switch goal { case "cut": return "Cutting"; case "build": return "Building muscle"; default: return "Maintaining" }
+        switch goal {
+        case "cut": return "Losing weight"
+        case "recomp": return "Losing fat & building muscle"
+        case "build": return "Building muscle"
+        default: return "Maintaining"
+        }
     }
     var weightLb: Int { Int((weightKg / 0.4536).rounded()) }
     var heightFeet: Int { Int(heightCm / 2.54) / 12 }

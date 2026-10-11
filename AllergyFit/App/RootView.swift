@@ -2,12 +2,21 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject var session: SessionStore
+    @EnvironmentObject var purchases: PurchasesManager
     @AppStorage("seenPreAuthOnboarding") private var seenPreAuth = false
+    #if DEBUG
+    private static let forcePaywall = UserDefaults.standard.bool(forKey: "forcePaywall")
+    #else
+    private static let forcePaywall = false
+    #endif
     @State private var startInSignUpMode = true
 
     var body: some View {
         Group {
-            if session.isLoading {
+            if Self.forcePaywall {
+                // Debug only: `-forcePaywall YES` previews the gate without signing in.
+                PaywallView(source: "debug")
+            } else if session.isLoading {
                 splash
             } else if session.isDemo && session.demoOnboarded {
                 MainTabView()
@@ -35,13 +44,27 @@ struct RootView: View {
                     seenPreAuth = true
                 })
             } else if session.isSignedIn {
-                MainTabView()
+                membershipGate
             } else {
                 // Backing out returns to onboarding rather than trapping people on a login wall.
                 AuthView(onBack: { seenPreAuth = false }, startInSignUpMode: startInSignUpMode)
             }
         }
         .animation(.easeInOut(duration: 0.25), value: session.isSignedIn)
+        .animation(.easeInOut(duration: 0.25), value: purchases.hasPremiumAccess)
+    }
+
+    /// Hard paywall: the app opens only with an active trial, subscription or
+    /// lifetime unlock. Waits for RevenueCat's answer first so a subscriber
+    /// never sees the paywall flash on launch.
+    @ViewBuilder private var membershipGate: some View {
+        if session.isDemo || purchases.hasPremiumAccess {
+            MainTabView()
+        } else if !purchases.customerInfoLoaded {
+            splash
+        } else {
+            PaywallView(source: "gate")
+        }
     }
 
     private var splash: some View {
@@ -58,8 +81,6 @@ struct MainTabView: View {
     @EnvironmentObject var session: SessionStore
     @State private var selection = UserDefaults.standard.integer(forKey: "initialTab")
     @AppStorage("seenVoltIntro") private var seenVoltIntro = false
-    @AppStorage("seenPaywall") private var seenPaywall = false
-    @State private var showPaywall = false
     @State private var showVoltIntro = false
     @State private var showQuickActionSheet = UserDefaults.standard.bool(forKey: "quickAction")
     // One shared plan powers Today, Plan, recipe discovery, and meal completion.
@@ -86,27 +107,11 @@ struct MainTabView: View {
             }
             .sheet(isPresented: $showVoltIntro, onDismiss: {
                 seenVoltIntro = true
-                // Offer the plan right after the intro, once.
-                if !seenPaywall { showPaywall = true }
-            }) {
-                VoltIntroSheet()
-            }
-            // Full-screen, not a sheet: this is the one paywall every new user
-            // sees, and the ad spend is buying eyes for exactly this screen.
-            .fullScreenCover(isPresented: $showPaywall, onDismiss: {
-                seenPaywall = true
                 // Safety net for anyone who skipped the onboarding prompt:
-                // ask AFTER the paywall closes, never on top of it.
+                // ask once the intro closes, never on top of it.
                 Task { await AdAttribution.requestTrackingIfNeeded() }
             }) {
-                PaywallView(source: "onboarding")
-            }
-            .task {
-                // Returning users who already saw the intro still get one look.
-                if seenVoltIntro && !seenPaywall {
-                    try? await Task.sleep(nanoseconds: 700_000_000)
-                    showPaywall = true
-                }
+                VoltIntroSheet()
             }
     }
 

@@ -12,6 +12,13 @@ final class PurchasesManager: ObservableObject {
     @Published var packages: [Package] = []
     @Published var isLoadingOfferings = false
     @Published var purchaseError: String?
+    /// False until we've asked RevenueCat who this user is and what they own.
+    /// The paywall gate waits on it so a subscriber never sees a flash of the
+    /// paywall on launch.
+    @Published var customerInfoLoaded = false
+    /// Product id → whether this Apple ID can still get the free trial.
+    /// Someone who already used it must not be told "3 days free".
+    @Published var trialEligible: [String: Bool] = [:]
 
     /// True when RevenueCat is wired up with a real key.
     var isConfigured: Bool { !Config.revenueCatKey.isEmpty }
@@ -39,6 +46,7 @@ final class PurchasesManager: ObservableObject {
     /// Tie purchases to the signed-in Supabase user so they follow across devices.
     func identify(userId: String) async {
         guard isConfigured else { return }
+        customerInfoLoaded = false
         _ = try? await Purchases.shared.logIn(userId)
         await refreshCustomerInfo()
     }
@@ -57,6 +65,7 @@ final class PurchasesManager: ObservableObject {
         } catch {
             print("customerInfo failed: \(error)")
         }
+        customerInfoLoaded = true
     }
 
     func loadOfferings() async {
@@ -66,6 +75,13 @@ final class PurchasesManager: ObservableObject {
         do {
             let offerings = try await Purchases.shared.offerings()
             packages = offerings.current?.availablePackages ?? []
+            let ids = packages.map(\.storeProduct).filter { $0.introductoryDiscount != nil }.map(\.productIdentifier)
+            if !ids.isEmpty {
+                let result = await Purchases.shared.checkTrialOrIntroDiscountEligibility(productIdentifiers: ids)
+                // Unknown counts as eligible: StoreKit decides at purchase time,
+                // and new users are by far the common case.
+                trialEligible = result.mapValues { $0.status != .ineligible }
+            }
         } catch {
             print("offerings failed: \(error)")
         }
@@ -78,7 +94,12 @@ final class PurchasesManager: ObservableObject {
             guard !result.userCancelled else { return }
             let entitlement = result.customerInfo.entitlements[Config.premiumEntitlement]
             isPremium = entitlement?.isActive == true
-            guard isPremium else { return }
+            guard isPremium else {
+                // The store took the payment but the entitlement isn't active —
+                // a configuration problem, not the user's. Tell them how to fix it.
+                purchaseError = "Your purchase went through but hasn't unlocked yet. Tap Restore Purchases."
+                return
+            }
 
             // Tell the ad networks what just happened. A trial and a purchase
             // are reported as different events on purpose: a trial is worth $0

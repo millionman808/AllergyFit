@@ -1,339 +1,384 @@
 import SwiftUI
 import RevenueCat
 
-/// Old Money Heritage Athletic Club Membership Paywall.
-/// Single-screen, zero scrolling, 3-second hard lock on top-corner dismiss,
-/// 3-day free trial member pass, and dark green & burnished brass palette.
+/// The SafeFuel paywall, shown as a gate: until a trial or purchase is active
+/// the app stays here, including on every relaunch.
+///
+/// Every price, period and trial comes from the App Store through RevenueCat —
+/// nothing is typed in — so each storefront shows its own currency, and nobody
+/// is promised a free trial their Apple ID has already used.
+///
+/// Because this screen can be all a non-subscriber ever sees, it carries its
+/// own account menu: Apple requires in-app account deletion, and a gate that
+/// hides Profile would otherwise make that impossible.
 struct PaywallView: View {
-    var source: String = "unknown"
-    var onDismiss: (() -> Void)? = nil
+    var source: String = "gate"
 
     @EnvironmentObject var purchases: PurchasesManager
-    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var session: SessionStore
     @Environment(\.openURL) private var openURL
 
-    @State private var selected: Package?
+    @State private var selectedID: String?
     @State private var busy = false
-    @State private var canDismiss = false
+    @State private var showAccountMenu = false
+    @State private var confirmDelete = false
+    @State private var confirmAnonSignOut = false
+    @State private var showSaveAccount = false
+    @State private var accountError: String?
 
     private let privacyURL = URL(string: "https://safefuel.schafersites.com/privacy")!
     private let termsURL = URL(string: "https://safefuel.schafersites.com/terms")!
 
     var body: some View {
         ZStack {
-            Theme.Colors.background.ignoresSafeArea()
-                .onAppear { AdAttribution.logPaywallView(source: source) }
-
-            VStack(spacing: 0) {
-                topBar
-                    .padding(.top, 6)
-                    .padding(.horizontal, 22)
-
-                Spacer(minLength: 4)
-
-                clubCardHero
-                    .padding(.horizontal, 20)
-
-                Spacer(minLength: 8)
-
-                privilegesList
-                    .padding(.horizontal, 20)
-
-                Spacer(minLength: 8)
-
-                membershipTierCard
-                    .padding(.horizontal, 20)
-
-                if let err = purchases.purchaseError {
-                    Text(err)
-                        .font(Theme.Fonts.caption)
-                        .foregroundStyle(Theme.Colors.danger)
-                        .multilineTextAlignment(.center)
-                        .padding(.top, 4)
-                        .padding(.horizontal, 20)
+            Club.Colors.background.ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    header
+                    perks
+                    plans
+                    if let err = purchases.purchaseError ?? accountError {
+                        Text(err)
+                            .font(Club.Fonts.caption)
+                            .foregroundStyle(Club.Colors.danger)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-
-                Spacer(minLength: 8)
-
-                ctaSection
-                    .padding(.horizontal, 20)
-
-                Spacer(minLength: 4)
-
-                footerSection
-                    .padding(.horizontal, 22)
-                    .padding(.bottom, 8)
+                .padding(.horizontal, 22)
+                .padding(.top, 8)
+                .padding(.bottom, 24)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .safeAreaInset(edge: .top, spacing: 0) { topBar }
+        .safeAreaInset(edge: .bottom, spacing: 0) { checkout }
+        .onAppear { AdAttribution.logPaywallView(source: source) }
         .task {
-            await purchases.loadOfferings()
-            selected = preferredPackage
-
-            // 3-second hard lock before close button appears
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
-            withAnimation(.spring(response: 0.45, dampingFraction: 0.8)) {
-                canDismiss = true
-            }
+            if purchases.packages.isEmpty { await purchases.loadOfferings() }
+            if selectedID == nil { selectedID = ordered.first?.identifier }
         }
+        .onChange(of: purchases.packages.count) { _ in
+            if selectedID == nil { selectedID = ordered.first?.identifier }
+        }
+        .confirmationDialog("Account", isPresented: $showAccountMenu, titleVisibility: .hidden) {
+            if session.isAnonymous {
+                Button("Save my account") { showSaveAccount = true }
+            }
+            Button("Sign out") {
+                if session.isAnonymous { confirmAnonSignOut = true }
+                else { Task { await session.signOut() } }
+            }
+            Button("Delete account", role: .destructive) { confirmDelete = true }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(accountLine)
+        }
+        .confirmationDialog("Sign out without saving?", isPresented: $confirmAnonSignOut, titleVisibility: .visible) {
+            Button("Save my account first") { showSaveAccount = true }
+            Button("Sign out and lose my data", role: .destructive) { Task { await session.signOut() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You skipped creating an account, so there's no way to sign back in.")
+        }
+        .confirmationDialog("Delete your account?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Delete everything", role: .destructive) {
+                Task {
+                    accountError = nil
+                    do { try await session.deleteAccount() }
+                    catch { accountError = "Couldn't delete right now. Try again, or email support@schafersites.com." }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently removes your profile, triggers, meals and plans. An App Store subscription is managed by Apple and isn't cancelled by deleting your account.")
+        }
+        .sheet(isPresented: $showSaveAccount) { SaveAccountSheet() }
     }
 
-    // MARK: - Header & 3-Second Delayed Close
+    // MARK: - Top bar
 
     private var topBar: some View {
         HStack {
-            HStack(spacing: 6) {
-                Image(systemName: "shield.fill")
-                    .font(.system(size: 11, weight: .bold))
-                Text("CLUB PRIVILEGES")
-                    .font(Theme.Fonts.clubTag(10))
-                    .tracking(2.0)
+            Button { showAccountMenu = true } label: {
+                Image(systemName: "person.crop.circle")
+                    .font(.system(size: 20, weight: .regular))
+                    .foregroundStyle(Club.Colors.textSecondary)
+                    .frame(width: 40, height: 40)
             }
-            .foregroundStyle(Theme.Colors.antiqueBrass)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(Theme.Colors.antiqueBrass.opacity(0.14), in: Capsule())
-            .overlay(
-                Capsule().strokeBorder(Theme.Colors.antiqueBrass.opacity(0.4), lineWidth: 1)
-            )
-
+            .accessibilityLabel("Account")
             Spacer()
-
-            if canDismiss {
-                Button {
-                    Haptics.tap()
-                    closePaywall()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                        .frame(width: 32, height: 32)
-                        .background(Theme.Colors.surface, in: Circle())
-                        .overlay(
-                            Circle().strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1)
-                        )
-                }
-                .transition(.opacity.combined(with: .scale(scale: 0.85)))
-                .accessibilityLabel("Close and use free version")
-            } else {
-                Color.clear.frame(width: 32, height: 32)
-            }
-        }
-        .frame(height: 36)
-    }
-
-    // MARK: - Metal Club Card Hero
-
-    private var clubCardHero: some View {
-        VStack(spacing: 4) {
-            Text("SafeFuel Athletic Club")
-                .font(Theme.Fonts.display(26))
-                .foregroundStyle(Theme.Colors.textPrimary)
-                .multilineTextAlignment(.center)
-
-            Text("Full Member Admission & Allergen Quarantine Protocol")
-                .font(Theme.Fonts.caption)
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    // MARK: - Privileges Grid (Compact Single-Screen)
-
-    private var privilegesList: some View {
-        VStack(spacing: 8) {
-            privilegeRow(icon: "shield.checkerboard",
-                         title: "Zero-Trace Allergen Shield",
-                         desc: "AI food & label screening with strict trigger quarantine.")
-            privilegeRow(icon: "bolt.heart.fill",
-                         title: "Dynamic Smartwatch Calorie Sync",
-                         desc: "Apple Watch, Fitbit, Garmin & Strava workout balancing.")
-            privilegeRow(icon: "gauge.with.needle.fill",
-                         title: "Daily Nutrition & Fuel Score",
-                         desc: "0–100 recovery index & micronutrient adherence breakdown.")
-            privilegeRow(icon: "drop.fill",
-                         title: "Hydration & Strength Ledger",
-                         desc: "Multi-beverage hydration tracking and lifted volume comparison.")
-            privilegeRow(icon: "fork.knife",
-                         title: "Bespoke Chef Meal Plans",
-                         desc: "Weekly recipes strictly built around your personal triggers.")
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Theme.Colors.parchmentBorder, lineWidth: 1)
-        )
-    }
-
-    private func privilegeRow(icon: String, title: String, desc: String) -> some View {
-        HStack(spacing: 11) {
-            ZStack {
-                Circle()
-                    .fill(Theme.Colors.racingGreen.opacity(0.10))
-                    .frame(width: 28, height: 28)
-                Image(systemName: icon)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.racingGreen)
-            }
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(title)
-                    .font(.system(size: 13, weight: .semibold, design: .serif))
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                Text(desc)
-                    .font(.system(size: 11, weight: .regular))
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                    .lineLimit(1)
-            }
-            Spacer(minLength: 0)
-        }
-    }
-
-    // MARK: - Membership Card Pricing
-
-    private var membershipTierCard: some View {
-        VStack(spacing: 6) {
-            HStack {
-                HStack(spacing: 5) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 10, weight: .bold))
-                    Text("3-DAY HONORARY GUEST PASS")
-                        .font(Theme.Fonts.clubTag(9))
-                        .tracking(1.5)
-                }
-                .foregroundStyle(Color.white)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(Theme.Colors.racingGreen, in: Capsule())
-
-                Spacer()
-
-                Text("BEST VALUE")
-                    .font(Theme.Fonts.clubTag(10))
-                    .tracking(1.5)
-                    .foregroundStyle(Theme.Colors.antiqueBrass)
-            }
-
-            HStack(alignment: .center, spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("$0.00 Due Today")
-                        .font(.system(size: 15, weight: .bold, design: .serif))
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("Complimentary 3 days access. Cancel anytime.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text("$39.99/yr")
-                        .font(.system(size: 15, weight: .bold, design: .serif))
-                        .foregroundStyle(Theme.Colors.racingGreen)
-                    Text("$3.33 / month")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Theme.Colors.textTertiary)
-                }
-            }
-        }
-        .padding(12)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Theme.Colors.antiqueBrass.opacity(0.8), lineWidth: 1.5)
-        )
-    }
-
-    // MARK: - CTA Section
-
-    private var ctaSection: some View {
-        VStack(spacing: 6) {
-            Button {
-                Task {
-                    busy = true
-                    if let pkg = selected {
-                        await purchases.purchase(pkg)
-                    } else if let fallback = purchases.packages.first {
-                        await purchases.purchase(fallback)
-                    }
-                    busy = false
-                    if purchases.isPremium {
-                        closePaywall()
-                    }
-                }
-            } label: {
-                Group {
-                    if busy {
-                        ProgressView().tint(Theme.Colors.onVolt)
-                    } else {
-                        HStack(spacing: 8) {
-                            Text("Claim 3-Day Honorary Pass")
-                                .font(Theme.Fonts.headline)
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 13, weight: .bold))
-                        }
-                    }
-                }
-                .foregroundStyle(Color.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(Theme.Colors.racingGreen, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .strokeBorder(Theme.Colors.antiqueBrass.opacity(0.35), lineWidth: 1)
-                )
-            }
-            .disabled(busy)
-            .pressable()
-
-            Text("Annual billing begins after 3 days. Cancel anytime in Apple Settings.")
-                .font(.system(size: 10, weight: .regular))
-                .foregroundStyle(Theme.Colors.textTertiary)
-                .multilineTextAlignment(.center)
-        }
-    }
-
-    // MARK: - Footer
-
-    private var footerSection: some View {
-        HStack(spacing: 16) {
-            Button("Restore Purchases") {
+            Button("Restore") {
                 Task {
                     busy = true
                     await purchases.restore()
                     busy = false
-                    if purchases.isPremium { closePaywall() }
                 }
             }
-            .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(Theme.Colors.textSecondary)
+            .font(Club.Fonts.caption)
+            .foregroundStyle(Club.Colors.textSecondary)
+            .disabled(busy)
+        }
+        .padding(.horizontal, 14)
+        .background(Club.Colors.background)
+    }
 
-            Text("•").font(.system(size: 10)).foregroundStyle(Theme.Colors.textTertiary)
+    private var accountLine: String {
+        if session.isAnonymous { return "You're using SafeFuel without an account." }
+        if let email = session.session?.user.email { return "Signed in as \(email)" }
+        return "Signed in"
+    }
 
-            Button("Privacy Policy") { openURL(privacyURL) }
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(Theme.Colors.textTertiary)
+    // MARK: - Header and perks
 
-            Text("•").font(.system(size: 10)).foregroundStyle(Theme.Colors.textTertiary)
-
-            Button("Terms of Use") { openURL(termsURL) }
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(Theme.Colors.textTertiary)
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ClubCrest(size: 52)
+            Text("SafeFuel membership")
+                .font(Club.Fonts.clubTag(11)).tracking(2.2)
+                .textCase(.uppercase)
+                .foregroundStyle(Club.Colors.antiqueBrass)
+            HighlightHeadline(text: "Reach your goal without the bloat.", highlight: "without the bloat", size: 30)
         }
     }
 
-    private func closePaywall() {
-        if let onDismiss {
-            onDismiss()
+    private var perks: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            perk("camera.fill", "Snap any meal",
+                 "Calories from the USDA database, checked against your triggers.")
+            perk("fork.knife", "Meals planned for you",
+                 "A week that fits your goal and your stomach, with the grocery list.")
+            perk("waveform.path.ecg", "Find your triggers",
+                 "See which foods keep turning up before you feel bad.")
+            perk("heart.fill", "Targets that move with you",
+                 "Calories adjust to your workouts from Apple Health.")
+        }
+        .padding(18)
+        .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Club.Colors.parchmentBorder, lineWidth: 1))
+    }
+
+    private func perk(_ icon: String, _ title: String, _ detail: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Club.Colors.racingGreen)
+                .frame(width: 30, height: 30)
+                .background(Club.Colors.racingGreen.opacity(0.10), in: Circle())
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(Club.Fonts.headline).foregroundStyle(Club.Colors.textPrimary)
+                Text(detail).font(Club.Fonts.caption).foregroundStyle(Club.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    // MARK: - Plans
+
+    /// Annual first (preselected), then monthly, then lifetime.
+    private var ordered: [Package] {
+        let rank: [PackageType: Int] = [.annual: 0, .monthly: 1, .lifetime: 2]
+        return purchases.packages.sorted { (rank[$0.packageType] ?? 9) < (rank[$1.packageType] ?? 9) }
+    }
+
+    private var selected: Package? {
+        ordered.first { $0.identifier == selectedID } ?? ordered.first
+    }
+
+    @ViewBuilder private var plans: some View {
+        if ordered.isEmpty {
+            VStack(spacing: 10) {
+                if purchases.isLoadingOfferings {
+                    ProgressView().tint(Club.Colors.racingGreen)
+                    Text("Loading plans…").font(Club.Fonts.caption).foregroundStyle(Club.Colors.textSecondary)
+                } else {
+                    Text("Couldn't load plans. Check your connection and try again.")
+                        .font(Club.Fonts.caption).foregroundStyle(Club.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                    Button("Try again") { Task { await purchases.loadOfferings() } }
+                        .font(Club.Fonts.headline).foregroundStyle(Club.Colors.racingGreen)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 22)
         } else {
-            dismiss()
+            VStack(spacing: 10) {
+                ForEach(ordered, id: \.identifier) { pkg in
+                    Button {
+                        Haptics.tap()
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { selectedID = pkg.identifier }
+                    } label: { planRow(pkg) }
+                    .buttonStyle(.plain)
+                }
+            }
         }
     }
 
-    private var preferredPackage: Package? {
-        purchases.packages.first { $0.packageType == .annual } ?? purchases.packages.first
+    private func planRow(_ pkg: Package) -> some View {
+        let on = pkg.identifier == selected?.identifier
+        let product = pkg.storeProduct
+        return HStack(spacing: 14) {
+            ZStack {
+                Circle().strokeBorder(on ? Club.Colors.racingGreen : Club.Colors.parchmentBorder, lineWidth: 1.5)
+                if on { Circle().fill(Club.Colors.racingGreen).padding(5) }
+            }
+            .frame(width: 24, height: 24)
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 8) {
+                    Text(planName(pkg)).font(Club.Fonts.headline).foregroundStyle(Club.Colors.textPrimary)
+                    if let badge = badge(pkg) {
+                        Text(badge)
+                            .font(Club.Fonts.clubTag(9)).tracking(1.2)
+                            .foregroundStyle(Club.Colors.onVolt)
+                            .padding(.horizontal, 7).padding(.vertical, 3)
+                            .background(Club.Colors.antiqueBrass, in: Capsule())
+                    }
+                }
+                if let sub = planSubtitle(pkg) {
+                    Text(sub).font(Club.Fonts.caption).foregroundStyle(Club.Colors.textSecondary)
+                }
+            }
+            Spacer(minLength: 8)
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(product.localizedPriceString)
+                    .font(Club.Fonts.headline).foregroundStyle(Club.Colors.textPrimary)
+                Text(periodWord(pkg)).font(Club.Fonts.caption).foregroundStyle(Club.Colors.textTertiary)
+            }
+        }
+        .padding(16)
+        .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .strokeBorder(on ? Club.Colors.racingGreen : Club.Colors.parchmentBorder, lineWidth: on ? 1.5 : 1))
+        .shadow(color: .black.opacity(on ? 0.08 : 0), radius: 10, y: 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
+    }
+
+    private func planName(_ pkg: Package) -> String {
+        switch pkg.packageType {
+        case .annual: return "Yearly"
+        case .monthly: return "Monthly"
+        case .lifetime: return "Lifetime"
+        default: return pkg.storeProduct.localizedTitle
+        }
+    }
+
+    private func periodWord(_ pkg: Package) -> String {
+        switch pkg.packageType {
+        case .annual: return "per year"
+        case .monthly: return "per month"
+        case .lifetime: return "one time"
+        default: return ""
+        }
+    }
+
+    private func planSubtitle(_ pkg: Package) -> String? {
+        switch pkg.packageType {
+        case .annual:
+            if let days = trialDays(pkg) {
+                return "\(days) days free, then \(pkg.storeProduct.localizedPricePerMonth ?? "") a month"
+            }
+            return pkg.storeProduct.localizedPricePerMonth.map { "\($0) a month, billed yearly" }
+        case .monthly: return "Cancel any time"
+        case .lifetime: return "Pay once, keep it for good"
+        default: return nil
+        }
+    }
+
+    private func badge(_ pkg: Package) -> String? {
+        guard pkg.packageType == .annual else { return nil }
+        if let days = trialDays(pkg) { return "\(days) DAYS FREE" }
+        return "BEST VALUE"
+    }
+
+    /// Free-trial length in days — only if this Apple ID can still get it.
+    private func trialDays(_ pkg: Package) -> Int? {
+        let product = pkg.storeProduct
+        guard let intro = product.introductoryDiscount, intro.paymentMode == .freeTrial,
+              purchases.trialEligible[product.productIdentifier] ?? true else { return nil }
+        let p = intro.subscriptionPeriod
+        switch p.unit {
+        case .day: return p.value
+        case .week: return p.value * 7
+        case .month: return p.value * 30
+        case .year: return p.value * 365
+        @unknown default: return nil
+        }
+    }
+
+    // MARK: - Checkout (pinned)
+
+    private var checkout: some View {
+        VStack(spacing: 8) {
+            Button {
+                guard let pkg = selected else { return }
+                Task {
+                    busy = true
+                    await purchases.purchase(pkg)
+                    busy = false
+                    if purchases.isPremium { Haptics.success() }
+                }
+            } label: {
+                Group {
+                    if busy { ProgressView().tint(Club.Colors.onVolt) }
+                    else { Text(ctaTitle).font(Club.Fonts.headline) }
+                }
+                .foregroundStyle(Club.Colors.onVolt)
+                .frame(maxWidth: .infinity).frame(height: 56)
+                .background(selected == nil ? Club.Colors.surfaceRaised : Club.Colors.volt,
+                            in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .disabled(busy || selected == nil)
+            .pressable()
+
+            Text(finePrint)
+                .font(.system(size: 11))
+                .foregroundStyle(Club.Colors.textTertiary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 14) {
+                Button("Terms of Use") { openURL(termsURL) }
+                Text("·")
+                Button("Privacy Policy") { openURL(privacyURL) }
+            }
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(Club.Colors.textTertiary)
+        }
+        .padding(.horizontal, 22)
+        .padding(.top, 12)
+        .padding(.bottom, 6)
+        .background(Club.Colors.background.shadow(.drop(color: .black.opacity(0.06), radius: 8, y: -2)))
+    }
+
+    private var ctaTitle: String {
+        guard let pkg = selected else { return "Continue" }
+        let price = pkg.storeProduct.localizedPriceString
+        switch pkg.packageType {
+        case .annual:
+            if let days = trialDays(pkg) { return "Start \(days)-day free trial" }
+            return "Subscribe for \(price) a year"
+        case .monthly: return "Subscribe for \(price) a month"
+        case .lifetime: return "Unlock for \(price)"
+        default: return "Continue"
+        }
+    }
+
+    /// Apple requires the price, the billing period and how renewal works to be
+    /// clear right next to the button.
+    private var finePrint: String {
+        guard let pkg = selected else { return " " }
+        let price = pkg.storeProduct.localizedPriceString
+        switch pkg.packageType {
+        case .annual:
+            if let days = trialDays(pkg) {
+                return "Free for \(days) days, then \(price) a year. Renews automatically. Cancel in Settings at least 24 hours before the trial ends and you won't be charged."
+            }
+            return "\(price) a year, renews automatically until you cancel in Settings."
+        case .monthly:
+            return "\(price) a month, renews automatically until you cancel in Settings."
+        case .lifetime:
+            return "One payment of \(price). No subscription."
+        default: return " "
+        }
     }
 }

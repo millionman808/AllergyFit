@@ -14,7 +14,7 @@ import GoogleSignIn
 /// - Step 6: Personal Stats & Gender-specific BMR calculation
 /// - Step 7: Dynamic Plan Generation & Gender-tailored Blueprint reveal
 /// - Step 8 (Second-to-last slide): Account creation (Apple, Google, Email, or Guest)
-/// - Step 9 (Final slide): Zero-scroll single-screen Paywall with 3s hard lock & 3-day free trial
+/// Then the app's membership gate (RootView) shows the paywall.
 struct PreAuthOnboardingView: View {
     @EnvironmentObject var session: SessionStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -45,12 +45,12 @@ struct PreAuthOnboardingView: View {
     @State private var authBusy = false
 
     /// Value first (three slides that show, not tell), then questions, then
-    /// the plan, then the account, then the offer. Named so nothing in this
-    /// file has to count.
+    /// the plan, then the account. The offer comes after, from RootView's
+    /// membership gate. Named so nothing in this file has to count.
     enum Slide: Int, CaseIterable {
         case welcome, coach, trust, insights,
              gender, triggers, severity, goal, wearable, stats,
-             plan, account, paywall
+             plan, account
     }
     private var total: Int { Slide.allCases.count }
     private var slide: Slide { Slide(rawValue: step) ?? .welcome }
@@ -68,32 +68,24 @@ struct PreAuthOnboardingView: View {
         ZStack {
             Club.Colors.background.ignoresSafeArea()
 
-            if slide == .paywall {
-                // Final slide: Paywall directly embedded
-                PaywallView(source: "onboarding", onDismiss: {
-                    finish()
-                })
-                .transition(.opacity)
-            } else {
-                VStack(spacing: 0) {
-                    topBar
+            VStack(spacing: 0) {
+                topBar
 
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 20) {
-                            content
-                        }
-                        .padding(.horizontal, 22)
-                        .padding(.top, 8)
-                        .padding(.bottom, 24)
-                        .id(step)
-                        .transition(reduceMotion ? .opacity : .directionalSlide(forward: isMovingForward))
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        content
                     }
-                    .animation(reduceMotion ? .easeOut(duration: 0.15)
-                                            : .spring(response: 0.44, dampingFraction: 0.86), value: step)
+                    .padding(.horizontal, 22)
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
+                    .id(step)
+                    .transition(reduceMotion ? .opacity : .directionalSlide(forward: isMovingForward))
+                }
+                .animation(reduceMotion ? .easeOut(duration: 0.15)
+                                        : .spring(response: 0.44, dampingFraction: 0.86), value: step)
 
-                    if slide != .account {
-                        footer
-                    }
+                if slide != .account {
+                    footer
                 }
             }
         }
@@ -216,17 +208,19 @@ struct PreAuthOnboardingView: View {
     private func finish() {
         draft.save()
         UserDefaults.standard.set(true, forKey: "seenPreAuthOnboarding")
-        UserDefaults.standard.set(true, forKey: "seenPaywall")
 
         if session.isDemo {
             session.demoOnboarded = true
         }
 
         if let userId = session.session?.user.id {
+            // Mark onboarded now so RootView moves on to the membership gate
+            // instead of routing back into onboarding while the save runs.
+            session.profileOnboarded = true
+            let draft = draft
             Task {
-                try? await draft.apply(to: userId)
-                OnboardingDraft.clear()
-                await MainActor.run { session.profileOnboarded = true }
+                // Keep the draft if the save fails so the answers aren't lost.
+                if (try? await draft.apply(to: userId)) != nil { OnboardingDraft.clear() }
                 AdAttribution.logOnboardingComplete()
             }
         }
@@ -953,7 +947,7 @@ struct PreAuthOnboardingView: View {
             }
             Haptics.tap()
             isMovingForward = true
-            withAnimation { step = Slide.paywall.rawValue }
+            finish()
         } catch {
             authErrorMessage = "Couldn't continue without an account right now. Check your connection, or create one above."
         }
@@ -978,7 +972,7 @@ struct PreAuthOnboardingView: View {
             )
             Haptics.success()
             isMovingForward = true
-            withAnimation { step = Slide.paywall.rawValue }
+            finish()
         } catch {
             authErrorMessage = AuthView.friendlyAuthMessage(error)
         }
@@ -1012,7 +1006,7 @@ struct PreAuthOnboardingView: View {
             )
             Haptics.success()
             isMovingForward = true
-            withAnimation { step = Slide.paywall.rawValue }
+            finish()
         } catch {
             let ns = error as NSError
             if ns.domain == kGIDSignInErrorDomain, ns.code == GIDSignInError.canceled.rawValue { return }
@@ -1032,12 +1026,12 @@ struct PreAuthOnboardingView: View {
                 let response = try await Backend.client.auth.signUp(email: mail, password: pass)
                 Haptics.success()
                 isMovingForward = true
-                withAnimation { step = Slide.paywall.rawValue }
+                finish()
             } else {
                 _ = try await Backend.client.auth.signIn(email: mail, password: pass)
                 Haptics.success()
                 isMovingForward = true
-                withAnimation { step = Slide.paywall.rawValue }
+                finish()
             }
         } catch {
             authErrorMessage = AuthView.friendlyAuthMessage(error)

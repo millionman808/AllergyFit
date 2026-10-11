@@ -24,7 +24,8 @@ struct PreAuthOnboardingView: View {
     /// Called when the user explicitly taps "Sign in" on slide 0.
     var onSignIn: (() -> Void)? = nil
 
-    @State private var step = 0
+    /// Screenshot/debug: launch with `-onboardingSlide 11` to open on a slide.
+    @State private var step = UserDefaults.standard.integer(forKey: "onboardingSlide")
     @State private var isMovingForward = true
     @State private var draft = OnboardingDraft.stored ?? OnboardingDraft()
     @State private var showCustomTrigger = false
@@ -827,8 +828,11 @@ struct PreAuthOnboardingView: View {
 
     private var accountCreationStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            header("Save your \(draft.gender.lowercased()) plan",
-                   "Create an account to backup your targets, allergen shield, and workout history.")
+            HighlightHeadline(text: "Save your plan.", highlight: "your plan")
+            Text("An account keeps your targets, triggers and meals safe if you change phones.")
+                .font(Club.Fonts.body)
+                .foregroundStyle(Club.Colors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             if let authErrorMessage {
                 Text(authErrorMessage)
@@ -915,7 +919,43 @@ struct PreAuthOnboardingView: View {
                         .foregroundStyle(Club.Colors.textSecondary)
                 }
 
+                Button {
+                    Task { await skipAccount() }
+                } label: {
+                    VStack(spacing: 3) {
+                        Text("Skip for now")
+                            .font(Club.Fonts.headline)
+                            .foregroundStyle(Club.Colors.textPrimary)
+                        Text("You can save your plan to an account any time in Profile.")
+                            .font(Club.Fonts.caption)
+                            .foregroundStyle(Club.Colors.textTertiary)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                }
+                .disabled(authBusy)
+                .padding(.top, 6)
             }
+        }
+    }
+
+    /// "Skip" signs in anonymously rather than faking a guest mode: the person
+    /// gets a real, private account, so everything they log saves exactly as
+    /// it would for anyone else, and Profile → Save your account attaches an
+    /// email later without losing a thing.
+    @MainActor
+    private func skipAccount() async {
+        authBusy = true
+        defer { authBusy = false }
+        authErrorMessage = nil
+        do {
+            if session.session == nil {
+                _ = try await Backend.client.auth.signInAnonymously()
+            }
+            Haptics.tap()
+            isMovingForward = true
+            withAnimation { step = Slide.paywall.rawValue }
+        } catch {
+            authErrorMessage = "Couldn't continue without an account right now. Check your connection, or create one above."
         }
     }
 
@@ -938,7 +978,7 @@ struct PreAuthOnboardingView: View {
             )
             Haptics.success()
             isMovingForward = true
-            withAnimation { step = 9 }
+            withAnimation { step = Slide.paywall.rawValue }
         } catch {
             authErrorMessage = AuthView.friendlyAuthMessage(error)
         }
@@ -972,7 +1012,7 @@ struct PreAuthOnboardingView: View {
             )
             Haptics.success()
             isMovingForward = true
-            withAnimation { step = 9 }
+            withAnimation { step = Slide.paywall.rawValue }
         } catch {
             let ns = error as NSError
             if ns.domain == kGIDSignInErrorDomain, ns.code == GIDSignInError.canceled.rawValue { return }
@@ -992,12 +1032,12 @@ struct PreAuthOnboardingView: View {
                 let response = try await Backend.client.auth.signUp(email: mail, password: pass)
                 Haptics.success()
                 isMovingForward = true
-                withAnimation { step = 9 }
+                withAnimation { step = Slide.paywall.rawValue }
             } else {
                 _ = try await Backend.client.auth.signIn(email: mail, password: pass)
                 Haptics.success()
                 isMovingForward = true
-                withAnimation { step = 9 }
+                withAnimation { step = Slide.paywall.rawValue }
             }
         } catch {
             authErrorMessage = AuthView.friendlyAuthMessage(error)

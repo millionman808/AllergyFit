@@ -36,6 +36,10 @@ final class SessionStore: ObservableObject {
     ]
 
     var isSignedIn: Bool { session != nil || isDemo }
+    /// Signed in via "Skip for now" — a real account with no email attached.
+    /// Their data is safe on the server but they can't sign back in, so the
+    /// app nudges them to save it and warns before signing out.
+    var isAnonymous: Bool { session?.user.isAnonymous ?? false }
 
     /// Everything the AI should screen a food against: the standard trigger
     /// slugs plus any custom triggers the user typed themselves.

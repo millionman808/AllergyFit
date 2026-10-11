@@ -16,6 +16,8 @@ struct ProfileView: View {
     @State private var showFeedback = false
     @State private var showWearablesGuide = false
     @State private var confirmDelete = false
+    @State private var showSaveAccount = false
+    @State private var confirmAnonSignOut = false
     @State private var deleting = false
     @State private var deleteError: String?
     @State private var shareURL: URL?
@@ -28,6 +30,7 @@ struct ProfileView: View {
                 Theme.Colors.background.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: Theme.Metrics.spacing) {
+                        if session.isAnonymous { saveAccountCard }
                         headerCard
                         companionCard
                         completionCard
@@ -393,10 +396,38 @@ struct ProfileView: View {
         .padding(.vertical, 13)
     }
 
+    /// Shown only to people who skipped account creation.
+    private var saveAccountCard: some View {
+        Button { showSaveAccount = true } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "lock.shield.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.volt)
+                    .frame(width: 42, height: 42)
+                    .background(Theme.Colors.volt.opacity(0.14), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Save your account")
+                        .font(Theme.Fonts.headline)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text("Your plan only lives on this phone. Add an email so it's safe if you switch.")
+                        .font(Theme.Fonts.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(Theme.Colors.textTertiary)
+            }
+            .card()
+        }
+        .buttonStyle(.plain)
+    }
+
     private var signOut: some View {
         VStack(spacing: 10) {
             Button {
-                Task { await session.signOut() }
+                if session.isAnonymous { confirmAnonSignOut = true }
+                else { Task { await session.signOut() } }
             } label: {
                 Text(session.isDemo ? "Exit demo" : "Sign out")
                     .font(Theme.Fonts.headline)
@@ -424,6 +455,14 @@ struct ProfileView: View {
                 }
             }
         }
+        .confirmationDialog("Sign out without saving?", isPresented: $confirmAnonSignOut, titleVisibility: .visible) {
+            Button("Save my account first") { showSaveAccount = true }
+            Button("Sign out and lose my data", role: .destructive) { Task { await session.signOut() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You skipped creating an account, so there's no way to sign back in. Your plan, triggers and meals will be gone.")
+        }
+        .sheet(isPresented: $showSaveAccount) { SaveAccountSheet() }
         .confirmationDialog("Delete your account?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete everything", role: .destructive) {
                 Task {

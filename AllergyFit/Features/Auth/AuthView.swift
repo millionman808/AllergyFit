@@ -20,7 +20,7 @@ struct AuthView: View {
 
     var body: some View {
         ZStack {
-            Theme.Colors.background.ignoresSafeArea()
+            Club.Colors.background.ignoresSafeArea()
             if awaitingConfirmation { confirmEmailScreen } else { signInScreen }
         }
         .onAppear { if startInSignUpMode { isSigningUp = true } }
@@ -33,37 +33,37 @@ struct AuthView: View {
             Spacer()
             Image(systemName: "envelope.badge.fill")
                 .font(.system(size: 52))
-                .foregroundStyle(Theme.Colors.volt)
+                .foregroundStyle(Club.Colors.volt)
             Text("Check your email")
-                .font(Theme.Fonts.title)
-                .foregroundStyle(Theme.Colors.textPrimary)
+                .font(Club.Fonts.title)
+                .foregroundStyle(Club.Colors.textPrimary)
             Text("We sent a confirmation link to\n\(email)")
-                .font(Theme.Fonts.body)
+                .font(Club.Fonts.body)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .foregroundStyle(Club.Colors.textSecondary)
             Text("Tap the link, then come back here and sign in.")
-                .font(Theme.Fonts.caption)
+                .font(Club.Fonts.caption)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(Theme.Colors.textTertiary)
+                .foregroundStyle(Club.Colors.textTertiary)
 
             if let errorMessage {
                 Text(errorMessage)
-                    .font(Theme.Fonts.caption)
+                    .font(Club.Fonts.caption)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(Theme.Colors.danger)
+                    .foregroundStyle(Club.Colors.danger)
             }
 
             Button {
                 Task { await resendConfirmation() }
             } label: {
                 Group {
-                    if isBusy { ProgressView().tint(Theme.Colors.volt) }
+                    if isBusy { ProgressView().tint(Club.Colors.volt) }
                     else { Text(resent ? "Email sent again" : "Resend email") }
                 }
-                .font(Theme.Fonts.headline)
-                .foregroundStyle(Theme.Colors.volt)
+                .font(Club.Fonts.headline)
+                .foregroundStyle(Club.Colors.volt)
                 .frame(maxWidth: .infinity).frame(height: 52)
-                .background(Theme.Colors.volt.opacity(0.12),
+                .background(Club.Colors.volt.opacity(0.12),
                             in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
             .disabled(isBusy || resent)
@@ -72,8 +72,8 @@ struct AuthView: View {
                 withAnimation { awaitingConfirmation = false; isSigningUp = false; resent = false; errorMessage = nil }
             } label: {
                 Text("Back to sign in")
-                    .font(Theme.Fonts.caption)
-                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .font(Club.Fonts.caption)
+                    .foregroundStyle(Club.Colors.textSecondary)
             }
             Spacer()
         }
@@ -90,7 +90,7 @@ struct AuthView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .foregroundStyle(Club.Colors.textSecondary)
                         .frame(width: 40, height: 40)
                 }
                 .padding(.leading, 8)
@@ -101,12 +101,14 @@ struct AuthView: View {
                 Spacer()
 
                 VStack(spacing: 8) {
+                    ClubCrest(size: 64)
+                        .padding(.bottom, 6)
                     Text("SafeFuel")
-                        .font(Theme.Fonts.stat(44))
-                        .foregroundStyle(Theme.Colors.volt)
+                        .font(Club.Fonts.stat(44))
+                        .foregroundStyle(Club.Colors.volt)
                     Text("Eat safe. Reach your goal.")
-                        .font(Theme.Fonts.headline)
-                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .font(Club.Fonts.headline)
+                        .foregroundStyle(Club.Colors.textSecondary)
                 }
 
                 Spacer()
@@ -130,7 +132,7 @@ struct AuthView: View {
                             GoogleGlyph()
                                 .frame(width: 20, height: 20)
                             Text("Continue with Google")
-                                .font(Theme.Fonts.headline)
+                                .font(Club.Fonts.headline)
                                 .foregroundStyle(Color(hex: 0x1F1F1F))
                         }
                         .frame(maxWidth: .infinity)
@@ -155,8 +157,8 @@ struct AuthView: View {
 
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(Theme.Fonts.caption)
-                            .foregroundStyle(Theme.Colors.danger)
+                            .font(Club.Fonts.caption)
+                            .foregroundStyle(Club.Colors.danger)
                     }
 
                     Button {
@@ -164,16 +166,16 @@ struct AuthView: View {
                     } label: {
                         Group {
                             if isBusy {
-                                ProgressView().tint(Theme.Colors.onVolt)
+                                ProgressView().tint(Club.Colors.onVolt)
                             } else {
                                 Text(isSigningUp ? "Create Account" : "Sign In")
-                                    .font(Theme.Fonts.headline)
+                                    .font(Club.Fonts.headline)
                             }
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
-                        .background(Theme.Colors.volt)
-                        .foregroundStyle(Theme.Colors.onVolt)
+                        .background(Club.Colors.volt)
+                        .foregroundStyle(Club.Colors.onVolt)
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
                     .pressable()
@@ -185,8 +187,8 @@ struct AuthView: View {
                         errorMessage = nil
                     } label: {
                         Text(isSigningUp ? "Have an account? Sign in" : "New here? Create an account")
-                            .font(Theme.Fonts.caption)
-                            .foregroundStyle(Theme.Colors.textSecondary)
+                            .font(Club.Fonts.caption)
+                            .foregroundStyle(Club.Colors.textSecondary)
                     }
 
                 }
@@ -199,9 +201,9 @@ struct AuthView: View {
 
     private var divider: some View {
         HStack {
-            Rectangle().fill(Theme.Colors.surfaceRaised).frame(height: 1)
-            Text("or").font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textTertiary)
-            Rectangle().fill(Theme.Colors.surfaceRaised).frame(height: 1)
+            Rectangle().fill(Club.Colors.surfaceRaised).frame(height: 1)
+            Text("or").font(Club.Fonts.caption).foregroundStyle(Club.Colors.textTertiary)
+            Rectangle().fill(Club.Colors.surfaceRaised).frame(height: 1)
         }
     }
 

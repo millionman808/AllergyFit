@@ -37,6 +37,7 @@ enum Club {
     /// Serif display over a clean sans body — the classic premium pairing.
     enum Fonts {
         static func stat(_ size: CGFloat) -> Font { .system(size: size, weight: .semibold, design: .serif) }
+        static let title    = Font.system(.title2, design: .serif).weight(.semibold)
         static let headline = Font.system(.headline, design: .serif).weight(.semibold)
         static let body     = Font.system(.body, design: .default)
         static let caption  = Font.system(.caption, design: .default).weight(.medium)

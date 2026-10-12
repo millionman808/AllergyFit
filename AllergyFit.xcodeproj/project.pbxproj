@@ -32,6 +32,8 @@
 		3B355625587882BEA2F53368 /* LoopingAlphaPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3648F5C585663546EE3706A /* LoopingAlphaPlayerView.swift */; };
 		462DC3BDB54C052808A70ADD /* SaveAccountSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B921F8FDBFA7EB02E2CE7042 /* SaveAccountSheet.swift */; };
 		4AA0D4ECCE20E8B41FCADB4E /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D0C41123AB2F3D6474672D84 /* Supabase */; };
+		5199F1200751603D21F96BDB /* PipGoalsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F5FC6DE216BF37325AF871 /* PipGoalsCard.swift */; };
+		53A63A1D08E31DB2FCBC008E /* PipGoals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F78155E90EE795D4C0A2CE2 /* PipGoals.swift */; };
 		53D64F44D171D1360884DF86 /* LogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BF64A56EBFEB046681A669 /* LogService.swift */; };
 		549D1F0CB1C27341ABE5BC71 /* Confetti.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3568EFD1586B51A8314B7E39 /* Confetti.swift */; };
 		54C18D4D3C5DD44BEDE2AC5E /* RecipesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECADE9B46A714426CE1D1F29 /* RecipesView.swift */; };
@@ -87,6 +89,7 @@
 /* Begin PBXFileReference section */
 		094EC13F3ACA41CA7ED6E333 /* CookModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookModeView.swift; sourceTree = "<group>"; };
 		11EAC9FDE7671059334158B9 /* idle_alpha.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = idle_alpha.mov; sourceTree = "<group>"; };
+		14F5FC6DE216BF37325AF871 /* PipGoalsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipGoalsCard.swift; sourceTree = "<group>"; };
 		185FD671A9C3E4B68037D2A8 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
 		1AC8C220F0DF2B9C47CBF7DD /* DayPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayPlanView.swift; sourceTree = "<group>"; };
 		1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergyFitApp.swift; sourceTree = "<group>"; };
@@ -102,6 +105,7 @@
 		3568EFD1586B51A8314B7E39 /* Confetti.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Confetti.swift; sourceTree = "<group>"; };
 		3B5C81476BF4CBA13F79BA83 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
 		3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIMealLogView.swift; sourceTree = "<group>"; };
+		3F78155E90EE795D4C0A2CE2 /* PipGoals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipGoals.swift; sourceTree = "<group>"; };
 		401DB052060890B31FDF1D97 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		41E4563B2FC3FABF376F7D82 /* ProfileSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSheets.swift; sourceTree = "<group>"; };
 		435D00CFDC2A3BABE993C79C /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
@@ -188,6 +192,7 @@
 				62AF4EC9F170CBFD837F5677 /* HealthManager.swift */,
 				A97EAF00C421B8C1D38B8C78 /* MockData.swift */,
 				5A697D7A190C05DE6A62107E /* Models.swift */,
+				3F78155E90EE795D4C0A2CE2 /* PipGoals.swift */,
 				865F6E4C8AE2B717500EEC89 /* PurchasesManager.swift */,
 				5DB275F388DE7232A4145F13 /* ReminderManager.swift */,
 				25739FFCCB4C82B4E1BA28DA /* Sensitivity.swift */,
@@ -327,6 +332,7 @@
 				F527FD29D3656B651EA45656 /* DashboardView.swift */,
 				FDB4A7AF180939F7E3012217 /* FuelFriendStageView.swift */,
 				E3648F5C585663546EE3706A /* LoopingAlphaPlayerView.swift */,
+				14F5FC6DE216BF37325AF871 /* PipGoalsCard.swift */,
 				DA1FD5F5554C1673BC732B82 /* QuickAddMealView.swift */,
 				185FD671A9C3E4B68037D2A8 /* TrendsView.swift */,
 			);
@@ -552,6 +558,8 @@
 				A09ACEE367E63E404B64C2CC /* OnboardingMotion.swift in Sources */,
 				F94845F6DD0FECFCA22C29CC /* OnboardingView.swift in Sources */,
 				717CAC2C3BCA1A9213AB0753 /* PaywallView.swift in Sources */,
+				53A63A1D08E31DB2FCBC008E /* PipGoals.swift in Sources */,
+				5199F1200751603D21F96BDB /* PipGoalsCard.swift in Sources */,
 				8FD41D9A4843A4728E015364 /* PlanView.swift in Sources */,
 				6224ECEE0BAB2640A0B8475F /* PreAuthOnboardingView.swift in Sources */,
 				0C2AD9806B993977C21F04AE /* ProfileSheets.swift in Sources */,

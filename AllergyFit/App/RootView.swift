@@ -16,12 +16,8 @@ struct RootView: View {
             if Self.forcePaywall {
                 // Debug only: `-forcePaywall YES` previews the gate without signing in.
                 PaywallView(source: "debug")
-            } else if session.isLoading {
-                splash
             } else if session.isDemo && session.demoOnboarded {
                 MainTabView()
-            } else if session.session != nil && session.backendError && session.profileOnboarded == nil {
-                OfflineView(retry: { await session.retry() })
             } else if !seenPreAuth {
                 // High-converting funnel: answers -> calculation -> account creation -> single-screen paywall
                 PreAuthOnboardingView(
@@ -33,6 +29,13 @@ struct RootView: View {
                         seenPreAuth = true
                     }
                 )
+            } else if session.isLoading {
+                // Returning users: wait for the saved session instead of
+                // flashing the sign-in screen. New users never see this (the
+                // onboarding branch above comes first).
+                splash
+            } else if session.session != nil && session.backendError && session.profileOnboarded == nil {
+                OfflineView(retry: { await session.retry() })
             } else if session.isDemo && !session.demoOnboarded {
                 PreAuthOnboardingView(onFinish: {
                     seenPreAuth = true
@@ -70,9 +73,15 @@ struct RootView: View {
     private var splash: some View {
         ZStack {
             Theme.Colors.background.ignoresSafeArea()
-            Text("SafeFuel")
-                .font(Theme.Fonts.stat(40))
-                .foregroundStyle(Theme.Colors.volt)
+            VStack(spacing: 10) {
+                Image("pip_happy")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 140, height: 140)
+                Text("SafeFuel")
+                    .font(Theme.Fonts.stat(36))
+                    .foregroundStyle(Theme.Colors.volt)
+            }
         }
     }
 }
@@ -97,6 +106,8 @@ struct MainTabView: View {
             .sheet(isPresented: $showQuickActionSheet) {
                 AlmaQuickActionSheet()
             }
+            // Goal confetti, above every tab.
+            .overlay { PipConfettiLayer() }
             .onAppear { planStore.configure(session: session) }
             .task {
                 if !seenVoltIntro {
@@ -211,7 +222,7 @@ struct CustomTabBar: View {
                 Image(systemName: tab.icon)
                     .font(.system(size: 19, weight: selection == tab.index ? .semibold : .regular))
                 Text(tab.label)
-                    .font(.system(size: 10, weight: selection == tab.index ? .bold : .medium, design: .serif))
+                    .font(.system(size: 10, weight: selection == tab.index ? .bold : .medium, design: .rounded))
             }
             .foregroundStyle(selection == tab.index ? Theme.Colors.volt : Theme.Colors.textTertiary)
             .frame(maxWidth: .infinity)

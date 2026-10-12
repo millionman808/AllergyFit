@@ -676,7 +676,7 @@ struct AIMealLogView: View {
                 let name: String, grams: Double, allergens: [String]
             }
             let record = AIMealRecord(
-                userId: userId, name: analyzed.name, mealType: "snack",
+                userId: userId, name: analyzed.name, mealType: TodayStore.mealTypeForNow(),
                 ingredients: analyzed.items.map { .init(name: $0.food, grams: $0.grams, allergens: $0.allergens) },
                 calories: Int(analyzed.totals.calories), proteinG: analyzed.totals.protein,
                 carbsG: analyzed.totals.carbs, fatG: analyzed.totals.fat, fiberG: analyzed.totals.fiber,
@@ -690,6 +690,8 @@ struct AIMealLogView: View {
                 return
             }
         }
+        NotificationCenter.default.post(name: .foodLogged, object: nil)
+        FuelFriendStore.shared.feed(mealName: analyzed.name)
         withAnimation { phase = .saved }
     }
 

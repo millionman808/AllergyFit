@@ -4,7 +4,6 @@ struct ProfileView: View {
     @EnvironmentObject var session: SessionStore
     @StateObject private var store = ProfileStore()
     @StateObject private var health = HealthManager()
-    @AppStorage("appearance") private var appearance = "light"
 
     @State private var navPath: [String] = {
         UserDefaults.standard.bool(forKey: "showLabScan") ? ["labscan"] : []
@@ -318,7 +317,6 @@ struct ProfileView: View {
                 Button { showCycleFueling = true } label: { settingsRow("Cycle-Aware Fueling", "moon.stars.fill") }
             }
             settingsGroup("App") {
-                appearanceRow
                 NavigationLink(value: "notifications") { settingsRow("Notifications", "bell.fill") }
                 NavigationLink(value: "subscription") { settingsRow("Manage subscription", "crown.fill") }
             }
@@ -367,21 +365,6 @@ struct ProfileView: View {
         }
         .padding(.horizontal, Theme.Metrics.cardPadding)
         .padding(.vertical, 13)
-    }
-
-    private var appearanceRow: some View {
-        HStack(spacing: 12) {
-            Image(systemName: appearance == "light" ? "sun.max.fill" : "moon.fill")
-                .font(.body).foregroundStyle(Theme.Colors.volt).frame(width: 28)
-            Text("Appearance").font(Theme.Fonts.body).foregroundStyle(Theme.Colors.textPrimary)
-            Spacer()
-            Picker("", selection: $appearance) {
-                Text("Dark").tag("dark"); Text("Light").tag("light"); Text("Auto").tag("system")
-            }
-            .pickerStyle(.segmented).frame(width: 170)
-        }
-        .padding(.horizontal, Theme.Metrics.cardPadding)
-        .padding(.vertical, 9)
     }
 
     private func settingsRow(_ title: String, _ icon: String) -> some View {

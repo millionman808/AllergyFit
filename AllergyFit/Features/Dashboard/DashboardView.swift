@@ -7,7 +7,8 @@ struct DashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var store = TodayStore()
     @StateObject private var trends = TrendsStore()
-    @StateObject private var friendStore = FuelFriendStore()
+    @ObservedObject private var friendStore = FuelFriendStore.shared
+    @State private var showSymptomLog = false
     @State private var showQuickAdd = false
     @State private var showTrends = false
     @State private var showNutritionScore = false
@@ -34,6 +35,16 @@ struct DashboardView: View {
                             waterGoal: store.waterGoal,
                             mealCount: store.meals.count,
                             allergens: session.allergensForAI
+                        )
+                        PipGoalsCard(
+                            pip: friendStore,
+                            day: daySnapshot,
+                            onLogFood: onCheckFood,
+                            onTummyCheckIn: { showSymptomLog = true },
+                            onAddWater: {
+                                store.setWater(store.waterGlasses + 1)
+                                friendStore.hydrate()
+                            }
                         )
                         almaMacroQuadCard
                         dailyPlanCard
@@ -63,7 +74,19 @@ struct DashboardView: View {
             .onChange(of: scenePhase) { phase in
                 // Water + "logged today" are per-day; reset them if the app was
                 // left open past midnight.
-                if phase == .active { store.rolloverIfNewDay() }
+                if phase == .active {
+                    store.rolloverIfNewDay()
+                    friendStore.rolloverIfNewDay()
+                }
+            }
+            // Meals saved from the camera, barcode or the + sheet land in the
+            // database, not this store: reload so goals and totals catch up.
+            .onReceive(NotificationCenter.default.publisher(for: .foodLogged)) { _ in
+                Task { await store.refresh() }
+            }
+            .onChange(of: daySnapshot) { friendStore.syncAutomaticGoals($0) }
+            .sheet(isPresented: $showSymptomLog) {
+                SymptomLogView()
             }
             .sheet(isPresented: $showQuickAdd) {
                 QuickAddMealView { name, type, cal, p, c, f in
@@ -89,6 +112,17 @@ struct DashboardView: View {
                 Text(planLogError ?? "Try again in a moment.")
             }
         }
+    }
+
+    private var daySnapshot: PipDaySnapshot {
+        PipDaySnapshot(
+            mealTypes: store.meals.map(\.mealType),
+            water: store.waterGlasses,
+            waterGoal: store.waterGoal,
+            protein: store.consumedProtein,
+            targetProtein: store.targetProtein,
+            activeMinutes: store.todayWorkouts.reduce(0) { $0 + $1.durationMinutes }
+        )
     }
 
     // MARK: - Top Header (Finch Style — Friend Greeting, Hearts & Streak Pill)
@@ -629,7 +663,7 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
                         Text("\(store.cyclePhase.title.uppercased()) PHASE • DAY \(store.cycleDay)")
-                            .font(.system(size: 10, weight: .bold, design: .serif))
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
                             .tracking(1.2)
                             .foregroundStyle(store.cyclePhase.accentColor)
 
@@ -821,7 +855,7 @@ struct MealRow: View {
                         Image(systemName: "checkmark.shield.fill")
                             .font(.system(size: 9))
                         Text("Screened Safe")
-                            .font(.system(size: 9, weight: .bold, design: .serif))
+                            .font(.system(size: 9, weight: .bold, design: .rounded))
                     }
                     .foregroundStyle(Theme.Colors.safe)
                     .padding(.horizontal, 6)

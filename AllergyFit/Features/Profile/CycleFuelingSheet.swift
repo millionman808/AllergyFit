@@ -67,7 +67,7 @@ struct CycleFuelingSheet: View {
                     .font(.system(size: 14))
                     .foregroundStyle(Theme.Colors.antiqueBrass)
                 Text("EST. 2026 • ATHLETIC PHYSIOLOGY CONCIERGE")
-                    .font(.system(size: 10, weight: .bold, design: .serif))
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
                     .tracking(1.4)
                     .foregroundStyle(Theme.Colors.antiqueBrass)
             }
@@ -173,7 +173,7 @@ struct CycleFuelingSheet: View {
                     Image(systemName: activePhase.icon)
                         .foregroundStyle(activePhase.accentColor)
                     Text("ACTIVE PHASE")
-                        .font(.system(size: 10, weight: .bold, design: .serif))
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
                         .tracking(1.2)
                         .foregroundStyle(activePhase.accentColor)
                 }
@@ -249,7 +249,7 @@ struct CycleFuelingSheet: View {
     private var cycleParametersCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("CYCLE PARAMETERS")
-                .font(.system(size: 10, weight: .bold, design: .serif))
+                .font(.system(size: 10, weight: .bold, design: .rounded))
                 .tracking(1.2)
                 .foregroundStyle(Theme.Colors.antiqueBrass)
 
@@ -278,7 +278,7 @@ struct CycleFuelingSheet: View {
     private var phaseGuideSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("THE ATHLETIC PERIODIZATION BLUEPRINT")
-                .font(.system(size: 10, weight: .bold, design: .serif))
+                .font(.system(size: 10, weight: .bold, design: .rounded))
                 .tracking(1.2)
                 .foregroundStyle(Theme.Colors.textTertiary)
                 .padding(.leading, 4)

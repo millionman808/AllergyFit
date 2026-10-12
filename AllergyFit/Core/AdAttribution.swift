@@ -227,6 +227,9 @@ enum AdAttribution {
     /// when the user has already answered.
     @MainActor
     static func requestTrackingIfNeeded() async {
+        #if targetEnvironment(simulator)
+        return
+        #else
         guard AdConfig.trackingEnabled else { return }
         guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else {
             applyTrackingAuthorization()
@@ -234,6 +237,7 @@ enum AdAttribution {
         }
         _ = await ATTrackingManager.requestTrackingAuthorization()
         applyTrackingAuthorization()
+        #endif
     }
 
     private static func applyTrackingAuthorization() {

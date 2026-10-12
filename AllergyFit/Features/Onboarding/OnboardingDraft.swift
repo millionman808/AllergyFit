@@ -8,6 +8,9 @@ import Supabase
 /// locally, then apply them to the profile the moment an account exists — so
 /// nobody is asked the same questions twice.
 struct OnboardingDraft: Codable, Equatable {
+    /// The user's chosen companion name (defaults to Pip) and flower pot for the windowsill garden.
+    var companionName: String = "Pip"
+    var chosenPot: String = "pot_1"
     var gender: String = "Male"                    // Male | Female
     var allergenNames: Set<String> = []
     /// Triggers the user typed themselves — anything not in the standard list
@@ -80,6 +83,9 @@ struct OnboardingDraft: Codable, Equatable {
 
     /// Write these answers onto the freshly created account.
     func apply(to userId: UUID) async throws {
+        UserDefaults.standard.set(companionName, forKey: "fuelFriendName")
+        UserDefaults.standard.set(chosenPot, forKey: "fuelFriendPot")
+
         let goalValue: String = {
             switch goal {
             case "Cut": return "cut"

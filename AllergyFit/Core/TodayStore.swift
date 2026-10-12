@@ -325,6 +325,7 @@ final class TodayStore: ObservableObject {
         Task {
             do {
                 try await Backend.client.from("meal_logs").insert(record).execute()
+                NotificationCenter.default.post(name: .foodLogged, object: nil)
             } catch {
                 print("meal save failed: \(error)")
             }
@@ -371,6 +372,27 @@ final class TodayStore: ObservableObject {
 
     // MARK: - Helpers
 
+    /// Breakfast / lunch / dinner / snack by the clock, for logs that don't ask.
+    static func mealTypeForNow() -> String {
+        switch Calendar.current.component(.hour, from: Date()) {
+        case 4..<11: return "breakfast"
+        case 11..<16: return "lunch"
+        case 16..<22: return "dinner"
+        default: return "snack"
+        }
+    }
+
+    /// A store that can save a meal without loading today first, for sheets
+    /// that log from outside the Today tab. (A bare `TodayStore()` has no user
+    /// and silently skips the database insert.)
+    static func writer(for session: SessionStore) -> TodayStore {
+        let store = TodayStore()
+        store.isDemo = session.isDemo
+        store.userId = session.session?.user.id
+        store.configured = true
+        return store
+    }
+
     static func todayString() -> String {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
@@ -389,4 +411,9 @@ final class TodayStore: ObservableObject {
         default: return db.capitalized
         }
     }
+}
+
+extension Notification.Name {
+    /// A meal was saved from any screen. Today reloads so Pip's goals update.
+    static let foodLogged = Notification.Name("SafeFuel.foodLogged")
 }

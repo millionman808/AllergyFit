@@ -382,27 +382,22 @@ struct GotItCard: View {
 
 // MARK: - Club crest (welcome)
 
-/// Racing-green medallion with a brass ring — the club's mark.
+/// Cozy Pip mascot medallion badge.
 struct ClubCrest: View {
     var size: CGFloat = 64
     var body: some View {
         ZStack {
-            Circle().fill(Club.Colors.racingGreen)
-            Circle().strokeBorder(Club.Colors.antiqueBrass, lineWidth: size * 0.05)
-            Image(systemName: "laurel.leading")
-                .font(.system(size: size * 0.36, weight: .regular))
-                .foregroundStyle(Club.Colors.antiqueBrass)
-                .offset(x: -size * 0.2)
-            Image(systemName: "laurel.trailing")
-                .font(.system(size: size * 0.36, weight: .regular))
-                .foregroundStyle(Club.Colors.antiqueBrass)
-                .offset(x: size * 0.2)
-            Image(systemName: "shield.lefthalf.filled")
-                .font(.system(size: size * 0.3, weight: .semibold))
-                .foregroundStyle(.white)
+            Circle()
+                .fill(Club.Colors.surfaceRaised)
+                .overlay(Circle().strokeBorder(Club.Colors.volt.opacity(0.35), lineWidth: 2))
+            Image("pip_happy")
+                .resizable()
+                .scaledToFit()
+                .frame(width: size * 0.95, height: size * 0.95)
+                .clipShape(Circle())
         }
         .frame(width: size, height: size)
-        .shadow(color: Club.Colors.racingGreen.opacity(0.25), radius: 10, y: 6)
+        .shadow(color: Color.black.opacity(0.06), radius: 8, y: 4)
     }
 }
 

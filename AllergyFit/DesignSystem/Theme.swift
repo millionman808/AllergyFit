@@ -8,39 +8,39 @@ enum Theme {
     // MARK: - Colors
     enum Colors {
         // Finch Cozy Canvas Tones
-        static let background = Color.dyn(0xFFFDF7, 0x18191D) // Warm cream linen
-        static let surface = Color.dyn(0xFFFFFF, 0x22242B) // Cloud white
-        static let surfaceRaised = Color.dyn(0xF7F3EA, 0x2C2F38) // Soft almond oat
+        static let background = Color(hex: 0xFAF8F5) // Warm cream linen (#FAF8F5)
+        static let surface = Color.white // Cloud white
+        static let surfaceRaised = Color(hex: 0xF4EFE6) // Soft almond oat
+        static let parchmentBorder = Color(hex: 0xEAE4D7)
 
         // Signature Finch Pastel Palette
-        static let finchMint = Color.dyn(0x38A169, 0x48BB78) // Friendly leaf green
-        static let finchPeach = Color.dyn(0xFF8A65, 0xFFA07A) // Warm cozy peach
-        static let finchButter = Color.dyn(0xFBBF24, 0xFCD34D) // Sunny buttercup yellow
-        static let finchSky = Color.dyn(0x38BDF8, 0x60A5FA) // Morning sky blue
-        static let finchLavender = Color.dyn(0xA78BFA, 0xC4B5FD) // Soft mochi lavender
-        static let finchRose = Color.dyn(0xFB7185, 0xFDA4AF) // Sweet strawberry blush
-        static let parchmentBorder = Color.dyn(0xEFEAE0, 0x343844)
+        static let finchMint = Color(hex: 0x4E7D3F) // Fresh avocado green
+        static let finchPeach = Color(hex: 0xF08A5D) // Warm cozy peach
+        static let finchButter = Color(hex: 0xF7B731) // Sunny buttercup yellow
+        static let finchSky = Color(hex: 0x4EA5D9) // Morning sky blue
+        static let finchLavender = Color(hex: 0x9D8DF1) // Soft mochi lavender
+        static let finchRose = Color(hex: 0xEB6B80) // Sweet strawberry blush
 
-        /// Primary accent: Finch Meadow Mint
-        static let volt = Color.dyn(0x38A169, 0x4ADE80)
+        /// Primary accent: Finch Avocado Green
+        static let volt = finchMint
         /// Text/icons on primary button
         static let onVolt = Color.white
 
         /// Status indicators
-        static let safe = Color.dyn(0x16A34A, 0x4ADE80)
-        static let caution = Color.dyn(0xD97706, 0xFBBF24)
-        static let danger = Color.dyn(0xE11D48, 0xFB7185)
+        static let safe = finchMint
+        static let caution = Color(hex: 0xD97706)
+        static let danger = Color(hex: 0xEB6B80)
 
         // Macro Nutrition Tones (Warm, edible pastels)
-        static let protein = Color.dyn(0xFF6F61, 0xFB7185) // Salmon coral
-        static let carbs = Color.dyn(0xF59E0B, 0xFBBF24) // Golden honey
-        static let fat = Color.dyn(0x84CC16, 0xA3E635) // Fresh pear olive
-        static let caloriesRing = Color.dyn(0x38A169, 0x4ADE80) // Mint energy ring
+        static let protein = Color(hex: 0xF08A5D) // Salmon coral
+        static let carbs = Color(hex: 0xF7B731) // Golden honey
+        static let fat = Color(hex: 0x4EA5D9) // Soft sky
+        static let caloriesRing = finchMint // Avocado energy ring
 
         // Typography Inks
-        static let textPrimary = Color.dyn(0x2D312E, 0xF3F4F6)
-        static let textSecondary = Color.dyn(0x6B7280, 0x9CA3AF)
-        static let textTertiary = Color.dyn(0x9CA3AF, 0x6B7280)
+        static let textPrimary = Color(hex: 0x2D312E)
+        static let textSecondary = Color(hex: 0x6B7280)
+        static let textTertiary = Color(hex: 0x9CA3AF)
 
         // Heritage compatibility aliases
         static let racingGreen = finchMint
@@ -95,10 +95,14 @@ extension Color {
 
     /// Dynamic color that adapts to light/dark appearance.
     static func dyn(_ light: UInt, _ dark: UInt) -> Color {
-        Color(UIColor { trait in
-            trait.userInterfaceStyle == .dark
-                ? UIColor(Color(hex: dark))
-                : UIColor(Color(hex: light))
+        Color(uiColor: UIColor { trait in
+            let hex = (trait.userInterfaceStyle == .dark) ? dark : light
+            return UIColor(
+                red: CGFloat((hex >> 16) & 0xFF) / 255.0,
+                green: CGFloat((hex >> 8) & 0xFF) / 255.0,
+                blue: CGFloat(hex & 0xFF) / 255.0,
+                alpha: 1.0
+            )
         })
     }
 }

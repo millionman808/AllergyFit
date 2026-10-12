@@ -807,6 +807,11 @@ struct SymptomLogView: View {
             }
         }
         UINotificationFeedbackGenerator().notificationOccurred(.success)
+        if mood == .reaction {
+            FuelFriendStore.shared.triggerBloatedReaction(reason: selected.first ?? "stomach sensitivity", countsAsCheckIn: true)
+        } else {
+            FuelFriendStore.shared.celebrateGoodCheckIn()
+        }
         withAnimation { saved = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { dismiss() }
     }

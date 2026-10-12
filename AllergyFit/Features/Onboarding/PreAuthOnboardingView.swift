@@ -32,6 +32,10 @@ struct PreAuthOnboardingView: View {
     @State private var customTriggerText = ""
     @State private var previousTriggers: Set<String> = []
 
+    // Finch Plant-Your-Pit Hatch states
+    @State private var pitTapCount: Int = UserDefaults.standard.integer(forKey: "debugPitTapCount")
+    @State private var pitWobble: Double = 0.0
+
     // Step 7: Dynamic calculation animation states
     @State private var calculationProgress: Double = 0.0
     @State private var calculationPhase: Int = 0
@@ -44,11 +48,12 @@ struct PreAuthOnboardingView: View {
     @State private var authErrorMessage: String?
     @State private var authBusy = false
 
-    /// Value first (three slides that show, not tell), then questions, then
-    /// the plan, then the account. The offer comes after, from RootView's
-    /// membership gate. Named so nothing in this file has to count.
+    /// Finch-inspired companion onboarding journey:
+    /// Welcome (what the app does) -> Pick pot -> Plant & Hatch pit -> Name companion -> Gender ->
+    /// Triggers -> Severity -> Goals -> Wearables -> Body stats ->
+    /// Plan reveal -> Account save -> Paywall gate.
     enum Slide: Int, CaseIterable {
-        case welcome, coach, trust, insights,
+        case welcome, pickPot, plantAndHatch, namePip,
              gender, triggers, severity, goal, wearable, stats,
              plan, account
     }
@@ -57,9 +62,8 @@ struct PreAuthOnboardingView: View {
     private let allAllergens = MockData.allAllergens
 
     /// Standard list plus anything the user typed themselves.
-    /// Names MUST match AllergenCatalog exactly — apply(to:) maps name → slug
-    /// → allergen_id and silently drops anything it can't map.
     static let noTriggers = "Nothing — just track nutrition"
+    static let maxNameLength = 14
     private var allTriggerOptions: [String] {
         [Self.noTriggers] + MockData.allAllergens + draft.customAllergens
     }
@@ -97,6 +101,7 @@ struct PreAuthOnboardingView: View {
         } message: {
             Text("Name anything you need to avoid that isn't in the list.")
         }
+        .preferredColorScheme(.light)
     }
 
     private func addCustomTrigger() {
@@ -124,50 +129,49 @@ struct PreAuthOnboardingView: View {
             .disabled(step == 0)
 
             HStack(spacing: 4) {
-                ForEach(Slide.gender.rawValue..<total, id: \.self) { i in
+                ForEach(0..<total, id: \.self) { i in
                     Capsule()
                         .fill(i <= step ? Club.Colors.volt : Club.Colors.surfaceRaised)
                         .frame(height: i == step ? 5 : 3)
                 }
             }
             .animation(.spring(response: 0.35), value: step)
-            .opacity(step >= Slide.gender.rawValue ? 1 : 0)
 
-            if false {  // sign-in lives in the welcome slide body now
-                Button("Sign in") {
-                    if let onSignIn { onSignIn() } else { finish() }
-                }
-                .font(Club.Fonts.caption)
-                .foregroundStyle(Club.Colors.volt)
-                .fontWeight(.semibold)
-            } else {
-                Color.clear.frame(width: 48, height: 34)
-            }
+            Color.clear.frame(width: 34, height: 34)
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
+    }
+
+    private var footerButtonText: String {
+        switch slide {
+        case .welcome: return "Get started"
+        case .pickPot: return "Plant my pit"
+        case .plantAndHatch: return pitTapCount >= 3 ? "Name your avocado" : "Tap the pit to hatch (\(max(0, 3 - pitTapCount)))"
+        case .namePip: return "Nice to meet you, \(draft.companionName)!"
+        case .plan: return "Save our plan"
+        default: return "Continue"
+        }
     }
 
     private var footer: some View {
         VStack(spacing: 10) {
             Button { advance() } label: {
                 HStack(spacing: 6) {
-                    Text(slide == .plan ? "Save my plan" : slide == .welcome ? "Get started" : "Continue")
+                    Text(footerButtonText)
                     Image(systemName: "arrow.right")
                         .font(.system(size: 13, weight: .bold))
                 }
                 .font(Club.Fonts.headline)
-                .foregroundStyle(Club.Colors.onVolt)
+                .foregroundStyle(canAdvance ? Club.Colors.onVolt : Club.Colors.textTertiary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
                 .background(canAdvance ? Club.Colors.volt : Club.Colors.surfaceRaised,
-                            in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
             .disabled(!canAdvance)
             .pressable()
 
-            // Lives in the footer, not the scrolling content — at the bottom of
-            // a long welcome slide it was being cut off behind the button.
             if slide == .welcome && !session.isSignedIn {
                 Button {
                     if let onSignIn { onSignIn() } else { finish() }
@@ -185,6 +189,8 @@ struct PreAuthOnboardingView: View {
 
     private var canAdvance: Bool {
         switch slide {
+        case .plantAndHatch: return pitTapCount >= 3
+        case .namePip: return !draft.companionName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         case .triggers: return !draft.allergenNames.isEmpty
         case .goal:     return !(draft.goalPicks ?? []).isEmpty
         case .plan:     return calculationComplete
@@ -208,18 +214,17 @@ struct PreAuthOnboardingView: View {
     private func finish() {
         draft.save()
         UserDefaults.standard.set(true, forKey: "seenPreAuthOnboarding")
+        UserDefaults.standard.set(draft.companionName, forKey: "fuelFriendName")
+        UserDefaults.standard.set(draft.chosenPot, forKey: "fuelFriendPot")
 
         if session.isDemo {
             session.demoOnboarded = true
         }
 
         if let userId = session.session?.user.id {
-            // Mark onboarded now so RootView moves on to the membership gate
-            // instead of routing back into onboarding while the save runs.
             session.profileOnboarded = true
             let draft = draft
             Task {
-                // Keep the draft if the save fails so the answers aren't lost.
                 if (try? await draft.apply(to: userId)) != nil { OnboardingDraft.clear() }
                 AdAttribution.logOnboardingComplete()
             }
@@ -232,18 +237,18 @@ struct PreAuthOnboardingView: View {
 
     @ViewBuilder private var content: some View {
         switch step {
-        case Slide.welcome.rawValue:  welcomeStep
-        case Slide.coach.rawValue:    coachStep
-        case Slide.trust.rawValue:    trustStep
-        case Slide.insights.rawValue: insightsStep
-        case Slide.gender.rawValue:   genderStep
-        case Slide.triggers.rawValue: triggersStep
-        case Slide.severity.rawValue: severityStep
-        case Slide.goal.rawValue:     goalStep
-        case Slide.wearable.rawValue: wearableStep
-        case Slide.stats.rawValue:    statsStep
-        case Slide.plan.rawValue:     calculationAndPayoffStep
-        case Slide.account.rawValue:  accountCreationStep
+        case Slide.welcome.rawValue:       welcomeStep
+        case Slide.pickPot.rawValue:       pickPotStep
+        case Slide.plantAndHatch.rawValue: plantAndHatchStep
+        case Slide.namePip.rawValue:       namePipStep
+        case Slide.gender.rawValue:        genderStep
+        case Slide.triggers.rawValue:      triggersStep
+        case Slide.severity.rawValue:      severityStep
+        case Slide.goal.rawValue:          goalStep
+        case Slide.wearable.rawValue:      wearableStep
+        case Slide.stats.rawValue:         statsStep
+        case Slide.plan.rawValue:          calculationAndPayoffStep
+        case Slide.account.rawValue:       accountCreationStep
         default: EmptyView()
         }
     }
@@ -261,136 +266,381 @@ struct PreAuthOnboardingView: View {
         }
     }
 
-    // MARK: - Slide 0: Welcome / Hook
+    // MARK: - Welcome: what SafeFuel does, before the pet game starts
 
     private var welcomeStep: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            VStack(alignment: .leading, spacing: 14) {
-                ClubCrest(size: 60)
-                Text("Est. 2026 · Member admission")
-                    .font(Club.Fonts.clubTag(11)).tracking(2.2)
-                    .foregroundStyle(Club.Colors.antiqueBrass)
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                Spacer()
+                Image("pip_wave")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 210)
+                    .shadow(color: Color.black.opacity(0.06), radius: 12, y: 8)
+                Spacer()
             }
-            .padding(.top, 6)
             .revealIn(0)
 
-            HighlightHeadline(text: "Eating safe doesn't have to be hard.", highlight: "doesn't have to be hard", size: 34)
-                .revealIn(1)
-
-            FoodTileGrid()
-                .padding(.top, 4)
-                .revealIn(2)
-
-            Text("Calories you can trust, checked against your triggers — so you can reach your goal without setting off your stomach.")
-                .font(Club.Fonts.body)
-                .foregroundStyle(Club.Colors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .revealIn(3)
-
-        }
-    }
-
-    // MARK: - Slides 1–3: show, don't tell
-
-    private var coachStep: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            HighlightHeadline(text: "Your nutrition coach, Volt, is here to help.", highlight: "nutrition coach")
-                .revealIn(0)
-            TodayPreviewCard()
-                .padding(.top, 6)
-                .revealIn(1)
-            Text("Every meal gets a calorie count and a safe-or-not verdict on the same card. Volt plans your week around both.")
-                .font(Club.Fonts.body)
-                .foregroundStyle(Club.Colors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .revealIn(2)
-        }
-    }
-
-    private var trustStep: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            HighlightHeadline(text: "Every number from the USDA database. Never guessed.", highlight: "Never guessed.")
-                .revealIn(0)
-            SwatchCard(tint: .coral, symbol: "checkmark.seal.fill", title: "325 calories",
-                       subtitle: "Scrambled eggs, toast & butter\n18g protein · 28g carbs · 14g fat",
-                       badge: "USDA verified", tilt: -7)
-                .padding(.top, 8)
-                .revealIn(1)
-            Text("Other apps ask an AI to guess your calories. SafeFuel uses AI for one thing — recognising what's on the plate — and looks every number up in the database dietitians use.")
-                .font(Club.Fonts.body)
-                .foregroundStyle(Club.Colors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .revealIn(2)
-        }
-    }
-
-    private var insightsStep: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            HighlightHeadline(text: "Find out what's actually causing it.", highlight: "actually causing it")
-                .revealIn(0)
-            StackedInsightCards(items: [
-                .init(tag: "Pattern", icon: "waveform.path.ecg", tint: .coral,
-                      text: "Whey protein showed up before 3 of your last 4 reactions."),
-                .init(tag: "Good day", icon: "checkmark.circle.fill", tint: .mint,
-                      text: "No symptoms on the 5 days you skipped the granola bar."),
-                .init(tag: "For your doctor", icon: "doc.text.fill", tint: .sky,
-                      text: "A clean export of what you ate and how you felt."),
-            ])
+            VStack(alignment: .leading, spacing: 8) {
+                HighlightHeadline(text: "Eat well, feel good, and reach your goal.", highlight: "feel good", size: 32)
+                Text("SafeFuel counts your calories, checks every meal against the foods that upset you, and helps you lose weight without the bloat.")
+                    .font(Club.Fonts.body)
+                    .foregroundStyle(Club.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             .revealIn(1)
-            Text("Log good days as well as reactions. When an ingredient keeps turning up before a symptom, SafeFuel tells you.")
-                .font(Club.Fonts.body)
-                .foregroundStyle(Club.Colors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .revealIn(2)
+
+            VStack(alignment: .leading, spacing: 12) {
+                welcomeRow("camera.fill", Club.Colors.pastelPeach, "Snap a meal", "Real calories from the USDA database, checked against your triggers.")
+                welcomeRow("waveform.path.ecg", Club.Colors.pastelLavender, "Find your triggers", "See which foods keep showing up before a rough day.")
+                welcomeRow("leaf.fill", Club.Colors.avocadoGreen, "Grow a little friend", "Small daily goals keep your avocado happy and earn rewards.")
+            }
+            .card()
+            .revealIn(2)
         }
     }
 
-    private func bullet(_ icon: String, _ text: String) -> some View {
-        HStack(spacing: 12) {
+    private func welcomeRow(_ icon: String, _ tint: Color, _ title: String, _ detail: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
-                .font(.subheadline)
-                .foregroundStyle(Club.Colors.volt)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(tint)
                 .frame(width: 34, height: 34)
-                .background(Club.Colors.volt.opacity(0.13),
-                            in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-            Text(text)
-                .font(Club.Fonts.body)
-                .foregroundStyle(Club.Colors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .background(tint.opacity(0.14), in: Circle())
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(Club.Fonts.headline).foregroundStyle(Club.Colors.textPrimary)
+                Text(detail).font(Club.Fonts.caption).foregroundStyle(Club.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
-    // MARK: - Slide 1: Gender / Biological Sex
+    // MARK: - Slide 0: Pick Flower Pot
+
+    private struct PotOption: Identifiable {
+        let id: String
+        let name: String
+        let subtitle: String
+    }
+
+    private let potOptions: [PotOption] = [
+        .init(id: "pot_1", name: "Terracotta", subtitle: "Warm Earth"),
+        .init(id: "pot_2", name: "Sage Meadow", subtitle: "Soothing Leaf"),
+        .init(id: "pot_3", name: "Buttercup", subtitle: "Golden Sun"),
+        .init(id: "pot_4", name: "Blush Bloom", subtitle: "Cozy Petal"),
+        .init(id: "pot_5", name: "Morning Sky", subtitle: "Pastel Breeze"),
+        .init(id: "pot_6", name: "Cream Dotted", subtitle: "Speckled Linen")
+    ]
+
+    private var pickPotStep: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Windowsill Garden")
+                    .font(Club.Fonts.clubTag(11)).tracking(1.8)
+                    .foregroundStyle(Club.Colors.antiqueBrass)
+                    .revealIn(0)
+                HighlightHeadline(text: "Pick a pot for your friend.", highlight: "your friend.", size: 32)
+                    .revealIn(0)
+                Text("Every avocado journey starts in a cozy ceramic pot on your kitchen windowsill. Pick your favorite style:")
+                    .font(Club.Fonts.body)
+                    .foregroundStyle(Club.Colors.textSecondary)
+                    .revealIn(1)
+            }
+
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                ForEach(potOptions) { pot in
+                    let isSelected = draft.chosenPot == pot.id
+                    Button {
+                        Haptics.tap()
+                        withAnimation(.spring(response: 0.32, dampingFraction: 0.75)) {
+                            draft.chosenPot = pot.id
+                        }
+                    } label: {
+                        VStack(spacing: 8) {
+                            Image(pot.id)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 92)
+                                .scaleEffect(isSelected ? 1.06 : 1.0)
+                                .shadow(color: Color.black.opacity(isSelected ? 0.12 : 0.04), radius: 6, y: 3)
+
+                            VStack(spacing: 2) {
+                                Text(pot.name)
+                                    .font(Club.Fonts.headline)
+                                    .foregroundStyle(Club.Colors.textPrimary)
+                                Text(pot.subtitle)
+                                    .font(Club.Fonts.caption)
+                                    .foregroundStyle(Club.Colors.textTertiary)
+                            }
+
+                            HStack(spacing: 4) {
+                                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(isSelected ? Club.Colors.volt : Club.Colors.textTertiary)
+                                Text(isSelected ? "Selected" : "Choose")
+                                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(isSelected ? Club.Colors.volt : Club.Colors.textTertiary)
+                            }
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 8)
+                        .frame(maxWidth: .infinity)
+                        .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .strokeBorder(isSelected ? Club.Colors.volt : Club.Colors.parchmentBorder, lineWidth: isSelected ? 2 : 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .revealIn(2)
+        }
+    }
+
+    // MARK: - Slide 1: Plant & Tap-to-Hatch
+
+    private var plantAndHatchStep: some View {
+        VStack(spacing: 20) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(pitTapCount >= 3 ? "A New Friend Has Arrived!" : "Windowsill Garden")
+                    .font(Club.Fonts.clubTag(11)).tracking(1.8)
+                    .foregroundStyle(Club.Colors.antiqueBrass)
+                HighlightHeadline(
+                    text: pitTapCount >= 3 ? "Your avocado hatched!" : "Tap the pit to wake it up!",
+                    highlight: pitTapCount >= 3 ? "hatched!" : "wake it up!",
+                    size: 32
+                )
+                Text(
+                    pitTapCount >= 3
+                        ? "Say hello to your new friend! Next, give them a name."
+                        : "Avocado seeds need gentle taps to sprout out of the soil. Tap the pit 3 times!"
+                )
+                .font(Club.Fonts.body)
+                .foregroundStyle(Club.Colors.textSecondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .revealIn(0)
+
+            // The Planter Stage
+            ZStack {
+                if pitTapCount >= 3 {
+                    Circle()
+                        .fill(RadialGradient(colors: [Club.Colors.volt.opacity(0.20), Color.clear], center: .center, startRadius: 20, endRadius: 160))
+                        .frame(width: 300, height: 300)
+                }
+
+                ZStack {
+                    Image(draft.chosenPot)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 230, height: 230)
+                        .shadow(color: Color.black.opacity(0.08), radius: 12, y: 6)
+
+                    if pitTapCount < 2 {
+                        Image("pit_in_soil")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 230, height: 230)
+                            .rotationEffect(.degrees(pitWobble))
+                    } else if pitTapCount == 2 {
+                        Image("pit_crack")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 230, height: 230)
+                            .rotationEffect(.degrees(pitWobble))
+                    } else {
+                        Image("pip_wave")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 200, height: 200)
+                            .offset(y: -50)
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                }
+            }
+            .frame(height: 290)
+            .contentShape(Rectangle())
+            .onTapGesture { handlePitTap() }
+            // Canvas bigger than the stage so the burst isn't cut off at its edges.
+            .overlay(ConfettiBurst(trigger: pitTapCount >= 3 ? 1 : 0, big: true, origin: UnitPoint(x: 0.5, y: 0.5))
+                .frame(width: 700, height: 1000))
+            .revealIn(1)
+
+            if pitTapCount < 3 {
+                VStack(spacing: 8) {
+                    HStack(spacing: 8) {
+                        ForEach(0..<3, id: \.self) { idx in
+                            Circle()
+                                .fill(idx < pitTapCount ? Club.Colors.volt : Club.Colors.surfaceRaised)
+                                .frame(width: 12, height: 12)
+                                .overlay(Circle().stroke(Club.Colors.volt, lineWidth: idx < pitTapCount ? 0 : 1))
+                        }
+                    }
+                    Text(3 - pitTapCount == 1 ? "One more tap!" : "Tap the pit (\(max(0, 3 - pitTapCount)) taps left)")
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.textSecondary)
+                }
+                .padding(.vertical, 6)
+                .revealIn(2)
+            } else {
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(Club.Colors.antiqueBrass)
+                    Text("A baby avocado popped out to cheer you on!")
+                        .font(Club.Fonts.headline)
+                        .foregroundStyle(Club.Colors.textPrimary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(Club.Colors.volt.opacity(0.12), in: Capsule())
+                .revealIn(2)
+            }
+        }
+    }
+
+    private func handlePitTap() {
+        guard pitTapCount < 3 else {
+            Haptics.tap()
+            withAnimation(.spring(response: 0.28, dampingFraction: 0.5)) {
+                pitWobble = (pitWobble == 0) ? 7 : -pitWobble
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                withAnimation(.spring(response: 0.25)) { pitWobble = 0 }
+            }
+            return
+        }
+
+        pitTapCount += 1
+
+        if pitTapCount == 1 {
+            Haptics.tap()
+            withAnimation(.spring(response: 0.22, dampingFraction: 0.4)) { pitWobble = 12 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                withAnimation(.spring(response: 0.22)) { pitWobble = 0 }
+            }
+        } else if pitTapCount == 2 {
+            Haptics.warning()
+            withAnimation(.spring(response: 0.22, dampingFraction: 0.4)) { pitWobble = -16 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                withAnimation(.spring(response: 0.22)) { pitWobble = 0 }
+            }
+        } else if pitTapCount >= 3 {
+            Haptics.success()
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.65)) { pitWobble = 0 }
+        }
+    }
+
+    // MARK: - Slide 2: Name Companion
+
+    private var namePipStep: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Companion Bond")
+                    .font(Club.Fonts.clubTag(11)).tracking(1.8)
+                    .foregroundStyle(Club.Colors.antiqueBrass)
+                    .revealIn(0)
+                HighlightHeadline(text: "Name your avocado pal", highlight: "avocado pal", size: 32)
+                    .revealIn(0)
+                Text("Give your new nutrition buddy a name! They'll cheer your healthy meals, drink water with you, and watch out for allergens.")
+                    .font(Club.Fonts.body)
+                    .foregroundStyle(Club.Colors.textSecondary)
+                    .revealIn(1)
+            }
+
+            HStack {
+                Spacer()
+                Image("pip_happy")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 170)
+                    .shadow(color: Color.black.opacity(0.06), radius: 10, y: 6)
+                Spacer()
+            }
+            .revealIn(1)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Avocado Pal's Name")
+                    .font(Club.Fonts.caption)
+                    .foregroundStyle(Club.Colors.textSecondary)
+
+                TextField("e.g. Pip, Guac, Sprout", text: $draft.companionName)
+                    .onChange(of: draft.companionName) { name in
+                        // Long names break headings like "Calibrating ___'s plan".
+                        if name.count > Self.maxNameLength { draft.companionName = String(name.prefix(Self.maxNameLength)) }
+                    }
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(Club.Colors.textPrimary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Club.Colors.parchmentBorder, lineWidth: 1))
+
+                HStack(spacing: 8) {
+                    Text("Suggestions:")
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.textTertiary)
+                    ForEach(["Pip", "Guac", "Sprout", "Avie", "Nori"], id: \.self) { sug in
+                        Button {
+                            Haptics.tap()
+                            draft.companionName = sug
+                        } label: {
+                            Text(sug)
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(draft.companionName == sug ? Club.Colors.volt.opacity(0.15) : Club.Colors.surfaceRaised, in: Capsule())
+                                .foregroundStyle(draft.companionName == sug ? Club.Colors.volt : Club.Colors.textSecondary)
+                        }
+                    }
+                }
+                .padding(.top, 4)
+            }
+            .card()
+            .revealIn(2)
+        }
+    }
+
+    // MARK: - Slide 3: Gender / Biological Sex
 
     private var genderStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Text("Locker suite")
-                .font(Club.Fonts.clubTag(11)).tracking(2.2)
-                .foregroundStyle(Club.Colors.antiqueBrass)
-                .revealIn(0)
-            HighlightHeadline(text: "Which kit is yours?", highlight: "yours")
-                .revealIn(0)
-            Text("We only use this to estimate how many calories your body burns. It changes the math, nothing else.")
-                .font(Club.Fonts.body)
-                .foregroundStyle(Club.Colors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .revealIn(1)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Metabolic Profile")
+                    .font(Club.Fonts.clubTag(11)).tracking(1.8)
+                    .foregroundStyle(Club.Colors.antiqueBrass)
+                    .revealIn(0)
+                HighlightHeadline(text: "Which profile is yours?", highlight: "yours?", size: 32)
+                    .revealIn(0)
+                Text("\(draft.companionName) uses this to work out how much energy your body uses each day.")
+                    .font(Club.Fonts.body)
+                    .foregroundStyle(Club.Colors.textSecondary)
+                    .revealIn(1)
+            }
 
-            HStack(alignment: .top, spacing: 12) {
-                Button {
-                    Haptics.tap()
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { draft.gender = "Male" }
-                } label: {
-                    LockerCard(image: "GentlemansKit", tag: "Locker 01", title: "Male", isSelected: draft.gender == "Male")
+            HStack(spacing: 14) {
+                Image("pip_point")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 85, height: 85)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("\(draft.companionName) asks:")
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.volt)
+                    Text("Bodies burn energy a little differently. This only changes the math for your calories.")
+                        .font(Club.Fonts.body)
+                        .foregroundStyle(Club.Colors.textPrimary)
                 }
-                .buttonStyle(.plain)
-                Button {
-                    Haptics.tap()
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { draft.gender = "Female" }
-                } label: {
-                    LockerCard(image: "LadysKit", tag: "Locker 02", title: "Female", isSelected: draft.gender == "Female")
-                }
-                .buttonStyle(.plain)
+                .padding(12)
+                .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Club.Colors.parchmentBorder, lineWidth: 1))
+            }
+            .revealIn(1)
+
+            HStack(spacing: 14) {
+                genderButton("Male", symbol: "figure.walk")
+                genderButton("Female", symbol: "figure.walk.motion")
             }
             .revealIn(2)
 
@@ -401,17 +651,73 @@ struct PreAuthOnboardingView: View {
         }
     }
 
-    // MARK: - Slide 2: Allergens & Triggers
+    private func genderButton(_ title: String, symbol: String) -> some View {
+        let isSelected = draft.gender == title
+        return Button {
+            Haptics.tap()
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { draft.gender = title }
+        } label: {
+            VStack(spacing: 10) {
+                Image(systemName: symbol)
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundStyle(isSelected ? Club.Colors.volt : Club.Colors.textSecondary)
+                    .frame(height: 44)
+
+                Text(title)
+                    .font(Club.Fonts.headline)
+                    .foregroundStyle(Club.Colors.textPrimary)
+
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(isSelected ? Club.Colors.volt : Club.Colors.textTertiary)
+            }
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity)
+            .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(isSelected ? Club.Colors.volt : Club.Colors.parchmentBorder, lineWidth: isSelected ? 2 : 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Slide 4: Allergens & Triggers
 
     private var triggersStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HighlightHeadline(text: "What do you need to avoid?", highlight: "avoid")
-                .revealIn(0)
-            Text("Allergies, intolerances, sensitivities — pick everything that applies. You can change it any time.")
-                .font(Club.Fonts.body)
-                .foregroundStyle(Club.Colors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .revealIn(1)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Sensitive Belly Defense")
+                    .font(Club.Fonts.clubTag(11)).tracking(1.8)
+                    .foregroundStyle(Club.Colors.antiqueBrass)
+                    .revealIn(0)
+                HighlightHeadline(text: "What upsets our tummy?", highlight: "upsets our tummy?", size: 32)
+                    .revealIn(0)
+                Text("Pick everything you avoid. \(draft.companionName) will screen ingredients and keep our stomach safe.")
+                    .font(Club.Fonts.body)
+                    .foregroundStyle(Club.Colors.textSecondary)
+                    .revealIn(1)
+            }
+
+            HStack(spacing: 14) {
+                Image("pip_bloated")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 85, height: 85)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("\(draft.companionName) says:")
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.danger)
+                    Text("Oof, bad ingredients give me a bloated tummy too! Tap all foods to avoid:")
+                        .font(Club.Fonts.body)
+                        .foregroundStyle(Club.Colors.textPrimary)
+                }
+                .padding(12)
+                .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Club.Colors.danger.opacity(0.2), lineWidth: 1))
+            }
+            .revealIn(1)
 
             ColorChips(items: allTriggerOptions,
                        selected: $draft.allergenNames,
@@ -428,13 +734,42 @@ struct PreAuthOnboardingView: View {
         }
     }
 
-    // MARK: - Slide 3: Severity
+    // MARK: - Slide 5: Severity
 
     private var severityStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            header("How severe is each reaction?",
-                   "SafeFuel strictly customizes cross-contact warnings based on your tolerance.")
-                .revealIn(0)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Reaction Threshold")
+                    .font(Club.Fonts.clubTag(11)).tracking(1.8)
+                    .foregroundStyle(Club.Colors.antiqueBrass)
+                    .revealIn(0)
+                HighlightHeadline(text: "How severe is each reaction?", highlight: "each reaction?", size: 32)
+                    .revealIn(0)
+                Text("\(draft.companionName) customizes cross-contact warnings based on your tolerance.")
+                    .font(Club.Fonts.body)
+                    .foregroundStyle(Club.Colors.textSecondary)
+                    .revealIn(1)
+            }
+
+            HStack(spacing: 14) {
+                Image("pip_think")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 85, height: 85)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("\(draft.companionName) notes:")
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.volt)
+                    Text("We calibrate between strict cross-contamination alerts or general awareness.")
+                        .font(Club.Fonts.body)
+                        .foregroundStyle(Club.Colors.textPrimary)
+                }
+                .padding(12)
+                .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Club.Colors.parchmentBorder, lineWidth: 1))
+            }
+            .revealIn(1)
 
             let filteredTriggers = draft.allergenNames.filter { $0 != Self.noTriggers }
             if filteredTriggers.isEmpty {
@@ -445,12 +780,13 @@ struct PreAuthOnboardingView: View {
                     Text("No Triggers Selected")
                         .font(Club.Fonts.headline)
                         .foregroundStyle(Club.Colors.textPrimary)
-                    Text("SafeFuel will focus purely on your \(draft.gender.lowercased()) macro targets and workout fueling.")
+                    Text("\(draft.companionName) will focus purely on your \(draft.gender.lowercased()) macro targets and workout fueling.")
                         .font(Club.Fonts.caption)
                         .foregroundStyle(Club.Colors.textSecondary)
                         .multilineTextAlignment(.center)
                 }
                 .card()
+                .revealIn(2)
             } else {
                 ForEach(Array(Array(filteredTriggers).sorted().enumerated()), id: \.element) { idx, name in
                     VStack(alignment: .leading, spacing: 8) {
@@ -465,12 +801,12 @@ struct PreAuthOnboardingView: View {
                                     draft.severityByName[name] = s.rawValue
                                 } label: {
                                     Text(s.short)
-                                        .font(.system(size: 12, weight: .semibold))
+                                        .font(.system(size: 12, weight: .semibold, design: .rounded))
                                         .frame(maxWidth: .infinity)
                                         .frame(height: 38)
                                         .background(selected(name) == s ? s.color.opacity(0.9)
                                                                         : Club.Colors.surface,
-                                                    in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                                    in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                                         .foregroundStyle(selected(name) == s ? Club.Colors.onVolt
                                                                              : Club.Colors.textSecondary)
                                 }
@@ -478,7 +814,7 @@ struct PreAuthOnboardingView: View {
                         }
                     }
                     .card()
-                    .revealIn(idx + 1)
+                    .revealIn(idx + 2)
                 }
             }
         }
@@ -488,24 +824,49 @@ struct PreAuthOnboardingView: View {
         Sensitivity(rawValue: draft.severityByName[name] ?? "moderate") ?? .moderate
     }
 
-    // MARK: - Slide 4: Goal (Gender-Specific)
+    // MARK: - Slide 6: Goal (Gender-Specific)
 
     private var goalStep: some View {
         let options: [(key: String, title: String, sub: String, symbol: String)] = [
-            ("lose",   "Lose weight",           "A gentle deficit that still leaves you energy.", "arrow.down.right"),
-            ("build",  "Build muscle",          "More protein and a little more fuel.",           "figure.strengthtraining.traditional"),
-            ("gut",    "Calm my gut",           "Fewer bloated, uncomfortable days.",             "leaf"),
-            ("steady", "Keep my weight steady", "Eat well and feel good where you are.",          "scalemass"),
+            ("lose",   "Lose weight",           "A gentle deficit that still leaves you full of energy.", "arrow.down.right"),
+            ("build",  "Build muscle",          "More protein and energy to hit personal records.",       "dumbbell.fill"),
+            ("gut",    "Calm my gut",           "Fewer bloated, uncomfortable, painful days.",            "leaf.fill"),
+            ("steady", "Keep weight steady",    "Eat nutritious meals and maintain healthy energy.",      "scalemass.fill")
         ]
         let picks = Set(draft.goalPicks ?? [])
-        return VStack(alignment: .leading, spacing: 12) {
-            HighlightHeadline(text: "What do you want to work on?", highlight: "work on")
-                .revealIn(0)
-            Text("Pick as many as you like.")
-                .font(Club.Fonts.body)
-                .foregroundStyle(Club.Colors.textSecondary)
-                .padding(.bottom, 4)
-                .revealIn(1)
+        return VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Companion Goals")
+                    .font(Club.Fonts.clubTag(11)).tracking(1.8)
+                    .foregroundStyle(Club.Colors.antiqueBrass)
+                    .revealIn(0)
+                HighlightHeadline(text: "What are our goals together?", highlight: "our goals", size: 32)
+                    .revealIn(0)
+                Text("Pick as many as you like. Every goal you hit earns seeds to spend on \(draft.companionName)!")
+                    .font(Club.Fonts.body)
+                    .foregroundStyle(Club.Colors.textSecondary)
+                    .revealIn(1)
+            }
+
+            HStack(spacing: 14) {
+                Image("pip_cheer")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 85, height: 85)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("\(draft.companionName) cheers:")
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.volt)
+                    Text("Whatever you choose, we'll hit every target step by step!")
+                        .font(Club.Fonts.body)
+                        .foregroundStyle(Club.Colors.textPrimary)
+                }
+                .padding(12)
+                .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Club.Colors.parchmentBorder, lineWidth: 1))
+            }
+            .revealIn(1)
 
             ForEach(Array(options.enumerated()), id: \.element.key) { i, o in
                 Button { toggleGoal(o.key) } label: {
@@ -548,13 +909,42 @@ struct PreAuthOnboardingView: View {
         }
     }
 
-    // MARK: - Slide 5: Wearable & Activity Tracking
+    // MARK: - Slide 7: Wearable & Activity Tracking
 
     private var wearableStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            header("Which device tracks your workouts?",
-                   "SafeFuel syncs with Apple Health to automatically adjust your calories when you train.")
-                .revealIn(0)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Hardware Sync")
+                    .font(Club.Fonts.clubTag(11)).tracking(1.8)
+                    .foregroundStyle(Club.Colors.antiqueBrass)
+                    .revealIn(0)
+                HighlightHeadline(text: "Which device tracks your workouts?", highlight: "tracks your workouts", size: 30)
+                    .revealIn(0)
+                Text("\(draft.companionName) syncs with Apple Health to automatically adjust your calories when you train.")
+                    .font(Club.Fonts.body)
+                    .foregroundStyle(Club.Colors.textSecondary)
+                    .revealIn(1)
+            }
+
+            HStack(spacing: 14) {
+                Image("pip_proud")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 85, height: 85)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("\(draft.companionName) stretches:")
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.volt)
+                    Text("Moving every day gives us both energy points! Connect your device:")
+                        .font(Club.Fonts.body)
+                        .foregroundStyle(Club.Colors.textPrimary)
+                }
+                .padding(12)
+                .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Club.Colors.parchmentBorder, lineWidth: 1))
+            }
+            .revealIn(1)
 
             let wearables = [
                 ("Apple Watch", "applewatch", "Live heart rate & workout calories sync natively"),
@@ -590,35 +980,53 @@ struct PreAuthOnboardingView: View {
                     .card()
                 }
                 .buttonStyle(.plain)
-                .revealIn(idx + 1)
+                .revealIn(idx + 2)
             }
         }
     }
 
-    // MARK: - Slide 6: Personal Stats (Gender-Specific BMR)
+    // MARK: - Slide 8: Personal Stats (Gender-Specific BMR)
 
     private var statsStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            header("Your metrics",
-                   "Used for precision Mifflin-St Jeor \(draft.gender.lowercased()) metabolic calculations.")
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Body Calibration")
+                    .font(Club.Fonts.clubTag(11)).tracking(1.8)
+                    .foregroundStyle(Club.Colors.antiqueBrass)
+                    .revealIn(0)
+                HighlightHeadline(text: "Your daily measurements.", highlight: "daily measurements.", size: 30)
+                    .revealIn(0)
+                Text("\(draft.companionName) needs your height, weight and how often you train to set your daily targets.")
+                    .font(Club.Fonts.body)
+                    .foregroundStyle(Club.Colors.textSecondary)
+                    .revealIn(1)
+            }
+
+            HStack(spacing: 14) {
+                Image("pip_happy")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 80, height: 80)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("\(draft.companionName) notes:")
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.volt)
+                    Text("These set a calorie target that works for your body. You can change them any time.")
+                        .font(Club.Fonts.body)
+                        .foregroundStyle(Club.Colors.textPrimary)
+                }
+                .padding(12)
+                .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Club.Colors.parchmentBorder, lineWidth: 1))
+            }
+            .revealIn(1)
+
             stepper("Training days / week", value: $draft.trainingDays, range: 0...7, suffix: " days")
             stepper("Weight", value: $draft.weightLb, range: 70...500, suffix: " lb", by: 5)
             stepper("Height (ft)", value: $draft.heightFeet, range: 3...7, suffix: "'")
             stepper("Height (in)", value: $draft.heightInches, range: 0...11, suffix: "\"")
             stepper("Age", value: $draft.age, range: 13...100, suffix: " yrs")
-
-            HStack(spacing: 10) {
-                Image(systemName: "info.circle.fill")
-                    .foregroundStyle(Club.Colors.volt)
-                    .font(.system(size: 15))
-                let isFemale = draft.gender == "Female"
-                Text(isFemale ? "Using female BMR formula (-161 kcal factor) for basal metabolic calibration."
-                              : "Using male BMR formula (+5 kcal factor) for basal metabolic calibration.")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Club.Colors.textSecondary)
-            }
-            .padding(10)
-            .background(Club.Colors.volt.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
         }
     }
 
@@ -654,7 +1062,7 @@ struct PreAuthOnboardingView: View {
         .card()
     }
 
-    // MARK: - Slide 7: Dynamic Plan Generation & Gender Blueprint Reveal
+    // MARK: - Slide 9: Dynamic Plan Generation & Gender Blueprint Reveal
 
     private var calculationAndPayoffStep: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -663,6 +1071,10 @@ struct PreAuthOnboardingView: View {
             } else {
                 planRevealCard
             }
+        }
+        .overlay(alignment: .top) {
+            ConfettiBurst(trigger: calculationComplete ? 1 : 0, origin: UnitPoint(x: 0.5, y: 0.3))
+                .frame(width: 700, height: 1000)
         }
         .task {
             if !calculationComplete {
@@ -678,22 +1090,23 @@ struct PreAuthOnboardingView: View {
             ZStack {
                 Circle()
                     .stroke(Club.Colors.surfaceRaised, lineWidth: 8)
-                    .frame(width: 130, height: 130)
+                    .frame(width: 140, height: 140)
 
                 Circle()
                     .trim(from: 0, to: calculationProgress)
                     .stroke(Club.Colors.volt, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                    .frame(width: 130, height: 130)
+                    .frame(width: 140, height: 140)
                     .rotationEffect(.degrees(-90))
                     .animation(.linear(duration: 0.2), value: calculationProgress)
 
                 VStack(spacing: 2) {
+                    Image("pip_eat")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 75, height: 75)
                     Text("\(Int(calculationProgress * 100))%")
-                        .font(Club.Fonts.stat(32))
+                        .font(Club.Fonts.stat(18))
                         .foregroundStyle(Club.Colors.textPrimary)
-                    Text(draft.gender.uppercased())
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
-                        .foregroundStyle(Club.Colors.volt)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -704,7 +1117,7 @@ struct PreAuthOnboardingView: View {
                     .foregroundStyle(Club.Colors.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Applying your \(draft.allergenNames.count) triggers, \(draft.gender.lowercased()) baseline, and \(draft.wearable) sync.")
+                Text("\(draft.companionName) is baking our custom fuel plan with \(draft.allergenNames.count) safe triggers and \(draft.wearable) sync.")
                     .font(Club.Fonts.caption)
                     .foregroundStyle(Club.Colors.textSecondary)
                     .multilineTextAlignment(.center)
@@ -712,9 +1125,9 @@ struct PreAuthOnboardingView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 calcCheckItem(title: "Allergen matrix screening", done: calculationProgress >= 0.25)
-                calcCheckItem(title: "\(draft.gender) metabolic expenditure (-161/+5 factor)", done: calculationProgress >= 0.50)
+                calcCheckItem(title: "\(draft.companionName) energy baseline calibration", done: calculationProgress >= 0.50)
                 calcCheckItem(title: "Wearable energy balance integration", done: calculationProgress >= 0.75)
-                calcCheckItem(title: "\(draft.gender) macro blueprint optimization", done: calculationProgress >= 0.98)
+                calcCheckItem(title: "Custom macro blueprint optimization", done: calculationProgress >= 0.98)
             }
             .padding(16)
             .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -736,9 +1149,9 @@ struct PreAuthOnboardingView: View {
     private var phaseTitle: String {
         switch calculationPhase {
         case 0: return "Analyzing Allergy Triggers..."
-        case 1: return "Calibrating \(draft.gender) BMR Baseline..."
+        case 1: return "Calibrating \(draft.companionName)'s Energy Baseline..."
         case 2: return "Optimizing Protein & Nutrient Ratios..."
-        default: return "Finalizing Your \(draft.gender) Plan..."
+        default: return "Finalizing Your \(draft.companionName) Blueprint..."
         }
     }
 
@@ -758,9 +1171,6 @@ struct PreAuthOnboardingView: View {
                 calculationComplete = true
             }
             Haptics.success()
-            // The first value moment: they've just seen their own numbers.
-            // Ask for tracking here — after the payoff lands, before the
-            // account step and well before the paywall. Never on top of it.
             try? await Task.sleep(nanoseconds: 1_200_000_000)
             await AdAttribution.requestTrackingIfNeeded()
         }
@@ -769,7 +1179,19 @@ struct PreAuthOnboardingView: View {
     private var planRevealCard: some View {
         let t = draft.targets
         return VStack(alignment: .leading, spacing: 18) {
-            HighlightHeadline(text: "Got it. Here's your plan.", highlight: "your plan")
+            HStack(spacing: 12) {
+                Image("pip_proud")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 85, height: 85)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(draft.companionName)'s Plan is Ready!")
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.volt)
+                    HighlightHeadline(text: "Got it. Here's our plan.", highlight: "our plan.", size: 24)
+                }
+            }
 
             HStack(spacing: 8) {
                 target(t.calories.formatted(.number.grouping(.automatic)), "calories", Club.Colors.volt)
@@ -778,7 +1200,7 @@ struct PreAuthOnboardingView: View {
                 target("\(t.fat)g", "fat", Club.Colors.fat)
             }
 
-            GotItCard(name: "Your profile", chips: gotItChips)
+            GotItCard(name: "\(draft.companionName)'s Profile", chips: gotItChips)
 
             Text("SafeFuel learns as you log, too. Create a free account to save this and start.")
                 .font(Club.Fonts.caption)
@@ -818,12 +1240,25 @@ struct PreAuthOnboardingView: View {
         .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
-    // MARK: - Slide 8: Account Creation (Second-to-Last Slide)
+    // MARK: - Slide 10: Account Creation (Second-to-Last Slide)
 
     private var accountCreationStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HighlightHeadline(text: "Save your plan.", highlight: "your plan")
-            Text("An account keeps your targets, triggers and meals safe if you change phones.")
+            HStack(spacing: 14) {
+                Image("pip_hug")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 85, height: 85)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("\(draft.companionName) is ready!")
+                        .font(Club.Fonts.caption)
+                        .foregroundStyle(Club.Colors.volt)
+                    HighlightHeadline(text: "Save our journey.", highlight: "our journey.", size: 26)
+                }
+            }
+
+            Text("An account keeps your targets, triggers and \(draft.companionName)'s streak safe if you change phones.")
                 .font(Club.Fonts.body)
                 .foregroundStyle(Club.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)

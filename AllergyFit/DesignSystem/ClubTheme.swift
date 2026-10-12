@@ -1,46 +1,50 @@
 import SwiftUI
 
-/// The onboarding's own palette: a private members' club — deep racing green,
-/// burnished brass, ivory linen, serif headlines. The rest of the app uses the
-/// friendlier everyday `Theme`; the first impression is meant to feel
-/// considered and premium, so it gets its own, quieter set.
-///
-/// Member names mirror `Theme.Colors` / `Theme.Fonts`, so onboarding views
-/// swap namespaces without changing any call sites.
+/// The Finch-inspired palette: cozy warm cream background (#FAF8F5),
+/// rounded typography, avocado greens (#4E7D3F), warm pit-brown (#6E4426), and pastel accents.
+/// Member names mirror Theme.Colors / Theme.Fonts.
 enum Club {
     enum Colors {
-        static let background      = Color.dyn(0xF6F1E6, 0x0E1712)   // ivory linen / night green
-        static let surface         = Color.dyn(0xFFFDF8, 0x15211A)
-        static let surfaceRaised   = Color.dyn(0xEEE7D8, 0x1E2C24)
-        static let parchmentBorder = Color.dyn(0xE2D8C5, 0x2A3A31)
+        static let background      = Color(hex: 0xFAF8F5)   // soft warm cream linen
+        static let surface         = Color.white            // cloud white
+        static let surfaceRaised   = Color(hex: 0xF4EFE6)   // soft almond oat
+        static let parchmentBorder = Color(hex: 0xEAE4D7)
 
-        static let racingGreen     = Color.dyn(0x1F3D2E, 0x6E9E83)
-        static let antiqueBrass    = Color.dyn(0xA8823F, 0xC9A961)
-        static let waxCrimson      = Color.dyn(0x8A2C2C, 0xC56A5F)
+        static let avocadoGreen    = Color(hex: 0x4E7D3F)   // fresh avocado green
+        static let pitBrown        = Color(hex: 0x6E4426)   // warm pit-brown
+        static let pastelPeach     = Color(hex: 0xF08A5D)   // warm peach
+        static let pastelButter    = Color(hex: 0xF7B731)   // sunny butter yellow
+        static let pastelSky       = Color(hex: 0x4EA5D9)   // soft sky blue
+        static let pastelLavender  = Color(hex: 0x9D8DF1)   // mochi lavender
+        static let pastelRose      = Color(hex: 0xEB6B80)   // soft berry blush
 
-        /// Primary action: green in light, brass in dark (green on night
-        /// green would disappear).
-        static let volt            = Color.dyn(0x1F3D2E, 0xC9A961)
-        static let onVolt          = Color.dyn(0xF6F1E6, 0x0E1712)
+        // Heritage compatibility aliases
+        static let racingGreen     = avocadoGreen
+        static let antiqueBrass    = pitBrown
+        static let waxCrimson      = pastelPeach
 
-        static let textPrimary     = Color.dyn(0x1A201C, 0xF1ECE1)
-        static let textSecondary   = Color.dyn(0x56605A, 0xA9B0AA)
-        static let textTertiary    = Color.dyn(0x8A918C, 0x6D7670)
+        /// Primary action: Fresh Avocado Green
+        static let volt            = avocadoGreen
+        static let onVolt          = Color.white
 
-        static let safe    = Theme.Colors.safe
-        static let danger  = Theme.Colors.danger
-        static let protein = Color.dyn(0x2E5A7A, 0x7FA7C9)
-        static let carbs   = Color.dyn(0xA8823F, 0xC9A961)
-        static let fat     = Color.dyn(0x6A3D6E, 0xB98BC0)
+        static let textPrimary     = Color(hex: 0x2A2E2B)
+        static let textSecondary   = Color(hex: 0x6A726A)
+        static let textTertiary    = Color(hex: 0x9CA49C)
+
+        static let safe    = Color(hex: 0x4E7D3F)
+        static let danger  = Color(hex: 0xEB6B80)
+        static let protein = Color(hex: 0xF08A5D)
+        static let carbs   = Color(hex: 0xF7B731)
+        static let fat     = Color(hex: 0x4EA5D9)
     }
 
-    /// Serif display over a clean sans body — the classic premium pairing.
+    /// Chubby, warm, rounded system fonts
     enum Fonts {
-        static func stat(_ size: CGFloat) -> Font { .system(size: size, weight: .semibold, design: .serif) }
-        static let title    = Font.system(.title2, design: .serif).weight(.semibold)
-        static let headline = Font.system(.headline, design: .serif).weight(.semibold)
-        static let body     = Font.system(.body, design: .default)
-        static let caption  = Font.system(.caption, design: .default).weight(.medium)
-        static func clubTag(_ size: CGFloat = 11) -> Font { .system(size: size, weight: .semibold, design: .default) }
+        static func stat(_ size: CGFloat) -> Font { .system(size: size, weight: .bold, design: .rounded) }
+        static let title    = Font.system(.title2, design: .rounded).weight(.bold)
+        static let headline = Font.system(.headline, design: .rounded).weight(.bold)
+        static let body     = Font.system(.body, design: .rounded)
+        static let caption  = Font.system(.caption, design: .rounded).weight(.semibold)
+        static func clubTag(_ size: CGFloat = 11) -> Font { .system(size: size, weight: .bold, design: .rounded) }
     }
 }

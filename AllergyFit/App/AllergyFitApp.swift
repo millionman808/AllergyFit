@@ -5,7 +5,6 @@ import GoogleSignIn
 struct AllergyFitApp: App {
     @StateObject private var session = SessionStore()
     @StateObject private var purchases = PurchasesManager.shared
-    @AppStorage("appearance") private var appearance = "light"
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -19,7 +18,8 @@ struct AllergyFitApp: App {
             RootView()
                 .environmentObject(session)
                 .environmentObject(purchases)
-                .preferredColorScheme(colorScheme)
+                // The cozy palette is light-only; system sheets and alerts match it.
+                .preferredColorScheme(.light)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
                 }
@@ -27,14 +27,6 @@ struct AllergyFitApp: App {
                     // AppsFlyer and Meta count sessions per foreground.
                     if phase == .active { AdAttribution.start() }
                 }
-        }
-    }
-
-    private var colorScheme: ColorScheme? {
-        switch appearance {
-        case "light": return .light
-        case "dark": return .dark
-        default: return nil // follow system
         }
     }
 }

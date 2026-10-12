@@ -284,7 +284,7 @@ struct ProductResultView: View {
                 }
             }
         }
-        .preferredColorScheme(nil)
+        .preferredColorScheme(.light)
     }
 
     private func gram(_ v: Double?) -> String { v == nil ? "—" : "\(Int(v!.rounded()))g" }
@@ -339,7 +339,7 @@ struct ProductResultView: View {
         if !session.isDemo, let userId = session.session?.user.id {
             let record = MealLogRecord(
                 id: UUID(), userId: userId, eatenAt: Date(),
-                mealType: Self.mealTypeForNow(),
+                mealType: TodayStore.mealTypeForNow(),
                 name: [product.brand, product.name].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " "),
                 calories: scaledCalories,
                 proteinG: Double(scaled(product.proteinPer100g)),
@@ -349,18 +349,12 @@ struct ProductResultView: View {
             catch { print("product log failed: \(error)") }
         }
         Haptics.success()
+        NotificationCenter.default.post(name: .foodLogged, object: nil)
+        FuelFriendStore.shared.feed(mealName: product.name.isEmpty ? "your snack" : product.name)
         withAnimation { logged = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) { dismiss() }
     }
 
-    private static func mealTypeForNow() -> String {
-        switch Calendar.current.component(.hour, from: Date()) {
-        case 4..<11: return "breakfast"
-        case 11..<16: return "lunch"
-        case 16..<22: return "dinner"
-        default: return "snack"
-        }
-    }
 }
 
 private extension Double {

@@ -81,7 +81,8 @@ struct AlmaQuickActionSheet: View {
                     BarcodeScannerView()
                 case .quickAdd:
                     QuickAddMealView { name, type, cal, p, c, f in
-                        TodayStore().addMeal(name: name, mealType: type, calories: cal, protein: p, carbs: c, fat: f)
+                        TodayStore.writer(for: session).addMeal(name: name, mealType: type, calories: cal, protein: p, carbs: c, fat: f)
+                        FuelFriendStore.shared.feed(mealName: name)
                     }
                 case .workout:
                     WorkoutLogView()

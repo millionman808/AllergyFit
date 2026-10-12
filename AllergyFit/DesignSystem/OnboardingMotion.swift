@@ -156,7 +156,7 @@ struct WaxSealStamp: View {
 
             // Monogram
             Text(text)
-                .font(.system(size: size * 0.32, weight: .bold, design: .serif))
+                .font(.system(size: size * 0.32, weight: .bold, design: .rounded))
                 .foregroundStyle(Color(hex: 0xFFE8D6))
                 .shadow(color: Color.black.opacity(0.4), radius: 0.5, y: 0.5)
         }

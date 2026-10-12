@@ -108,7 +108,7 @@ struct EditTriggersView: View {
             }
             .task { await loadDetails() }
         }
-        .preferredColorScheme(nil)
+        .preferredColorScheme(.light)
     }
 
     private func triggerCard(_ item: Binding<TriggerItem>) -> some View {

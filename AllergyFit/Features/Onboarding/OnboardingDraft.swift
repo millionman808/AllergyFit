@@ -126,7 +126,7 @@ struct OnboardingDraft: Codable, Equatable {
         try await Backend.client.from("profiles").update(update)
             .eq("id", value: userId).execute()
 
-        if isFemale {
+        if isFemale && Config.cycleTrackingEnabled {
             await MainActor.run {
                 CycleManager.shared.enableForLadyAthlete()
             }

@@ -21,7 +21,7 @@ final class PurchasesManager: ObservableObject {
     @Published var trialEligible: [String: Bool] = [:]
 
     /// True when RevenueCat is wired up with a real key.
-    var isConfigured: Bool { !Config.revenueCatKey.isEmpty }
+    var isConfigured: Bool { Config.paymentsEnabled && !Config.revenueCatKey.isEmpty }
 
     /// Gate features on this. Beta: unlocked until billing is configured.
     var hasPremiumAccess: Bool { !isConfigured || isPremium }

@@ -11,7 +11,7 @@ struct OfflineView: View {
     @State private var isRetrying = false
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    private let supportEmail = "support@allergyfit.app"
+    private let supportEmail = "support@safefuel.app"
 
     var body: some View {
         ZStack {

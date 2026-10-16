@@ -31,7 +31,7 @@ final class HealthManager: ObservableObject {
         if let distCyc = HKObjectType.quantityType(forIdentifier: .distanceCycling) { s.insert(distCyc) }
         if let hr = HKObjectType.quantityType(forIdentifier: .heartRate) { s.insert(hr) }
         if let rhr = HKObjectType.quantityType(forIdentifier: .restingHeartRate) { s.insert(rhr) }
-        if let flow = HKObjectType.categoryType(forIdentifier: .menstrualFlow) { s.insert(flow) }
+        if Config.cycleTrackingEnabled, let flow = HKObjectType.categoryType(forIdentifier: .menstrualFlow) { s.insert(flow) }
         return s
     }
 
@@ -106,7 +106,7 @@ final class HealthManager: ObservableObject {
         self.currentHeartRate = h.current
         self.restingHeartRate = h.resting
 
-        if CycleManager.shared.state.isEnabled {
+        if Config.cycleTrackingEnabled && CycleManager.shared.state.isEnabled {
             if let latestCycleStart = await fetchLatestMenstrualCycleStart() {
                 CycleManager.shared.updateLastPeriodStartDate(latestCycleStart, syncedFromHealth: true)
             }

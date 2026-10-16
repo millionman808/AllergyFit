@@ -314,11 +314,15 @@ struct ProfileView: View {
             settingsGroup("Nutrition") {
                 Button { showGoals = true } label: { settingsRow("Goals & targets", "target") }
                 Button { showDietary = true } label: { settingsRow("Dietary preferences", "leaf.fill") }
-                Button { showCycleFueling = true } label: { settingsRow("Cycle-Aware Fueling", "moon.stars.fill") }
+                if Config.cycleTrackingEnabled {
+                    Button { showCycleFueling = true } label: { settingsRow("Cycle-Aware Fueling", "moon.stars.fill") }
+                }
             }
             settingsGroup("App") {
                 NavigationLink(value: "notifications") { settingsRow("Notifications", "bell.fill") }
-                NavigationLink(value: "subscription") { settingsRow("Manage subscription", "crown.fill") }
+                if Config.paymentsEnabled {
+                    NavigationLink(value: "subscription") { settingsRow("Manage subscription", "crown.fill") }
+                }
             }
             settingsGroup("Support") {
                 Button { showFeedback = true } label: { settingsRow("Send feedback", "bubble.left.and.text.bubble.right.fill") }
@@ -456,7 +460,9 @@ struct ProfileView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This permanently removes your profile, triggers, meals, symptoms and plans. Subscriptions are managed by Apple and are not cancelled by deleting your account.")
+            Text(Config.paymentsEnabled
+                 ? "This permanently removes your profile, triggers, meals, symptoms and plans. Subscriptions are managed by Apple and are not cancelled by deleting your account."
+                 : "This permanently removes your profile, triggers, meals, symptoms and plans.")
         }
     }
 

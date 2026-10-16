@@ -5,7 +5,7 @@ struct DashboardView: View {
     @EnvironmentObject var session: SessionStore
     @EnvironmentObject var planStore: PlanStore
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject private var store = TodayStore()
+    @ObservedObject var store: TodayStore = TodayStore()
     @StateObject private var trends = TrendsStore()
     @ObservedObject private var friendStore = FuelFriendStore.shared
     @State private var showSymptomLog = false
@@ -13,39 +13,55 @@ struct DashboardView: View {
     @State private var showTrends = false
     @State private var showNutritionScore = false
     @State private var showCycleSheet = false
+    @State private var showPreferencesSheet = UserDefaults.standard.bool(forKey: "showPreferencesSheet")
     @State private var loggingPlanMealID: UUID?
     @State private var planLogError: String?
     var onOpenPlan: () -> Void = {}
     var onCheckFood: () -> Void = {}
+    var onOpenGoals: () -> Void = {}
+
+    // Interactive Finch Micro-Reaction & Animation States
+    @State private var feedbackToastText: String? = nil
+    @State private var feedbackToastIcon: String = "sparkles"
+    @State private var feedbackToastColor: Color = Theme.Colors.volt
+    @State private var showWaterDropAnim = false
+    @State private var showFoodAnim = false
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Theme.Colors.background.ignoresSafeArea()
-                ScrollView {
-                    VStack(spacing: Theme.Metrics.spacing) {
-                        topHeader
-                        FuelFriendStageView(
-                            friendStore: friendStore,
-                            calories: store.consumedCalories,
-                            targetCalories: store.dynamicTargetCalories,
-                            protein: store.consumedProtein,
-                            targetProtein: store.targetProtein,
-                            water: store.waterGlasses,
-                            waterGoal: store.waterGoal,
-                            mealCount: store.meals.count,
-                            allergens: session.allergensForAI
-                        )
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(spacing: Theme.Metrics.spacing) {
+                            topHeader
+                            FuelFriendStageView(
+                                friendStore: friendStore,
+                                calories: store.consumedCalories,
+                                targetCalories: store.dynamicTargetCalories,
+                                protein: store.consumedProtein,
+                                targetProtein: store.targetProtein,
+                                water: store.waterGlasses,
+                                waterGoal: store.waterGoal,
+                                mealCount: store.meals.count,
+                                allergens: session.allergensForAI
+                            )
+                            todayNutritionCard
+                            quickActionsCard
+                                .id("quickActions")
                         PipGoalsCard(
                             pip: friendStore,
                             day: daySnapshot,
-                            onLogFood: onCheckFood,
+                            onLogFood: {
+                                triggerMealReaction()
+                                onCheckFood()
+                            },
                             onTummyCheckIn: { showSymptomLog = true },
                             onAddWater: {
-                                store.setWater(store.waterGlasses + 1)
-                                friendStore.hydrate()
+                                triggerWaterReaction()
                             }
                         )
+                        todaysMealsCarousel
                         almaMacroQuadCard
                         dailyPlanCard
                         activityAndWorkoutsCard
@@ -61,9 +77,75 @@ struct DashboardView: View {
                     .padding(.bottom, Theme.Metrics.tabBarClearance)
                 }
                 .refreshable { await store.refresh() }
+                .onAppear {
+                    if let target = UserDefaults.standard.string(forKey: "scrollToSection") {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            proxy.scrollTo(target, anchor: .top)
+                        }
+                    }
+                }
+            }
 
                 if let deleted = store.recentlyDeleted {
                     undoSnackbar(deleted)
+                }
+
+                // Interactive Particle Animations (Prompt 7)
+                if showWaterDropAnim {
+                    VStack {
+                        Spacer()
+                        Image(systemName: "drop.fill")
+                            .font(.system(size: 34))
+                            .foregroundStyle(Color(hex: 0x38BDF8))
+                            .shadow(color: Color(hex: 0x38BDF8).opacity(0.8), radius: 12)
+                            .offset(y: -140)
+                            .transition(.asymmetric(
+                                insertion: .scale(scale: 0.3).combined(with: .offset(y: 80)),
+                                removal: .scale(scale: 1.5).combined(with: .opacity)
+                            ))
+                        Spacer()
+                    }
+                    .zIndex(90)
+                }
+
+                if showFoodAnim {
+                    VStack {
+                        Spacer()
+                        Image(systemName: "fork.knife.circle.fill")
+                            .font(.system(size: 36))
+                            .foregroundStyle(Theme.Colors.volt)
+                            .shadow(color: Theme.Colors.volt.opacity(0.7), radius: 12)
+                            .offset(y: -140)
+                            .transition(.asymmetric(
+                                insertion: .scale(scale: 0.3).combined(with: .offset(y: 80)),
+                                removal: .scale(scale: 1.5).combined(with: .opacity)
+                            ))
+                        Spacer()
+                    }
+                    .zIndex(90)
+                }
+
+                // Finch Toast Feedback Banner
+                if let toast = feedbackToastText {
+                    VStack {
+                        HStack(spacing: 8) {
+                            Image(systemName: feedbackToastIcon)
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundStyle(feedbackToastColor)
+                            Text(toast)
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Theme.Colors.surface, in: Capsule())
+                        .overlay(Capsule().stroke(Theme.Colors.parchmentBorder.opacity(0.9), lineWidth: 1))
+                        .shadow(color: Color.black.opacity(0.08), radius: 12, y: 4)
+                        .padding(.top, 54)
+                        Spacer()
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(100)
                 }
             }
             .navigationBarHidden(true)
@@ -103,6 +185,14 @@ struct DashboardView: View {
             .sheet(isPresented: $showCycleSheet) {
                 CycleFuelingSheet()
             }
+            .sheet(isPresented: $showPreferencesSheet) {
+                DailyPreferencesSheet(
+                    waterCups: store.waterGlasses,
+                    mealCount: store.meals.count,
+                    calories: store.consumedCalories,
+                    steps: store.todaySteps
+                )
+            }
             .alert("Couldn't log that meal", isPresented: Binding(
                 get: { planLogError != nil },
                 set: { if !$0 { planLogError = nil } }
@@ -125,7 +215,30 @@ struct DashboardView: View {
         )
     }
 
-    // MARK: - Top Header (Finch Style — Friend Greeting, Hearts & Streak Pill)
+    // MARK: - Top Header (Finch Style — Friend Greeting, Gear, Hearts & Streak Pill)
+
+    /// First name for the greeting: the saved display name, else the part of
+    /// the email before "@". Empty for anonymous users, who just get "Good morning".
+    private var userName: String {
+        if session.isDemo { return MockData.userName }
+        if let saved = UserDefaults.standard.string(forKey: "displayName"),
+           let first = saved.split(separator: " ").first, !first.isEmpty {
+            return String(first)
+        }
+        if let email = session.session?.user.email, !email.isEmpty,
+           let prefix = email.split(separator: "@").first {
+            return String(prefix).capitalized
+        }
+        return ""
+    }
+
+    private var timeOfDayGreeting: String {
+        switch Calendar.current.component(.hour, from: Date()) {
+        case 5..<12: return "Good morning"
+        case 12..<17: return "Good afternoon"
+        default: return "Good evening"
+        }
+    }
 
     private var topHeader: some View {
         HStack(alignment: .center) {
@@ -133,12 +246,33 @@ struct DashboardView: View {
                 Text(todayDateFormatted.uppercased())
                     .font(.system(size: 11, weight: .bold, design: .rounded))
                     .foregroundStyle(Theme.Colors.finchPeach)
-                Text("Today with \(friendStore.name)")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                Text(userName.isEmpty ? timeOfDayGreeting : "\(timeOfDayGreeting), \(userName)")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundStyle(Theme.Colors.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Text("Your little buddy is ready.")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textSecondary)
             }
 
             Spacer()
+
+            // Settings Gear Button (Figma Screen 2)
+            Button {
+                showPreferencesSheet = true
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .frame(width: 34, height: 34)
+                    .background(Theme.Colors.surface, in: Circle())
+                    .overlay(
+                        Circle().stroke(Theme.Colors.parchmentBorder.opacity(0.8), lineWidth: 1)
+                    )
+                    .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
+            }
+            .buttonStyle(.plain)
 
             // Hearts Count from petting
             Button {
@@ -186,6 +320,389 @@ struct DashboardView: View {
         let f = DateFormatter()
         f.dateFormat = "EEEE, MMM d"
         return f.string(from: Date())
+    }
+
+    // MARK: - Figma Screen 2 "Today" Nutrition Summary Card
+
+    private var todayNutritionCard: some View {
+        VStack(spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Today")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Spacer()
+                Button {
+                    showNutritionScore = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("View details")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 11, weight: .bold))
+                    }
+                    .foregroundStyle(Theme.Colors.volt)
+                }
+                .buttonStyle(.plain)
+            }
+
+            VStack(spacing: 12) {
+                // Calories: Green
+                horizontalProgressRow(
+                    icon: "flame.fill",
+                    iconColor: Theme.Colors.caloriesRing,
+                    iconBg: Theme.Colors.caloriesRing.opacity(0.12),
+                    title: "Calories",
+                    valueText: "\(store.consumedCalories.formatted()) / \(store.dynamicTargetCalories.formatted())",
+                    progress: store.dynamicTargetCalories > 0 ? Double(store.consumedCalories) / Double(store.dynamicTargetCalories) : 0,
+                    barColor: Theme.Colors.caloriesRing
+                )
+
+                // Protein: Purple
+                horizontalProgressRow(
+                    icon: "fork.knife",
+                    iconColor: Color(hex: 0x8B5CF6),
+                    iconBg: Color(hex: 0x8B5CF6).opacity(0.12),
+                    title: "Protein",
+                    valueText: "\(store.consumedProtein) / \(store.targetProtein)g",
+                    progress: store.targetProtein > 0 ? Double(store.consumedProtein) / Double(store.targetProtein) : 0,
+                    barColor: Color(hex: 0x8B5CF6)
+                )
+
+                // Water: Sky Blue
+                horizontalProgressRow(
+                    icon: "drop.fill",
+                    iconColor: Color(hex: 0x38BDF8),
+                    iconBg: Color(hex: 0x38BDF8).opacity(0.12),
+                    title: "Water",
+                    valueText: "\(store.waterGlasses) / \(store.waterGoal) cups",
+                    progress: store.waterGoal > 0 ? Double(store.waterGlasses) / Double(store.waterGoal) : 0,
+                    barColor: Color(hex: 0x38BDF8)
+                )
+
+                // Steps: Orange
+                let steps = store.todaySteps
+                horizontalProgressRow(
+                    icon: "figure.walk",
+                    iconColor: Color(hex: 0xFB923C),
+                    iconBg: Color(hex: 0xFB923C).opacity(0.12),
+                    title: "Steps",
+                    valueText: "\(steps.formatted()) / 8,000",
+                    progress: Double(steps) / 8000.0,
+                    barColor: Color(hex: 0xFB923C)
+                )
+            }
+        }
+        .padding(18)
+        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(Theme.Colors.parchmentBorder.opacity(0.85), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.04), radius: 12, y: 4)
+    }
+
+    private func horizontalProgressRow(
+        icon: String,
+        iconColor: Color,
+        iconBg: Color,
+        title: String,
+        valueText: String,
+        progress: Double,
+        barColor: Color
+    ) -> some View {
+        VStack(spacing: 6) {
+            HStack {
+                HStack(spacing: 8) {
+                    Image(systemName: icon)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(iconColor)
+                        .frame(width: 22, height: 22)
+                        .background(iconBg, in: Circle())
+                    Text(title)
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                }
+                Spacer()
+                Text(valueText)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Theme.Colors.surfaceRaised)
+                        .frame(height: 8)
+                    Capsule()
+                        .fill(barColor)
+                        .frame(width: max(8, min(geo.size.width, geo.size.width * CGFloat(min(1.0, max(0.0, progress))))), height: 8)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.75), value: progress)
+                }
+            }
+            .frame(height: 8)
+        }
+    }
+
+    // MARK: - Prompt 7 & Figma Quick Actions Row
+    private var quickActionsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Quick actions")
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(Theme.Colors.textPrimary)
+
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                quickActionButton(
+                    title: "Log food",
+                    subtitle: "Feed \(friendStore.name)",
+                    icon: "fork.knife",
+                    color: Theme.Colors.volt
+                ) {
+                    triggerMealReaction(mealName: "Healthy Meal")
+                    onCheckFood()
+                }
+
+                quickActionButton(
+                    title: "Drink water",
+                    subtitle: "+1 cup hydration",
+                    icon: "drop.fill",
+                    color: Color(hex: 0x38BDF8)
+                ) {
+                    triggerWaterReaction()
+                }
+
+                quickActionButton(
+                    title: "Meal plan",
+                    subtitle: "Safe recipes",
+                    icon: "calendar.badge.clock",
+                    color: Theme.Colors.finchPeach
+                ) {
+                    onOpenPlan()
+                }
+
+                quickActionButton(
+                    title: "Check goals",
+                    subtitle: "Daily quests",
+                    icon: "checkmark.circle.fill",
+                    color: Color(hex: 0x8B5CF6)
+                ) {
+                    onOpenGoals()
+                }
+            }
+        }
+    }
+
+    private func quickActionButton(
+        title: String,
+        subtitle: String,
+        icon: String,
+        color: Color,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(0.14))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: icon)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(color)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text(subtitle)
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Theme.Colors.parchmentBorder.opacity(0.85), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.03), radius: 6, y: 2)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func showToast(_ text: String, icon: String, color: Color) {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+            feedbackToastText = text
+            feedbackToastIcon = icon
+            feedbackToastColor = color
+        }
+        Task {
+            try? await Task.sleep(nanoseconds: 3_200_000_000)
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    if feedbackToastText == text {
+                        feedbackToastText = nil
+                    }
+                }
+            }
+        }
+    }
+
+    private func triggerWaterReaction() {
+        store.setWater(store.waterGlasses + 1)
+        friendStore.hydrate()
+        showWaterDropAnim = true
+        Haptics.tap()
+        showToast("A little drink goes a long way!", icon: "drop.fill", color: Color(hex: 0x38BDF8))
+        Task {
+            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            await MainActor.run { showWaterDropAnim = false }
+        }
+    }
+
+    private func triggerMealReaction(mealName: String = "Balanced Meal") {
+        friendStore.feed(mealName: mealName)
+        showFoodAnim = true
+        Haptics.success()
+        showToast("Yum! Thanks for taking care of yourself.", icon: "fork.knife", color: Theme.Colors.volt)
+        Task {
+            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            await MainActor.run { showFoodAnim = false }
+        }
+    }
+
+    // MARK: - Figma Screen 2 "Today's Meals" Preview Row
+
+    private var todaysMealsCarousel: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Text("Today's Meals")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Spacer()
+                Button {
+                    onCheckFood()
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Theme.Colors.onVolt)
+                        .frame(width: 28, height: 28)
+                        .background(Theme.Colors.volt, in: Circle())
+                        .shadow(color: Theme.Colors.volt.opacity(0.3), radius: 6, y: 2)
+                }
+                .buttonStyle(.plain)
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    mealPreviewCard(
+                        type: "Breakfast",
+                        suggestedName: "Overnight Oats",
+                        icon: "cup.and.saucer.fill",
+                        cal: 420,
+                        prot: 18,
+                        color: Theme.Colors.finchButter
+                    )
+                    mealPreviewCard(
+                        type: "Lunch",
+                        suggestedName: "Chicken & Rice Bowl",
+                        icon: "fork.knife",
+                        cal: 520,
+                        prot: 35,
+                        color: Theme.Colors.finchMint
+                    )
+                    mealPreviewCard(
+                        type: "Dinner",
+                        suggestedName: "Salmon, Quinoa, Veggies",
+                        icon: "takeoutbag.and.cup.and.straw.fill",
+                        cal: 580,
+                        prot: 40,
+                        color: Theme.Colors.finchPeach
+                    )
+                    mealPreviewCard(
+                        type: "Snacks",
+                        suggestedName: "Apple + Peanut Butter",
+                        icon: "leaf.fill",
+                        cal: 210,
+                        prot: 7,
+                        color: Theme.Colors.finchLavender
+                    )
+                }
+                .padding(.vertical, 2)
+            }
+        }
+    }
+
+    private func mealPreviewCard(
+        type: String,
+        suggestedName: String,
+        icon: String,
+        cal: Int,
+        prot: Int,
+        color: Color
+    ) -> some View {
+        let logged = store.meals.first { $0.mealType.lowercased() == type.lowercased() }
+        let mealName = logged?.name ?? suggestedName
+        let calories = logged?.calories ?? cal
+        let protein = logged?.protein ?? prot
+        let isLogged = logged != nil
+
+        return Button {
+            if isLogged {
+                showNutritionScore = true
+            } else {
+                store.addMeal(name: mealName, mealType: type, calories: calories, protein: protein, carbs: 45, fat: 12)
+                friendStore.feed(mealName: mealName)
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    ZStack {
+                        Circle()
+                            .fill(color.opacity(0.2))
+                            .frame(width: 38, height: 38)
+                        Image(systemName: icon)
+                            .font(.system(size: 16))
+                            .foregroundStyle(color)
+                    }
+                    Spacer()
+                    if isLogged {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Theme.Colors.safe)
+                    } else {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Theme.Colors.volt)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(type)
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                    Text(mealName)
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .lineLimit(1)
+                    Text("\(calories) cal · \(protein)g protein")
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                }
+            }
+            .padding(12)
+            .frame(width: 156)
+            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(isLogged ? Theme.Colors.volt.opacity(0.3) : Theme.Colors.parchmentBorder.opacity(0.85), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.04), radius: 8, y: 3)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Finch 4-Ring Macro Row (Calories, Protein, Carbs, Fat)
@@ -993,4 +1510,270 @@ struct NutritionScoreSheet: View {
         .card()
     }
 }
+
+// MARK: - Figma Screen 8 & 9 (Daily Check-In & Preferences Sheet)
+
+struct DailyPreferencesSheet: View {
+    let waterCups: Int
+    let mealCount: Int
+    let calories: Int
+    let steps: Int
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedTab = UserDefaults.standard.integer(forKey: "prefTab") // 0: Daily Check-in (Screen 9), 1: Your Preferences (Screen 8)
+    @State private var selectedMood: Int = 1 // 0: Great, 1: Good, 2: Okay, 3: Tired, 4: Stressed
+    @State private var note: String = ""
+    @State private var isSaved = false
+
+    // Screen 8 Toggles
+    @AppStorage("pref_vegetarian") private var isVegetarian = false
+    @AppStorage("pref_gluten_free") private var isGlutenFree = false
+    @AppStorage("pref_dairy_free") private var isDairyFree = false
+    @AppStorage("pref_nut_free") private var isNutFree = false
+    @AppStorage("pref_egg_free") private var isEggFree = false
+    @AppStorage("pref_cal_goal") private var calorieGoal = 2000
+    @AppStorage("pref_protein_goal") private var proteinGoal = 150
+    @AppStorage("pref_activity_level") private var activityLevel = "Moderate"
+
+    private let moods = [
+        (emoji: "sun.max.fill", label: "Great"),
+        (emoji: "face.smiling", label: "Good"),
+        (emoji: "cloud.sun.fill", label: "Okay"),
+        (emoji: "moon.zzz.fill", label: "Tired"),
+        (emoji: "cloud.rain.fill", label: "Stressed")
+    ]
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Theme.Colors.background.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Segmented Switcher
+                        Picker("View Mode", selection: $selectedTab) {
+                            Text("Daily Check-in").tag(0)
+                            Text("Your Preferences").tag(1)
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal, 4)
+
+                        if selectedTab == 0 {
+                            checkInView
+                        } else {
+                            preferencesView
+                        }
+                    }
+                    .padding(Theme.Metrics.screenPadding)
+                }
+            }
+            .navigationTitle(selectedTab == 0 ? "Daily Check-in" : "Your Preferences")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        Haptics.tap()
+                        dismiss()
+                    }
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.volt)
+                }
+            }
+        }
+    }
+
+    // MARK: Screen 9 — Daily Check-In
+    private var checkInView: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("How are you feeling today?")
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+
+                HStack(spacing: 8) {
+                    ForEach(0..<moods.count, id: \.self) { index in
+                        let mood = moods[index]
+                        let isSelected = selectedMood == index
+                        Button {
+                            Haptics.tap()
+                            selectedMood = index
+                        } label: {
+                            VStack(spacing: 6) {
+                                Image(systemName: mood.emoji)
+                                    .font(.system(size: 26, weight: .semibold))
+                                    .foregroundStyle(isSelected ? Theme.Colors.finchMint : Theme.Colors.textSecondary)
+                                    .frame(height: 34)
+                                Text(mood.label)
+                                    .font(.system(size: 11, weight: isSelected ? .bold : .medium, design: .rounded))
+                                    .foregroundStyle(isSelected ? Theme.Colors.volt : Theme.Colors.textSecondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill(isSelected ? Theme.Colors.volt.opacity(0.12) : Theme.Colors.surface)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(isSelected ? Theme.Colors.volt : Theme.Colors.parchmentBorder.opacity(0.8), lineWidth: isSelected ? 2 : 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            // Optional note field
+            VStack(alignment: .leading, spacing: 8) {
+                TextField("Add a note (optional)...", text: $note, axis: .vertical)
+                    .lineLimit(3...5)
+                    .font(.system(size: 14, design: .rounded))
+                    .padding(14)
+                    .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Theme.Colors.parchmentBorder.opacity(0.8), lineWidth: 1)
+                    )
+            }
+
+            // Today's Wins Card
+            VStack(alignment: .leading, spacing: 14) {
+                Text("Today's Wins")
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+
+                VStack(spacing: 10) {
+                    winRow(title: "Drank \(waterCups) cups of water", completed: waterCups > 0)
+                    winRow(title: "Ate \(mealCount) balanced meals", completed: mealCount > 0)
+                    winRow(title: "Stayed under \(calorieGoal.formatted()) calories", completed: calories <= calorieGoal)
+                    winRow(title: "Walked \(steps.formatted()) steps", completed: steps > 0)
+                }
+            }
+            .padding(16)
+            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(Theme.Colors.parchmentBorder.opacity(0.8), lineWidth: 1)
+            )
+
+            // Save CTA
+            Button {
+                Haptics.success()
+                isSaved = true
+                FuelFriendStore.shared.addSeeds(5, reason: "Daily Check-in")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    dismiss()
+                }
+            } label: {
+                HStack {
+                    if isSaved {
+                        Image(systemName: "checkmark")
+                            .bold()
+                        Text("Saved!")
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                    } else {
+                        Text("Save")
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                    }
+                }
+                .foregroundStyle(Theme.Colors.onVolt)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .shadow(color: Theme.Colors.volt.opacity(0.25), radius: 8, y: 3)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func winRow(title: String, completed: Bool) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: completed ? "checkmark.circle.fill" : "circle")
+                .font(.system(size: 16))
+                .foregroundStyle(completed ? Theme.Colors.safe : Theme.Colors.textTertiary)
+            Text(title)
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(Theme.Colors.textPrimary)
+            Spacer()
+        }
+    }
+
+    // MARK: Screen 8 — Your Preferences
+    private var preferencesView: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // Dietary Needs
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Dietary Needs")
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+
+                VStack(spacing: 0) {
+                    togglePrefRow("Vegetarian", isOn: $isVegetarian)
+                    Divider().padding(.leading, 16)
+                    togglePrefRow("Gluten Free", isOn: $isGlutenFree)
+                    Divider().padding(.leading, 16)
+                    togglePrefRow("Dairy Free", isOn: $isDairyFree)
+                    Divider().padding(.leading, 16)
+                    togglePrefRow("Nut Free", isOn: $isNutFree)
+                    Divider().padding(.leading, 16)
+                    togglePrefRow("Egg Free", isOn: $isEggFree)
+                }
+                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Theme.Colors.parchmentBorder.opacity(0.8), lineWidth: 1)
+                )
+            }
+
+            // Daily Targets
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Daily Targets")
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+
+                VStack(spacing: 0) {
+                    targetPrefRow(title: "Daily Calorie Goal", value: "\(calorieGoal.formatted()) kcal")
+                    Divider().padding(.leading, 16)
+                    targetPrefRow(title: "Protein Goal", value: "\(proteinGoal)g")
+                    Divider().padding(.leading, 16)
+                    targetPrefRow(title: "Activity Level", value: activityLevel)
+                }
+                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Theme.Colors.parchmentBorder.opacity(0.8), lineWidth: 1)
+                )
+            }
+        }
+    }
+
+    private func togglePrefRow(_ title: String, isOn: Binding<Bool>) -> some View {
+        Toggle(isOn: isOn) {
+            Text(title)
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .foregroundStyle(Theme.Colors.textPrimary)
+        }
+        .tint(Theme.Colors.volt)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+
+    private func targetPrefRow(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .foregroundStyle(Theme.Colors.textPrimary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundStyle(Theme.Colors.textSecondary)
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.Colors.textTertiary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+    }
+}
+
 

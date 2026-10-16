@@ -59,7 +59,7 @@ struct PipGoalsCard: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Today's goals")
+                Text("Today's little wins")
                     .font(.system(size: 19, weight: .bold, design: .rounded))
                     .foregroundStyle(Theme.Colors.textPrimary)
                 Text("Each one earns \(FuelFriendStore.seedsPerGoal) seeds for \(pip.name).")

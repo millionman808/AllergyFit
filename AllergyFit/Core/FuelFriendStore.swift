@@ -28,6 +28,25 @@ final class FuelFriendStore: ObservableObject {
     @AppStorage("pipGoalsDoneRaw") var goalsDoneRaw: String = ""
     @AppStorage("pipGoalStreak") var goalStreak: Int = 0
     @AppStorage("pipGoalStreakDay") var goalStreakDay: String = ""
+    @AppStorage("fuelFriendXP") var xp: Int = 340
+
+    var level: Int {
+        max(1, (xp / 100) + 1)
+    }
+
+    var xpInCurrentLevel: Int {
+        xp % 100
+    }
+
+    var growthStageTitle: String {
+        switch level {
+        case 1: return "Little Sprout"
+        case 2...3: return "Growing Roots"
+        case 4...6: return "Little Garden"
+        case 7...10: return "Flourishing"
+        default: return "Thriving Together"
+        }
+    }
     /// Bumped to fire confetti (PipConfettiLayer).
     @Published var confettiSmall = 0
     @Published var confettiBig = 0
@@ -448,6 +467,7 @@ final class FuelFriendStore: ObservableObject {
         collectedPostcards = set
         adventureState = "completed_today"
         addSeeds(30, reason: "Adventure Postcard Reward")
+        xp += 30
         activeAction = "celebrate"
         confettiBig += 1
         Haptics.success()
@@ -522,11 +542,13 @@ final class FuelFriendStore: ObservableObject {
     func feed(mealName: String) {
         hearts += 2
         totalPets += 1
+        xp += 15
         isPetting = true
         activeAction = "eat"
         Haptics.success()
 
         let feedPhrases = [
+            "Yum! Thanks for taking care of yourself.",
             "Nom nom nom! \(name) munched on \(mealName) and is glowing with joy!",
             "Delicious! \(name) loved the \(mealName). 'My tummy feels so happy and safe!'",
             "Mmm! \(name) happily ate \(mealName). You're such an attentive friend!",
@@ -553,10 +575,12 @@ final class FuelFriendStore: ObservableObject {
     /// Companion hydration reaction
     func hydrate() {
         hearts += 1
+        xp += 5
         activeAction = "drink"
         Haptics.tap()
 
         let waterPhrases = [
+            "A little drink goes a long way!",
             "Glug glug glug! Ahh, \(name) feels refreshed and revitalized!",
             "Crisp & cool! \(name) clinks glasses with you: 'Stay hydrated, bestie!'",
             "Hydration boost! \(name) does a happy dance with a full water cup!"

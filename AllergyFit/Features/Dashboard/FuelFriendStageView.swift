@@ -312,13 +312,13 @@ struct FuelFriendStageView: View {
                 .foregroundStyle(Theme.Colors.textTertiary)
 
             HStack(spacing: 4) {
-                Image(systemName: mood.icon)
-                    .font(.system(size: 11, weight: .bold))
-                Text(mood.rawValue)
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                Image(systemName: "leaf.fill")
+                    .font(.system(size: 10, weight: .bold))
+                Text("Level \(friendStore.level) · \(friendStore.growthStageTitle)")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
             }
             .foregroundStyle(Theme.Colors.finchMint)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 9)
             .padding(.vertical, 4)
             .background(Theme.Colors.finchMint.opacity(0.12), in: Capsule())
 
@@ -348,6 +348,7 @@ struct FuelFriendStageView: View {
             }
             .buttonStyle(.plain)
 
+            if Config.foodPalsEnabled {
             Button {
                 shopTab = .pals
                 showShopSheet = true
@@ -365,6 +366,7 @@ struct FuelFriendStageView: View {
                 .background(Theme.Colors.finchMint.opacity(0.14), in: Capsule())
             }
             .buttonStyle(.plain)
+            }
         }
         .padding(.horizontal, 4)
     }
@@ -1037,10 +1039,10 @@ struct PipGardenShopSheet: View {
                 if let idx = args.firstIndex(of: "-testShopTab"), idx + 1 < args.count {
                     let tabName = args[idx + 1]
                     if tabName == "decor" { selectedTab = .decor }
-                    else if tabName == "pals" { selectedTab = .pals }
+                    else if tabName == "pals" && Config.foodPalsEnabled { selectedTab = .pals }
                     else { selectedTab = .pots }
                 } else {
-                    selectedTab = initialTab
+                    selectedTab = (initialTab == .pals && !Config.foodPalsEnabled) ? .pots : initialTab
                 }
             }
             .sheet(isPresented: $showSeedsInfo) {
@@ -1113,7 +1115,7 @@ struct PipGardenShopSheet: View {
     // MARK: - Tab Segmented Picker
     private var tabPicker: some View {
         HStack(spacing: 8) {
-            ForEach(Tab.allCases) { tab in
+            ForEach(Tab.allCases.filter { $0 != .pals || Config.foodPalsEnabled }) { tab in
                 let isSelected = selectedTab == tab
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {

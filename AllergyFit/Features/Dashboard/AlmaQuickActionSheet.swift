@@ -99,7 +99,8 @@ struct AlmaQuickActionSheet: View {
         HStack {
             Spacer()
 
-            // Segmented Pill
+            // Segmented Pill (only when Ask is enabled; otherwise it's just Track)
+            if Config.askChatEnabled {
             HStack(spacing: 4) {
                 ForEach(ActionSheetMode.allCases, id: \.self) { m in
                     let isSelected = mode == m
@@ -125,6 +126,11 @@ struct AlmaQuickActionSheet: View {
             }
             .padding(3)
             .background(Theme.Colors.surfaceRaised, in: Capsule())
+            } else {
+                Text("Track")
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+            }
 
             Spacer()
 

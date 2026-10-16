@@ -44,11 +44,11 @@ final class TodayStore: ObservableObject {
     var consumedFat: Int { meals.reduce(0) { $0 + $1.fat } }
 
     // MARK: - Cycle-Aware Athletic Fueling
-    var isCycleTrackingActive: Bool { CycleManager.shared.state.isEnabled }
+    var isCycleTrackingActive: Bool { Config.cycleTrackingEnabled && CycleManager.shared.state.isEnabled }
     var cyclePhase: CyclePhase { CycleManager.shared.state.activePhase() }
     var cycleDay: Int { CycleManager.shared.state.currentDay() }
-    var cycleCalorieAdjustment: Int { CycleManager.shared.state.calorieAdjustment() }
-    var cycleProteinAdjustment: Int { CycleManager.shared.state.proteinAdjustment() }
+    var cycleCalorieAdjustment: Int { isCycleTrackingActive ? CycleManager.shared.state.calorieAdjustment() : 0 }
+    var cycleProteinAdjustment: Int { isCycleTrackingActive ? CycleManager.shared.state.proteinAdjustment() : 0 }
 
     /// Dynamic target: Base targets scale up when you burn energy through training,
     /// and dynamically expand during the luteal phase (+150 kcal) for hormonal support.

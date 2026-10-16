@@ -129,7 +129,11 @@ struct MainTabView: View {
     @ViewBuilder private var content: some View {
         switch selection {
         case 1:
-            MealsTab(store: todayStore, onLogFood: { showQuickActionSheet = true })
+            if Config.newMealsTabEnabled {
+                MealsTab(store: todayStore, onLogFood: { showQuickActionSheet = true })
+            } else {
+                PlanTab()
+            }
         case 2:
             GoalsTab(store: todayStore, onLogFood: { showQuickActionSheet = true })
         case 3:
@@ -523,7 +527,7 @@ struct GoalsTab: View {
             questCard(
                 icon: "flame.fill",
                 iconColor: Color(hex: 0xFB923C),
-                title: "Stay under 2,000 calories",
+                title: "Stay within \(store.dynamicTargetCalories.formatted()) calories",
                 progressText: "\(store.consumedCalories.formatted()) / \(store.dynamicTargetCalories.formatted())",
                 progress: store.dynamicTargetCalories > 0 ? Double(store.consumedCalories) / Double(store.dynamicTargetCalories) : 0,
                 barColor: Color(hex: 0xFB923C),
@@ -679,7 +683,9 @@ struct GoalsTab: View {
                 .frame(width: 54, height: 54)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text("No worries, we can start fresh today!")
+                Text(store.meals.isEmpty && store.waterGlasses == 0
+                     ? "No worries, we can start fresh today!"
+                     : "You're doing great today!")
                     .font(.system(size: 13, weight: .bold, design: .rounded))
                     .foregroundStyle(Theme.Colors.textPrimary)
                 Text("Every healthy choice feeds your plant and keeps \(friendStore.name) smiling.")
@@ -1028,7 +1034,7 @@ struct PlanTab: View {
                 Theme.Colors.background.ignoresSafeArea()
                 PlanView(onBrowseRecipes: { showRecipes = true })
             }
-            .navigationTitle("Plan")
+            .navigationTitle("Meal Plan")
             .navigationDestination(isPresented: $showRecipes) {
                 ZStack {
                     Theme.Colors.background.ignoresSafeArea()

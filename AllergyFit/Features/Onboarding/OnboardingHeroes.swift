@@ -52,8 +52,9 @@ enum HeroTint: CaseIterable {
         case .sand:  return Color.dyn(0xB08A5A, 0xD9BE95)   // sand
         }
     }
-    /// White text reads on every heritage tint except sand and brass.
-    var wantsDarkText: Bool { self == .amber || self == .sand }
+    /// White text reads on every tint except sand. (Brass became the dark
+    /// pit-brown in the cozy palette, so it now takes white text.)
+    var wantsDarkText: Bool { self == .sand }
     static func at(_ i: Int) -> HeroTint { allCases[i % allCases.count] }
 }
 

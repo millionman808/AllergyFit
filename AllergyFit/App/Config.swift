@@ -24,6 +24,10 @@ enum Config {
     static let cycleTrackingEnabled = false
     /// The AI "Ask" chat in the + sheet.
     static let askChatEnabled = false
+    /// The new Figma Meals tab. Its food list, week strip and planned meals
+    /// are still placeholders, so the tab shows the working PlanView until
+    /// they're wired to real data.
+    static let newMealsTabEnabled = false
 
     /// RevenueCat entitlement identifier that unlocks Premium.
     static let premiumEntitlement = "premium"

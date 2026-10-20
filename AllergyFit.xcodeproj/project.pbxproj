@@ -32,6 +32,7 @@
 		3B355625587882BEA2F53368 /* LoopingAlphaPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3648F5C585663546EE3706A /* LoopingAlphaPlayerView.swift */; };
 		462DC3BDB54C052808A70ADD /* SaveAccountSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B921F8FDBFA7EB02E2CE7042 /* SaveAccountSheet.swift */; };
 		4AA0D4ECCE20E8B41FCADB4E /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D0C41123AB2F3D6474672D84 /* Supabase */; };
+		5000FE197B5AE7840D4F70C4 /* LaunchSplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D367FCBC0B19F539EAB973E5 /* LaunchSplashScreen.swift */; };
 		5199F1200751603D21F96BDB /* PipGoalsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F5FC6DE216BF37325AF871 /* PipGoalsCard.swift */; };
 		53A63A1D08E31DB2FCBC008E /* PipGoals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F78155E90EE795D4C0A2CE2 /* PipGoals.swift */; };
 		53D64F44D171D1360884DF86 /* LogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BF64A56EBFEB046681A669 /* LogService.swift */; };
@@ -67,12 +68,16 @@
 		BE6FAD4E24A404232EFF037D /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97EAF00C421B8C1D38B8C78 /* MockData.swift */; };
 		C26892597837EB8804E3F1FF /* AIMealService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */; };
 		C4150C45B22095C05552DDDD /* ClubTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD22CE2C1F6A6696B3AF5112 /* ClubTheme.swift */; };
+		C8DC921B692D148DFAEE7F42 /* FoodDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E84A90080D47E380A726DC /* FoodDetailView.swift */; };
+		C96E955EA802240FC8F99C88 /* FoodCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18BE79EEC596A80EBC16BDBC /* FoodCatalog.swift */; };
 		C99086EB3F6DBD5E9F838B64 /* TargetsCalc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657934F1F4717B05B3594FE8 /* TargetsCalc.swift */; };
 		CC483688F69F37C1C2DFE555 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440FAF8AFF71ABA0A1A1C4AD /* SessionStore.swift */; };
 		CF6246F215255401EE7FFECC /* OnboardingDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD59E75F8DCC6578F90185A /* OnboardingDraft.swift */; };
 		D4AC7AD83F9C8D8ED1E06968 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = CF8908F9A809B906D3B24B07 /* RevenueCat */; };
+		D538F13EC01E64606D045CE8 /* LifesumMealLoggerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE87D2C4B9076400C3F0005 /* LifesumMealLoggerView.swift */; };
 		D7671D347D0879889C12EDFC /* ReminderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB275F388DE7232A4145F13 /* ReminderManager.swift */; };
 		DC7863094C15E7011C3A45D5 /* RecipeGenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DEF73895F654D9DEAFDA4DB /* RecipeGenService.swift */; };
+		E66E2F41EABC08ECA50769D2 /* CompanionStatusCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 626C4AA32DAE28D3B85B9B5B /* CompanionStatusCard.swift */; };
 		E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F527FD29D3656B651EA45656 /* DashboardView.swift */; };
 		E9B542284387651505FF9574 /* OnboardingHeroes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67EF5ADEF6F6AC978423988D /* OnboardingHeroes.swift */; };
 		EC2E373B01AEE66AFD3516DF /* CycleFuelingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881A9D8C56A414C5A7BA9A87 /* CycleFuelingSheet.swift */; };
@@ -91,6 +96,7 @@
 		11EAC9FDE7671059334158B9 /* idle_alpha.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = idle_alpha.mov; sourceTree = "<group>"; };
 		14F5FC6DE216BF37325AF871 /* PipGoalsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipGoalsCard.swift; sourceTree = "<group>"; };
 		185FD671A9C3E4B68037D2A8 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
+		18BE79EEC596A80EBC16BDBC /* FoodCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodCatalog.swift; sourceTree = "<group>"; };
 		1AC8C220F0DF2B9C47CBF7DD /* DayPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayPlanView.swift; sourceTree = "<group>"; };
 		1D56D9F6F792C49EFD66EBD2 /* AllergyFitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergyFitApp.swift; sourceTree = "<group>"; };
 		1E2E73B96C8E73278AE0554A /* LogMealIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMealIntent.swift; sourceTree = "<group>"; };
@@ -113,12 +119,14 @@
 		46DC741932CA1D866BAA0ECE /* AdConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdConfig.swift; sourceTree = "<group>"; };
 		4DE9B057C1A2F851554C887D /* AllergyFit.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AllergyFit.entitlements; sourceTree = "<group>"; };
 		512E95E3CCD78E4E7614A610 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		52E84A90080D47E380A726DC /* FoodDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodDetailView.swift; sourceTree = "<group>"; };
 		5362C1AB2997D74FFD7C7339 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		5A697D7A190C05DE6A62107E /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		5D89772B6EAA9D312026D56A /* AlmaQuickActionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlmaQuickActionSheet.swift; sourceTree = "<group>"; };
 		5DB275F388DE7232A4145F13 /* ReminderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderManager.swift; sourceTree = "<group>"; };
 		5E8104FB1DADB7B1A3A59180 /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
 		61C50E9A26E5B9682FDB837B /* RecipeNutritionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeNutritionService.swift; sourceTree = "<group>"; };
+		626C4AA32DAE28D3B85B9B5B /* CompanionStatusCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionStatusCard.swift; sourceTree = "<group>"; };
 		62AF4EC9F170CBFD837F5677 /* HealthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthManager.swift; sourceTree = "<group>"; };
 		62BF64A56EBFEB046681A669 /* LogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogService.swift; sourceTree = "<group>"; };
 		657934F1F4717B05B3594FE8 /* TargetsCalc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetsCalc.swift; sourceTree = "<group>"; };
@@ -145,9 +153,11 @@
 		C3F636FEBB89315BECB31D0E /* VoltIntroSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoltIntroSheet.swift; sourceTree = "<group>"; };
 		C74451300BC2755697537A29 /* FeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		C88431C9DBA46255BCD6FDD7 /* CyclePhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyclePhase.swift; sourceTree = "<group>"; };
+		D367FCBC0B19F539EAB973E5 /* LaunchSplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchSplashScreen.swift; sourceTree = "<group>"; };
 		D7C63BE8C8482C61ACD9CCF8 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		D85357C45851EC3031061BAA /* celebrate_alpha.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = celebrate_alpha.mov; sourceTree = "<group>"; };
 		DA1FD5F5554C1673BC732B82 /* QuickAddMealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAddMealView.swift; sourceTree = "<group>"; };
+		DAE87D2C4B9076400C3F0005 /* LifesumMealLoggerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifesumMealLoggerView.swift; sourceTree = "<group>"; };
 		DD22CE2C1F6A6696B3AF5112 /* ClubTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubTheme.swift; sourceTree = "<group>"; };
 		DD8AC639C30F87C1A2C05028 /* drink_alpha.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = drink_alpha.mov; sourceTree = "<group>"; };
 		DEB40B07CADF21863ED0324E /* TodayStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayStore.swift; sourceTree = "<group>"; };
@@ -329,6 +339,7 @@
 			isa = PBXGroup;
 			children = (
 				5D89772B6EAA9D312026D56A /* AlmaQuickActionSheet.swift */,
+				626C4AA32DAE28D3B85B9B5B /* CompanionStatusCard.swift */,
 				F527FD29D3656B651EA45656 /* DashboardView.swift */,
 				FDB4A7AF180939F7E3012217 /* FuelFriendStageView.swift */,
 				E3648F5C585663546EE3706A /* LoopingAlphaPlayerView.swift */,
@@ -356,6 +367,9 @@
 			children = (
 				3BB4346FBDD228E6D2BD0AF0 /* AIMealLogView.swift */,
 				B477A6E5A4BCD7047112C4B3 /* AIMealService.swift */,
+				18BE79EEC596A80EBC16BDBC /* FoodCatalog.swift */,
+				52E84A90080D47E380A726DC /* FoodDetailView.swift */,
+				DAE87D2C4B9076400C3F0005 /* LifesumMealLoggerView.swift */,
 				62BF64A56EBFEB046681A669 /* LogService.swift */,
 				288435BEE80ED02056790322 /* LogView.swift */,
 			);
@@ -384,6 +398,7 @@
 			children = (
 				DD22CE2C1F6A6696B3AF5112 /* ClubTheme.swift */,
 				3568EFD1586B51A8314B7E39 /* Confetti.swift */,
+				D367FCBC0B19F539EAB973E5 /* LaunchSplashScreen.swift */,
 				F7CE6FD848A3475B62047D6F /* OnboardingMotion.swift */,
 				328186B207C708F97059BB8F /* Skeleton.swift */,
 				9DAB4D05FE16724A93EEF2FE /* Theme.swift */,
@@ -530,6 +545,7 @@
 				ECDC65A210B2BA6CE22A6D8F /* BarcodeScannerView.swift in Sources */,
 				F5D23EA1C97019CA9F806FCB /* BarcodeService.swift in Sources */,
 				C4150C45B22095C05552DDDD /* ClubTheme.swift in Sources */,
+				E66E2F41EABC08ECA50769D2 /* CompanionStatusCard.swift in Sources */,
 				549D1F0CB1C27341ABE5BC71 /* Confetti.swift in Sources */,
 				366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */,
 				764EE38CD7AEE1DFBB76C2D9 /* CookModeView.swift in Sources */,
@@ -538,6 +554,8 @@
 				E84549C3F129AA1DA01FB64A /* DashboardView.swift in Sources */,
 				2BC10D6940F27F748FF1E61C /* DayPlanView.swift in Sources */,
 				2C66A6CF4169282BEC90554E /* FeedbackView.swift in Sources */,
+				C96E955EA802240FC8F99C88 /* FoodCatalog.swift in Sources */,
+				C8DC921B692D148DFAEE7F42 /* FoodDetailView.swift in Sources */,
 				88B7F093737D7B6E3EE61508 /* FuelFriendStageView.swift in Sources */,
 				29C2FE8035C5470A16C654A4 /* FuelFriendStore.swift in Sources */,
 				A472F5802CA033B55A7B1E0C /* Haptics.swift in Sources */,
@@ -546,6 +564,8 @@
 				FE3EF2AECF196D5456035554 /* InsightsView.swift in Sources */,
 				0E69B9D03E02968533C62DFC /* KitchenView.swift in Sources */,
 				F6004B03FC572963AED80E6C /* LabScanView.swift in Sources */,
+				5000FE197B5AE7840D4F70C4 /* LaunchSplashScreen.swift in Sources */,
+				D538F13EC01E64606D045CE8 /* LifesumMealLoggerView.swift in Sources */,
 				AAB5062C9AE38F124135344A /* LogMealIntent.swift in Sources */,
 				53D64F44D171D1360884DF86 /* LogService.swift in Sources */,
 				0C5CE8BB3386719404ADEA27 /* LogView.swift in Sources */,

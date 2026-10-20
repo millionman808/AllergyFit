@@ -27,7 +27,7 @@ enum Config {
     /// The new Figma Meals tab. Its food list, week strip and planned meals
     /// are still placeholders, so the tab shows the working PlanView until
     /// they're wired to real data.
-    static let newMealsTabEnabled = false
+    static let newMealsTabEnabled = true
 
     /// RevenueCat entitlement identifier that unlocks Premium.
     static let premiumEntitlement = "premium"

@@ -18,6 +18,7 @@ struct AlmaQuickActionSheet: View {
     }
 
     enum SheetDestination: Identifiable {
+        case foodTracker
         case cameraMeal
         case barcode
         case quickAdd
@@ -26,6 +27,7 @@ struct AlmaQuickActionSheet: View {
 
         var id: String {
             switch self {
+            case .foodTracker: return "foodTracker"
             case .cameraMeal: return "cameraMeal"
             case .barcode: return "barcode"
             case .quickAdd: return "quickAdd"
@@ -75,6 +77,10 @@ struct AlmaQuickActionSheet: View {
             .navigationBarHidden(true)
             .sheet(item: $activeSheetScreen) { screen in
                 switch screen {
+                case .foodTracker:
+                    LifesumMealLoggerView(isModal: true)
+                        .environmentObject(session)
+                        .environmentObject(TodayStore.writer(for: session))
                 case .cameraMeal:
                     AIMealLogView()
                 case .barcode:
@@ -159,6 +165,46 @@ struct AlmaQuickActionSheet: View {
                     .font(Theme.Fonts.body)
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
+
+            // Hero Food Tracker Entry
+            Button {
+                Haptics.tap()
+                activeSheetScreen = .foodTracker
+            } label: {
+                HStack(spacing: 14) {
+                    ZStack {
+                        Circle()
+                            .fill(Theme.Colors.volt.opacity(0.14))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(Theme.Colors.volt)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Search & Log Foods")
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                        Text("Instant nutrition, allergy cross-check & macros")
+                            .font(.system(size: 12, design: .rounded))
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                }
+                .padding(16)
+                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Theme.Colors.volt.opacity(0.4), lineWidth: 1.5)
+                )
+                .shadow(color: Theme.Colors.volt.opacity(0.08), radius: 8, y: 3)
+            }
+            .buttonStyle(.plain)
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
                 trackActionCard(

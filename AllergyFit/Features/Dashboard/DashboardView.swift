@@ -46,6 +46,18 @@ struct DashboardView: View {
                                 mealCount: store.meals.count,
                                 allergens: session.allergensForAI
                             )
+                            CompanionStatusCard(
+                                friendStore: friendStore,
+                                todayStore: store,
+                                onLogMeal: {
+                                    triggerMealReaction()
+                                    onCheckFood()
+                                },
+                                onHydrate: {
+                                    triggerWaterReaction()
+                                },
+                                onCheckFood: onCheckFood
+                            )
                             todayNutritionCard
                             quickActionsCard
                                 .id("quickActions")

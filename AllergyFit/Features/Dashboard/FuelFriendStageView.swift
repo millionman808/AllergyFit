@@ -88,7 +88,7 @@ struct FuelFriendStageView: View {
 
             // MARK: - Interactive Character Stage
             stageGraphic
-                .frame(height: 160)
+                .frame(height: 195)
                 .padding(.top, 2)
 
             // MARK: - Name & Mood Pill + Pals Shortcut
@@ -196,22 +196,35 @@ struct FuelFriendStageView: View {
 
     // MARK: - Speech Bubble
     private var speechBubble: some View {
-        HStack {
+        VStack(spacing: 0) {
             Text(dialogueText)
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .lineSpacing(3)
+                .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(Theme.Colors.surface)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                .stroke(Theme.Colors.parchmentBorder.opacity(0.8), lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .stroke(Theme.Colors.parchmentBorder.opacity(0.85), lineWidth: 1)
                         )
                         .shadow(color: Color.black.opacity(0.04), radius: 8, y: 3)
                 )
+
+            // Speech Bubble Pointer Tail directed to Pip
+            Path { path in
+                path.move(to: CGPoint(x: 0, y: 0))
+                path.addLine(to: CGPoint(x: 10, y: 7))
+                path.addLine(to: CGPoint(x: 20, y: 0))
+                path.closeSubpath()
+            }
+            .fill(Theme.Colors.surface)
+            .frame(width: 20, height: 7)
+            .offset(y: -1)
+            .shadow(color: Color.black.opacity(0.02), radius: 2, y: 2)
         }
         .animation(.spring(response: 0.4), value: dialogueText)
     }
@@ -220,57 +233,74 @@ struct FuelFriendStageView: View {
     @ViewBuilder
     private var stageGraphic: some View {
         ZStack {
-            // Windowsill Plant Pot & Decor accompaniment
-            HStack(alignment: .bottom) {
-                if !friendStore.equippedDecor.isEmpty {
-                    WindowsillDecorView(decorId: friendStore.equippedDecor)
-                        .offset(x: 4, y: 46)
-                }
-                Spacer()
-                Image(friendStore.pot)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 52, height: 52)
-                    .shadow(color: Color.black.opacity(0.08), radius: 6, y: 3)
-                    .offset(x: -6, y: 44)
-            }
-            .frame(width: 220)
-
-            // Ground contact shadow (used for puppet mode)
-            if usePuppetFallback {
-                Image("PipShadow")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 120, height: 26)
-                    .scaleEffect(jumpOffset < 0 ? 0.82 : (isBreathing ? 1.04 : 0.96))
-                    .opacity(jumpOffset < 0 ? 0.40 : 0.82)
-                    .offset(y: 74)
-            }
-
-            // Companion Render Layer
-            if friendStore.activeAction == "bloated" {
-                Image("pip_bloated")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 175, height: 175)
-                    .transition(.scale.combined(with: .opacity))
-            } else if usePuppetFallback {
-                companionPuppet
-            } else {
-                let isTesting = ProcessInfo.processInfo.arguments.contains("-testCompanionAction")
-                    || (UserDefaults.standard.string(forKey: "testCompanionAction") != nil && !UserDefaults.standard.string(forKey: "testCompanionAction")!.isEmpty)
-                LoopingAlphaPlayerView(
-                    videoName: currentAction.rawValue,
-                    isLooping: currentAction == .idle || isTesting,
-                    onFinished: {
-                        withAnimation(.easeInOut(duration: 0.35)) {
-                            currentAction = .idle
-                            friendStore.activeAction = "idle"
-                        }
-                    }
+            // Outdoor Garden Scene (Backdrop with sky, sun, clouds, rolling hills, lush turf)
+            OutdoorGardenBackdrop()
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.65), lineWidth: 1.5)
                 )
-                .id(currentAction.rawValue)
-                .frame(width: 175, height: 175)
+
+            // Ground plane elements (Stepping stone decor on left, Growing plant on right)
+            HStack(alignment: .bottom, spacing: 0) {
+                // Left: Equipped Decor on a natural garden stepping stone
+                if !friendStore.equippedDecor.isEmpty {
+                    GardenSteppingStoneDecor(decorId: friendStore.equippedDecor)
+                        .offset(x: 10, y: 38)
+                } else {
+                    Spacer().frame(width: 44)
+                }
+
+                Spacer()
+
+                // Right: The Living Growing Plant with dynamic growth stages and breeze sway
+                GrowingPlantView(
+                    level: friendStore.level,
+                    potAsset: friendStore.pot,
+                    isHydrating: currentAction == .drink
+                )
+                .offset(x: -8, y: 34)
+            }
+            .frame(width: 290)
+
+            // Ground Contact Shadow for Pip
+            Image("PipShadow")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 125, height: 26)
+                .scaleEffect(jumpOffset < 0 ? 0.82 : (isBreathing ? 1.04 : 0.96))
+                .opacity(jumpOffset < 0 ? 0.35 : 0.75)
+                .offset(y: 62)
+
+            // Center: Companion Render Layer (Video / Puppet / Bloated)
+            Group {
+                if friendStore.activeAction == "bloated" {
+                    Image("pip_bloated")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 170, height: 170)
+                        .transition(.scale.combined(with: .opacity))
+                        .offset(y: -2)
+                } else if usePuppetFallback {
+                    companionPuppet
+                        .offset(y: -2)
+                } else {
+                    let isTesting = ProcessInfo.processInfo.arguments.contains("-testCompanionAction")
+                        || (UserDefaults.standard.string(forKey: "testCompanionAction") != nil && !UserDefaults.standard.string(forKey: "testCompanionAction")!.isEmpty)
+                    LoopingAlphaPlayerView(
+                        videoName: currentAction.rawValue,
+                        isLooping: currentAction == .idle || isTesting,
+                        onFinished: {
+                            withAnimation(.easeInOut(duration: 0.35)) {
+                                currentAction = .idle
+                                friendStore.activeAction = "idle"
+                            }
+                        }
+                    )
+                    .id(currentAction.rawValue)
+                    .frame(width: 170, height: 170)
+                    .offset(y: -2)
+                }
             }
 
             // Floating Hearts Micro-Interaction

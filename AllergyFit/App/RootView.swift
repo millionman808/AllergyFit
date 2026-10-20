@@ -71,18 +71,7 @@ struct RootView: View {
     }
 
     private var splash: some View {
-        ZStack {
-            Theme.Colors.background.ignoresSafeArea()
-            VStack(spacing: 10) {
-                Image("pip_happy")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 140, height: 140)
-                Text("SafeFuel")
-                    .font(Theme.Fonts.stat(36))
-                    .foregroundStyle(Theme.Colors.volt)
-            }
-        }
+        LaunchSplashScreen()
     }
 }
 
@@ -130,7 +119,11 @@ struct MainTabView: View {
         switch selection {
         case 1:
             if Config.newMealsTabEnabled {
-                MealsTab(store: todayStore, onLogFood: { showQuickActionSheet = true })
+                MealsTab(store: todayStore, onLogFood: {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                        selection = 0
+                    }
+                })
             } else {
                 PlanTab()
             }
@@ -151,283 +144,19 @@ struct MainTabView: View {
     }
 }
 
-// MARK: - Figma Screen 3 & 4 (Meals & Planner Tab)
+// MARK: - Lifesum Meal Logger & Planner Tab
 
 struct MealsTab: View {
     @ObservedObject var store: TodayStore
     @EnvironmentObject var planStore: PlanStore
     var onLogFood: () -> Void = {}
 
-    @State private var searchText = ""
-    @State private var selectedFilter = 0 // 0: Recent, 1: Meals, 2: Favorites
-    @State private var selectedDayIndex = 2 // 0: Mon, 1: Tue, 2: Wed, ...
-    @State private var showRecipes = false
-
-    private let filterOptions = ["Recent", "Meals", "Favorites"]
-
-    struct QuickFoodItem: Identifiable {
-        let id = UUID()
-        let name: String
-        let calories: Int
-        let protein: Int
-        let icon: String
-        let colorHex: UInt
-    }
-
-    private let quickFoods: [QuickFoodItem] = [
-        QuickFoodItem(name: "Grilled Chicken Breast", calories: 165, protein: 31, icon: "fork.knife", colorHex: 0xD07C60),
-        QuickFoodItem(name: "Brown Rice", calories: 215, protein: 4, icon: "circle.grid.cross.fill", colorHex: 0xE8B84B),
-        QuickFoodItem(name: "Avocado", calories: 240, protein: 3, icon: "leaf.fill", colorHex: 0x4E7D3F),
-        QuickFoodItem(name: "Banana", calories: 105, protein: 1, icon: "moon.fill", colorHex: 0xF7B731),
-        QuickFoodItem(name: "Greek Yogurt", calories: 100, protein: 17, icon: "cup.and.saucer.fill", colorHex: 0x8CBAD9),
-        QuickFoodItem(name: "Mixed Greens", calories: 15, protein: 2, icon: "camera.macro", colorHex: 0x588157)
-    ]
-
-    private let weekDays = [
-        ("Mon", "28"), ("Tue", "29"), ("Wed", "30"), ("Thu", "31"),
-        ("Fri", "1"), ("Sat", "2"), ("Sun", "3")
-    ]
-
-    var filteredFoods: [QuickFoodItem] {
-        if searchText.isEmpty { return quickFoods }
-        return quickFoods.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-    }
-
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Theme.Colors.background.ignoresSafeArea()
-
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Search Bar (Screen 3)
-                        HStack(spacing: 10) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundStyle(Theme.Colors.textTertiary)
-                            TextField("Search foods...", text: $searchText)
-                                .font(.system(size: 15, design: .rounded))
-                            if !searchText.isEmpty {
-                                Button {
-                                    searchText = ""
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(Theme.Colors.textTertiary)
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 12)
-                        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(Theme.Colors.parchmentBorder.opacity(0.85), lineWidth: 1)
-                        )
-
-                        // Filter Pills
-                        HStack(spacing: 8) {
-                            ForEach(0..<filterOptions.count, id: \.self) { idx in
-                                let isSelected = selectedFilter == idx
-                                Button {
-                                    Haptics.tap()
-                                    selectedFilter = idx
-                                } label: {
-                                    Text(filterOptions[idx])
-                                        .font(.system(size: 13, weight: isSelected ? .bold : .medium, design: .rounded))
-                                        .foregroundStyle(isSelected ? Theme.Colors.onVolt : Theme.Colors.textSecondary)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .background(isSelected ? Theme.Colors.volt : Theme.Colors.surface, in: Capsule())
-                                        .overlay(
-                                            Capsule().stroke(isSelected ? Theme.Colors.volt : Theme.Colors.parchmentBorder.opacity(0.8), lineWidth: 1)
-                                        )
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            Spacer()
-                        }
-
-                        // Quick Food Items (Screen 3)
-                        VStack(spacing: 8) {
-                            ForEach(filteredFoods) { food in
-                                HStack(spacing: 12) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color(hex: food.colorHex).opacity(0.18))
-                                            .frame(width: 42, height: 42)
-                                        Image(systemName: food.icon)
-                                            .font(.system(size: 17))
-                                            .foregroundStyle(Color(hex: food.colorHex))
-                                    }
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(food.name)
-                                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                                            .foregroundStyle(Theme.Colors.textPrimary)
-                                        Text("\(food.calories) cal · \(food.protein)g protein")
-                                            .font(.system(size: 12, weight: .medium, design: .rounded))
-                                            .foregroundStyle(Theme.Colors.textSecondary)
-                                    }
-
-                                    Spacer()
-
-                                    Button {
-                                        Haptics.success()
-                                        store.addMeal(name: food.name, mealType: "Lunch", calories: food.calories, protein: food.protein, carbs: 10, fat: 5)
-                                        FuelFriendStore.shared.feed(mealName: food.name)
-                                    } label: {
-                                        Image(systemName: "plus")
-                                            .font(.system(size: 14, weight: .bold))
-                                            .foregroundStyle(Theme.Colors.volt)
-                                            .frame(width: 34, height: 34)
-                                            .background(Theme.Colors.volt.opacity(0.12), in: Circle())
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                                .padding(12)
-                                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                        .stroke(Theme.Colors.parchmentBorder.opacity(0.75), lineWidth: 1)
-                                )
-                            }
-                        }
-
-                        // Week Calendar Strip (Screen 4)
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Meal Plan")
-                                .font(.system(size: 18, weight: .bold, design: .rounded))
-                                .foregroundStyle(Theme.Colors.textPrimary)
-
-                            HStack(spacing: 6) {
-                                ForEach(0..<weekDays.count, id: \.self) { idx in
-                                    let day = weekDays[idx]
-                                    let isSelected = selectedDayIndex == idx
-                                    Button {
-                                        Haptics.tap()
-                                        selectedDayIndex = idx
-                                    } label: {
-                                        VStack(spacing: 4) {
-                                            Text(day.0)
-                                                .font(.system(size: 10, weight: .medium, design: .rounded))
-                                                .foregroundStyle(isSelected ? Theme.Colors.onVolt.opacity(0.8) : Theme.Colors.textTertiary)
-                                            Text(day.1)
-                                                .font(.system(size: 14, weight: .bold, design: .rounded))
-                                                .foregroundStyle(isSelected ? Theme.Colors.onVolt : Theme.Colors.textPrimary)
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 8)
-                                        .background(isSelected ? Theme.Colors.volt : Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .stroke(isSelected ? Theme.Colors.volt : Theme.Colors.parchmentBorder.opacity(0.8), lineWidth: 1)
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                        }
-
-                        // Today's Meals Section (Screen 4)
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Today's Meals")
-                                .font(.system(size: 15, weight: .bold, design: .rounded))
-                                .foregroundStyle(Theme.Colors.textSecondary)
-
-                            plannedMealRow(title: "Breakfast", name: "Overnight Oats", cal: 420, prot: 18, icon: "cup.and.saucer.fill", color: Theme.Colors.finchButter)
-                            plannedMealRow(title: "Lunch", name: "Chicken & Rice Bowl", cal: 520, prot: 35, icon: "fork.knife", color: Theme.Colors.finchMint)
-                            plannedMealRow(title: "Dinner", name: "Salmon, Quinoa, Veggies", cal: 580, prot: 40, icon: "takeoutbag.and.cup.and.straw.fill", color: Theme.Colors.finchPeach)
-                            plannedMealRow(title: "Snacks", name: "Apple + Peanut Butter", cal: 210, prot: 7, icon: "leaf.fill", color: Theme.Colors.finchLavender)
-                        }
-
-                        // Action Buttons
-                        VStack(spacing: 10) {
-                            Button {
-                                Haptics.tap()
-                                showRecipes = true
-                            } label: {
-                                Text("Plan Tomorrow")
-                                    .font(.system(size: 16, weight: .bold, design: .rounded))
-                                    .foregroundStyle(Theme.Colors.onVolt)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 14)
-                                    .background(Theme.Colors.volt, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                                    .shadow(color: Theme.Colors.volt.opacity(0.25), radius: 8, y: 3)
-                            }
-                            .buttonStyle(.plain)
-
-                            Button {
-                                Haptics.tap()
-                                showRecipes = true
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "book.fill")
-                                    Text("Browse Safe Recipes")
-                                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                }
-                                .foregroundStyle(Theme.Colors.volt)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(Theme.Colors.parchmentBorder.opacity(0.85), lineWidth: 1)
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, Theme.Metrics.screenPadding)
-                    .padding(.top, 12)
-                    .padding(.bottom, Theme.Metrics.tabBarClearance)
-                }
-            }
-            .navigationTitle("Meal Plan")
-            .navigationDestination(isPresented: $showRecipes) {
-                ZStack {
-                    Theme.Colors.background.ignoresSafeArea()
-                    RecipesView()
-                }
-                .navigationTitle("Find meals")
-            }
-        }
-    }
-
-    private func plannedMealRow(title: String, name: String, cal: Int, prot: Int, icon: String, color: Color) -> some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(color.opacity(0.2))
-                    .frame(width: 44, height: 44)
-                Image(systemName: icon)
-                    .font(.system(size: 18))
-                    .foregroundStyle(color)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                Text(name)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                Text("\(cal) cal · \(prot)g protein")
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Theme.Colors.textTertiary)
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Theme.Colors.textTertiary)
-        }
-        .padding(12)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Theme.Colors.parchmentBorder.opacity(0.75), lineWidth: 1)
+        LifesumMealLoggerView(
+            isModal: false,
+            onFinished: onLogFood
         )
+        .environmentObject(store)
     }
 }
 
@@ -1071,19 +800,31 @@ struct CustomTabBar: View {
     var body: some View {
         HStack(spacing: 0) {
             ForEach(tabs, id: \.index) { tab in
+                let isSelected = selection == tab.index
                 Button {
                     Haptics.tap()
-                    selection = tab.index
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.72)) {
+                        selection = tab.index
+                    }
                 } label: {
                     VStack(spacing: 4) {
-                        Image(systemName: tab.icon)
-                            .font(.system(size: 19, weight: selection == tab.index ? .semibold : .regular))
+                        ZStack {
+                            if isSelected {
+                                Capsule()
+                                    .fill(Theme.Colors.volt.opacity(0.14))
+                                    .frame(width: 42, height: 28)
+                                    .transition(.scale.combined(with: .opacity))
+                            }
+                            Image(systemName: tab.icon)
+                                .font(.system(size: 19, weight: isSelected ? .bold : .medium))
+                                .scaleEffect(isSelected ? 1.08 : 1.0)
+                        }
                         Text(tab.label)
-                            .font(.system(size: 10, weight: selection == tab.index ? .bold : .medium, design: .rounded))
+                            .font(.system(size: 10, weight: isSelected ? .bold : .medium, design: .rounded))
                     }
-                    .foregroundStyle(selection == tab.index ? Theme.Colors.volt : Theme.Colors.textTertiary)
+                    .foregroundStyle(isSelected ? Theme.Colors.volt : Theme.Colors.textTertiary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 6)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)

@@ -1,23 +1,19 @@
 import SwiftUI
 import RevenueCat
 
-/// The SafeFuel paywall, shown as a gate: until a trial or purchase is active
-/// the app stays here, including on every relaunch.
-///
-/// Every price, period and trial comes from the App Store through RevenueCat —
-/// nothing is typed in — so each storefront shows its own currency, and nobody
-/// is promised a free trial their Apple ID has already used.
-///
-/// Because this screen can be all a non-subscriber ever sees, it carries its
-/// own account menu: Apple requires in-app account deletion, and a gate that
-/// hides Profile would otherwise make that impossible.
+/// Paywall: serif headline, Free vs. Premium table, three plan cards and a
+/// CONTINUE button. Every price, period and trial comes from the App Store
+/// through RevenueCat, so each card buys exactly the product it shows, and
+/// "free trial" only appears for Apple IDs that can still get one.
 struct PaywallView: View {
     var source: String = "gate"
 
     @EnvironmentObject var purchases: PurchasesManager
     @EnvironmentObject var session: SessionStore
     @Environment(\.openURL) private var openURL
+    @Environment(\.dismiss) private var dismiss
 
+    /// RevenueCat package identifier of the selected card (yearly by default).
     @State private var selectedID: String?
     @State private var busy = false
     @State private var showAccountMenu = false
@@ -29,35 +25,86 @@ struct PaywallView: View {
     private let privacyURL = URL(string: "https://safefuel.schafersites.com/privacy")!
     private let termsURL = URL(string: "https://safefuel.schafersites.com/terms")!
 
+    // Free vs Premium Comparison Matrix Items
+    struct ComparisonFeature: Identifiable {
+        let id = UUID()
+        let name: String
+        let isFree: Bool
+        let isPremium: Bool
+    }
+
+    private let features: [ComparisonFeature] = [
+        ComparisonFeature(name: "Barcode scanner", isFree: true, isPremium: true),
+        ComparisonFeature(name: "AI Smart Tracking", isFree: false, isPremium: true),
+        ComparisonFeature(name: "Safe Recipe Ideas", isFree: false, isPremium: true),
+        ComparisonFeature(name: "Adjust Your Macros & Calories", isFree: false, isPremium: true),
+        ComparisonFeature(name: "Create Your Own Meals", isFree: false, isPremium: true),
+        ComparisonFeature(name: "Allergen Cross-Check & Warnings", isFree: false, isPremium: true)
+    ]
+
+    /// First name if we know it; otherwise the headline just leaves it out.
+    var userName: String? {
+        guard let name = UserDefaults.standard.string(forKey: "displayName"),
+              let first = name.split(separator: " ").first, !first.isEmpty else { return nil }
+        return String(first)
+    }
+
     var body: some View {
         ZStack {
-            Club.Colors.background.ignoresSafeArea()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    header
-                    perks
-                    plans
-                    if let err = purchases.purchaseError ?? accountError {
-                        Text(err)
-                            .font(Club.Fonts.caption)
-                            .foregroundStyle(Club.Colors.danger)
-                            .fixedSize(horizontal: false, vertical: true)
+            Theme.Colors.background.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Top Navigation Bar
+                topBar
+
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Serif Headline
+                        headlineSection
+
+                        // Comparison Table (Free vs Premium)
+                        comparisonTable
+
+                        // Trial ribbon (only when this Apple ID can still get the trial)
+                        if let days = trialDays(annualPackage) {
+                            promoBanner("\(days) days free on the yearly plan")
+                        }
+
+                        // Plan cards, straight from the App Store
+                        subscriptionTiersSection
+
+                        // Error message if any
+                        if let err = purchases.purchaseError ?? accountError {
+                            Text(err)
+                                .font(Theme.Fonts.caption)
+                                .foregroundStyle(Theme.Colors.danger)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 20)
+                        }
                     }
+                    .padding(.top, 4)
+                    .padding(.bottom, 190) // Clearance for the fixed checkout bar
                 }
-                .padding(.horizontal, 22)
-                .padding(.top, 8)
-                .padding(.bottom, 24)
+            }
+
+            // Fixed Bottom Bar with CONTINUE CTA and Links
+            VStack {
+                Spacer()
+                bottomCheckoutBar
             }
         }
-        .safeAreaInset(edge: .top, spacing: 0) { topBar }
-        .safeAreaInset(edge: .bottom, spacing: 0) { checkout }
-        .onAppear { AdAttribution.logPaywallView(source: source) }
+        .navigationBarHidden(true)
+        .onAppear {
+            AdAttribution.logPaywallView(source: source)
+        }
         .task {
-            if purchases.packages.isEmpty { await purchases.loadOfferings() }
-            if selectedID == nil { selectedID = ordered.first?.identifier }
+            if purchases.packages.isEmpty {
+                await purchases.loadOfferings()
+            }
+            if selectedID == nil { selectedID = (annualPackage ?? orderedPackages.first)?.identifier }
         }
         .onChange(of: purchases.packages.count) { _ in
-            if selectedID == nil { selectedID = ordered.first?.identifier }
+            if selectedID == nil { selectedID = (annualPackage ?? orderedPackages.first)?.identifier }
         }
         .confirmationDialog("Account", isPresented: $showAccountMenu, titleVisibility: .hidden) {
             if session.isAnonymous {
@@ -89,36 +136,51 @@ struct PaywallView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This permanently removes your profile, triggers, meals and plans. An App Store subscription is managed by Apple and isn't cancelled by deleting your account.")
+            Text("This permanently removes your profile, triggers, meals and plans.")
         }
-        .sheet(isPresented: $showSaveAccount) { SaveAccountSheet() }
+        .sheet(isPresented: $showSaveAccount) {
+            SaveAccountSheet()
+        }
     }
 
-    // MARK: - Top bar
+    // MARK: - Top Bar
 
     private var topBar: some View {
         HStack {
-            Button { showAccountMenu = true } label: {
+            Button {
+                showAccountMenu = true
+            } label: {
                 Image(systemName: "person.crop.circle")
-                    .font(.system(size: 20, weight: .regular))
-                    .foregroundStyle(Club.Colors.textSecondary)
+                    .font(.system(size: 20))
+                    .foregroundStyle(Theme.Colors.textSecondary)
                     .frame(width: 40, height: 40)
             }
-            .accessibilityLabel("Account")
+
             Spacer()
-            Button("Restore") {
-                Task {
-                    busy = true
-                    await purchases.restore()
-                    busy = false
+
+            // The launch gate can't be closed (there's nothing behind it), so
+            // the X only shows when the paywall was opened from somewhere.
+            if source != "gate" {
+                Button {
+                    Haptics.tap()
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .frame(width: 40, height: 40)
                 }
+                .accessibilityLabel("Close")
+            } else {
+                Button("Restore") {
+                    Task { busy = true; await purchases.restore(); busy = false }
+                }
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundStyle(Theme.Colors.textSecondary)
             }
-            .font(Club.Fonts.caption)
-            .foregroundStyle(Club.Colors.textSecondary)
-            .disabled(busy)
         }
-        .padding(.horizontal, 14)
-        .background(Club.Colors.background)
+        .padding(.horizontal, 20)
+        .padding(.top, 4)
     }
 
     private var accountLine: String {
@@ -127,173 +189,146 @@ struct PaywallView: View {
         return "Signed in"
     }
 
-    // MARK: - Header and perks
+    // MARK: - Headline (Serif font per Image 2)
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            ClubCrest(size: 52)
-            Text("SafeFuel membership")
-                .font(Club.Fonts.clubTag(11)).tracking(2.2)
-                .textCase(.uppercase)
-                .foregroundStyle(Club.Colors.antiqueBrass)
-            HighlightHeadline(text: "Reach your goal without the bloat.", highlight: "without the bloat", size: 30)
-        }
-    }
-
-    private var perks: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            perk("camera.fill", "Snap any meal",
-                 "Calories from the USDA database, checked against your triggers.")
-            perk("fork.knife", "Meals planned for you",
-                 "A week that fits your goal and your stomach, with the grocery list.")
-            perk("waveform.path.ecg", "Find your triggers",
-                 "See which foods keep turning up before you feel bad.")
-            perk("heart.fill", "Targets that move with you",
-                 "Calories adjust to your workouts from Apple Health.")
-        }
-        .padding(18)
-        .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Club.Colors.parchmentBorder, lineWidth: 1))
-    }
-
-    private func perk(_ icon: String, _ title: String, _ detail: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Club.Colors.racingGreen)
-                .frame(width: 30, height: 30)
-                .background(Club.Colors.racingGreen.opacity(0.10), in: Circle())
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(Club.Fonts.headline).foregroundStyle(Club.Colors.textPrimary)
-                Text(detail).font(Club.Fonts.caption).foregroundStyle(Club.Colors.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+    private var headlineSection: some View {
+        VStack(alignment: .center, spacing: 6) {
+            if let userName {
+                Text("\(userName),")
+                    .font(.system(size: 26, weight: .medium, design: .serif))
+                    .foregroundStyle(Theme.Colors.textPrimary)
             }
+
+            Text(userName == nil ? "Reach your goal without the bloat." : "reach your goal without the bloat.")
+                .font(.system(size: 24, weight: .regular, design: .serif))
+                .foregroundStyle(Theme.Colors.textPrimary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+        }
+        .padding(.horizontal, 28)
+        .padding(.top, 4)
+    }
+
+    // MARK: - Comparison Table (Free vs Premium)
+
+    private var comparisonTable: some View {
+        VStack(spacing: 0) {
+            // Header Tabs
+            HStack(spacing: 0) {
+                Spacer()
+
+                Text("FREE")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .tracking(1.0)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .frame(width: 80, height: 32)
+                    .background(
+                        UnevenRoundedRectangle(topLeadingRadius: 10, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 0)
+                            .fill(Theme.Colors.surfaceRaised)
+                    )
+
+                Text("PREMIUM")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .tracking(1.0)
+                    .foregroundStyle(Theme.Colors.onVolt)
+                    .frame(width: 96, height: 32)
+                    .background(
+                        UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 10)
+                            .fill(Theme.Colors.volt)
+                    )
+            }
+            .padding(.trailing, 20)
+
+            // Table Body
+            VStack(spacing: 0) {
+                ForEach(features.indices, id: \.self) { idx in
+                    let item = features[idx]
+                    HStack(spacing: 0) {
+                        Text(item.name)
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .padding(.leading, 18)
+
+                        Spacer()
+
+                        // Free Column
+                        ZStack {
+                            if item.isFree {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color(hex: 0x2A7E4F))
+                            }
+                        }
+                        .frame(width: 80)
+
+                        // Premium Column
+                        ZStack {
+                            if item.isPremium {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color(hex: 0x2A7E4F))
+                            }
+                        }
+                        .frame(width: 96)
+                        .background(Color(hex: 0x4E7D3F).opacity(0.08))
+                    }
+                    .frame(height: 48)
+
+                    if idx < features.count - 1 {
+                        Divider()
+                            .background(Theme.Colors.parchmentBorder.opacity(0.8))
+                    }
+                }
+            }
+            .background(Theme.Colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Theme.Colors.parchmentBorder.opacity(0.85), lineWidth: 1)
+            )
+            .padding(.horizontal, 20)
+
+            // Page Indicator Dots
+            HStack(spacing: 6) {
+                Circle().fill(Theme.Colors.textTertiary).frame(width: 6, height: 6)
+                Circle().fill(Theme.Colors.parchmentBorder).frame(width: 6, height: 6)
+            }
+            .padding(.top, 8)
         }
     }
 
-    // MARK: - Plans
+    // MARK: - Promo ribbon
 
-    /// Annual first (preselected), then monthly, then lifetime.
-    private var ordered: [Package] {
-        let rank: [PackageType: Int] = [.annual: 0, .monthly: 1, .lifetime: 2]
+    private func promoBanner(_ text: String) -> some View {
+        HStack {
+            Spacer()
+            Text(text)
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(Theme.Colors.onVolt)
+            Spacer()
+        }
+        .padding(.vertical, 12)
+        .background(Theme.Colors.volt)
+    }
+
+    // MARK: - Plans (real App Store products)
+
+    /// Monthly, yearly (center, most popular), lifetime — whatever the offering has.
+    private var orderedPackages: [Package] {
+        let rank: [PackageType: Int] = [.monthly: 0, .annual: 1, .lifetime: 2]
         return purchases.packages.sorted { (rank[$0.packageType] ?? 9) < (rank[$1.packageType] ?? 9) }
     }
 
-    private var selected: Package? {
-        ordered.first { $0.identifier == selectedID } ?? ordered.first
+    private var annualPackage: Package? { purchases.packages.first { $0.packageType == .annual } }
+
+    private var selectedPackage: Package? {
+        orderedPackages.first { $0.identifier == selectedID } ?? annualPackage ?? orderedPackages.first
     }
 
-    @ViewBuilder private var plans: some View {
-        if ordered.isEmpty {
-            VStack(spacing: 10) {
-                if purchases.isLoadingOfferings {
-                    ProgressView().tint(Club.Colors.racingGreen)
-                    Text("Loading plans…").font(Club.Fonts.caption).foregroundStyle(Club.Colors.textSecondary)
-                } else {
-                    Text("Couldn't load plans. Check your connection and try again.")
-                        .font(Club.Fonts.caption).foregroundStyle(Club.Colors.textSecondary)
-                        .multilineTextAlignment(.center)
-                    Button("Try again") { Task { await purchases.loadOfferings() } }
-                        .font(Club.Fonts.headline).foregroundStyle(Club.Colors.racingGreen)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 22)
-        } else {
-            VStack(spacing: 10) {
-                ForEach(ordered, id: \.identifier) { pkg in
-                    Button {
-                        Haptics.tap()
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { selectedID = pkg.identifier }
-                    } label: { planRow(pkg) }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-    }
-
-    private func planRow(_ pkg: Package) -> some View {
-        let on = pkg.identifier == selected?.identifier
-        let product = pkg.storeProduct
-        return HStack(spacing: 14) {
-            ZStack {
-                Circle().strokeBorder(on ? Club.Colors.racingGreen : Club.Colors.parchmentBorder, lineWidth: 1.5)
-                if on { Circle().fill(Club.Colors.racingGreen).padding(5) }
-            }
-            .frame(width: 24, height: 24)
-
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 8) {
-                    Text(planName(pkg)).font(Club.Fonts.headline).foregroundStyle(Club.Colors.textPrimary)
-                    if let badge = badge(pkg) {
-                        Text(badge)
-                            .font(Club.Fonts.clubTag(9)).tracking(1.2)
-                            .foregroundStyle(Club.Colors.onVolt)
-                            .padding(.horizontal, 7).padding(.vertical, 3)
-                            .background(Club.Colors.antiqueBrass, in: Capsule())
-                    }
-                }
-                if let sub = planSubtitle(pkg) {
-                    Text(sub).font(Club.Fonts.caption).foregroundStyle(Club.Colors.textSecondary)
-                }
-            }
-            Spacer(minLength: 8)
-            VStack(alignment: .trailing, spacing: 1) {
-                Text(product.localizedPriceString)
-                    .font(Club.Fonts.headline).foregroundStyle(Club.Colors.textPrimary)
-                Text(periodWord(pkg)).font(Club.Fonts.caption).foregroundStyle(Club.Colors.textTertiary)
-            }
-        }
-        .padding(16)
-        .background(Club.Colors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .strokeBorder(on ? Club.Colors.racingGreen : Club.Colors.parchmentBorder, lineWidth: on ? 1.5 : 1))
-        .shadow(color: .black.opacity(on ? 0.08 : 0), radius: 10, y: 4)
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
-    }
-
-    private func planName(_ pkg: Package) -> String {
-        switch pkg.packageType {
-        case .annual: return "Yearly"
-        case .monthly: return "Monthly"
-        case .lifetime: return "Lifetime"
-        default: return pkg.storeProduct.localizedTitle
-        }
-    }
-
-    private func periodWord(_ pkg: Package) -> String {
-        switch pkg.packageType {
-        case .annual: return "per year"
-        case .monthly: return "per month"
-        case .lifetime: return "one time"
-        default: return ""
-        }
-    }
-
-    private func planSubtitle(_ pkg: Package) -> String? {
-        switch pkg.packageType {
-        case .annual:
-            if let days = trialDays(pkg) {
-                return "\(days) days free, then \(pkg.storeProduct.localizedPricePerMonth ?? "") a month"
-            }
-            return pkg.storeProduct.localizedPricePerMonth.map { "\($0) a month, billed yearly" }
-        case .monthly: return "Cancel any time"
-        case .lifetime: return "Pay once, keep it for good"
-        default: return nil
-        }
-    }
-
-    private func badge(_ pkg: Package) -> String? {
-        guard pkg.packageType == .annual else { return nil }
-        if let days = trialDays(pkg) { return "\(days) DAYS FREE" }
-        return "BEST VALUE"
-    }
-
-    /// Free-trial length in days — only if this Apple ID can still get it.
-    private func trialDays(_ pkg: Package) -> Int? {
-        let product = pkg.storeProduct
-        guard let intro = product.introductoryDiscount, intro.paymentMode == .freeTrial,
+    /// Free-trial length in days, only if this Apple ID can still get it.
+    private func trialDays(_ pkg: Package?) -> Int? {
+        guard let product = pkg?.storeProduct, let intro = product.introductoryDiscount,
+              intro.paymentMode == .freeTrial,
               purchases.trialEligible[product.productIdentifier] ?? true else { return nil }
         let p = intro.subscriptionPeriod
         switch p.unit {
@@ -305,68 +340,133 @@ struct PaywallView: View {
         }
     }
 
-    // MARK: - Checkout (pinned)
-
-    private var checkout: some View {
-        VStack(spacing: 8) {
-            Button {
-                guard let pkg = selected else { return }
-                Task {
-                    busy = true
-                    await purchases.purchase(pkg)
-                    busy = false
-                    if purchases.isPremium { Haptics.success() }
+    @ViewBuilder private var subscriptionTiersSection: some View {
+        if orderedPackages.isEmpty {
+            VStack(spacing: 10) {
+                if purchases.isLoadingOfferings {
+                    ProgressView().tint(Theme.Colors.volt)
+                    Text("Loading plans...")
+                        .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
+                } else {
+                    Text("Couldn't load plans. Check your connection and try again.")
+                        .font(Theme.Fonts.caption).foregroundStyle(Theme.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                    Button("Try again") { Task { await purchases.loadOfferings() } }
+                        .font(Theme.Fonts.headline).foregroundStyle(Theme.Colors.volt)
                 }
-            } label: {
-                Group {
-                    if busy { ProgressView().tint(Club.Colors.onVolt) }
-                    else { Text(ctaTitle).font(Club.Fonts.headline) }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+        } else {
+            HStack(spacing: 10) {
+                ForEach(orderedPackages, id: \.identifier) { pkg in
+                    tierCard(pkg)
                 }
-                .foregroundStyle(Club.Colors.onVolt)
-                .frame(maxWidth: .infinity).frame(height: 56)
-                .background(selected == nil ? Club.Colors.surfaceRaised : Club.Colors.volt,
-                            in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
-            .disabled(busy || selected == nil)
-            .pressable()
-
-            Text(finePrint)
-                .font(.system(size: 11))
-                .foregroundStyle(Club.Colors.textTertiary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-
-            HStack(spacing: 14) {
-                Button("Terms of Use") { openURL(termsURL) }
-                Text("·")
-                Button("Privacy Policy") { openURL(privacyURL) }
-            }
-            .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(Club.Colors.textTertiary)
-        }
-        .padding(.horizontal, 22)
-        .padding(.top, 12)
-        .padding(.bottom, 6)
-        .background(Club.Colors.background.shadow(.drop(color: .black.opacity(0.06), radius: 8, y: -2)))
-    }
-
-    private var ctaTitle: String {
-        guard let pkg = selected else { return "Continue" }
-        let price = pkg.storeProduct.localizedPriceString
-        switch pkg.packageType {
-        case .annual:
-            if let days = trialDays(pkg) { return "Start \(days)-day free trial" }
-            return "Subscribe for \(price) a year"
-        case .monthly: return "Subscribe for \(price) a month"
-        case .lifetime: return "Unlock for \(price)"
-        default: return "Continue"
+            .padding(.horizontal, 16)
         }
     }
 
-    /// Apple requires the price, the billing period and how renewal works to be
-    /// clear right next to the button.
+    private func tierCard(_ pkg: Package) -> some View {
+        let product = pkg.storeProduct
+        let isMostPopular = pkg.packageType == .annual
+        let isSelected = pkg.identifier == selectedPackage?.identifier
+        let (durationNumber, durationUnit): (String, String) = {
+            switch pkg.packageType {
+            case .monthly: return ("1", "month")
+            case .annual: return ("12", "months")
+            case .lifetime: return ("\u{221E}", "lifetime")
+            default: return ("", product.localizedTitle)
+            }
+        }()
+        let monthlyBreakdown: String = {
+            if pkg.packageType == .lifetime { return "Pay once" }
+            if let days = trialDays(pkg) { return "\(days) days free" }
+            return product.localizedPricePerMonth.map { "\($0) / month" } ?? ""
+        }()
+        let billingNote: String = {
+            switch pkg.packageType {
+            case .monthly: return "Billed monthly"
+            case .annual: return "Billed yearly"
+            case .lifetime: return "No subscription"
+            default: return ""
+            }
+        }()
+
+        return Button {
+            Haptics.tap()
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                selectedID = pkg.identifier
+            }
+        } label: {
+            VStack(spacing: 0) {
+                if isMostPopular {
+                    Text("MOST POPULAR")
+                        .font(.system(size: 9, weight: .heavy, design: .rounded))
+                        .foregroundStyle(Theme.Colors.onVolt)
+                        .padding(.vertical, 4)
+                        .frame(maxWidth: .infinity)
+                        .background(Theme.Colors.volt)
+                } else {
+                    Spacer().frame(height: 18)
+                }
+
+                VStack(spacing: 4) {
+                    Text(durationNumber)
+                        .font(.system(size: 28, weight: .bold, design: .serif))
+                        .foregroundStyle(isMostPopular ? Theme.Colors.onVolt : Theme.Colors.textPrimary)
+
+                    Text(durationUnit)
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(isMostPopular ? Theme.Colors.onVolt.opacity(0.85) : Theme.Colors.textSecondary)
+
+                    Spacer().frame(height: 6)
+
+                    Text(product.localizedPriceString)
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(isMostPopular ? Theme.Colors.onVolt : Theme.Colors.textPrimary)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+
+                    Divider()
+                        .background(isMostPopular ? Color.white.opacity(0.3) : Theme.Colors.parchmentBorder)
+                        .padding(.vertical, 6)
+
+                    Text(monthlyBreakdown)
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .foregroundStyle(isMostPopular ? Theme.Colors.onVolt : Theme.Colors.textPrimary)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+
+                    Text(billingNote)
+                        .font(.system(size: 9, weight: .medium, design: .rounded))
+                        .foregroundStyle(isMostPopular ? Theme.Colors.onVolt.opacity(0.75) : Theme.Colors.textTertiary)
+                }
+                .padding(.horizontal, 8)
+                .padding(.bottom, 12)
+            }
+            .frame(maxWidth: .infinity)
+            .background(isMostPopular ? Theme.Colors.volt : Theme.Colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(
+                        isSelected ? (isMostPopular ? Color.white : Theme.Colors.volt) : Theme.Colors.parchmentBorder.opacity(0.85),
+                        lineWidth: isSelected ? 2.5 : 1
+                    )
+            )
+            .shadow(color: isSelected ? Theme.Colors.volt.opacity(0.2) : Color.black.opacity(0.04), radius: 8, y: 3)
+            .scaleEffect(isSelected ? 1.03 : 1.0)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(durationNumber) \(durationUnit), \(product.localizedPriceString)")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+    }
+
+    /// Price, period and how renewal works, for the selected plan. Apple
+    /// requires this to be clear next to the purchase button.
     private var finePrint: String {
-        guard let pkg = selected else { return " " }
+        guard let pkg = selectedPackage else { return " " }
         let price = pkg.storeProduct.localizedPriceString
         switch pkg.packageType {
         case .annual:
@@ -378,7 +478,120 @@ struct PaywallView: View {
             return "\(price) a month, renews automatically until you cancel in Settings."
         case .lifetime:
             return "One payment of \(price). No subscription."
-        default: return " "
+        default:
+            return "\(price)"
+        }
+    }
+
+    private var ctaTitle: String {
+        guard let pkg = selectedPackage else { return "CONTINUE" }
+        if pkg.packageType == .annual, let days = trialDays(pkg) { return "START \(days)-DAY FREE TRIAL" }
+        return "CONTINUE"
+    }
+
+    // MARK: - Trust Note
+
+    private var trustNote: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.shield.fill")
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.Colors.safe)
+
+            Text(finePrint)
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .multilineTextAlignment(.leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - Fixed Bottom Checkout Bar
+
+    private var bottomCheckoutBar: some View {
+        VStack(spacing: 8) {
+            // Renewal terms right above the button, always visible.
+            trustNote
+
+            // Large Green CONTINUE CTA
+            Button {
+                executePurchase()
+            } label: {
+                HStack {
+                    if busy {
+                        ProgressView().tint(Theme.Colors.onVolt)
+                    } else {
+                        Text(ctaTitle)
+                            .font(.system(size: 16, weight: .heavy, design: .rounded))
+                            .foregroundStyle(Theme.Colors.onVolt)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Theme.Colors.volt)
+                        .shadow(color: Theme.Colors.volt.opacity(0.35), radius: 10, y: 4)
+                )
+            }
+            .disabled(busy || selectedPackage == nil)
+            .buttonStyle(.plain)
+
+            // Links: Restore Purchase & Redeem Code
+            HStack(spacing: 24) {
+                Button {
+                    Haptics.tap()
+                    Task {
+                        busy = true
+                        await purchases.restore()
+                        busy = false
+                    }
+                } label: {
+                    Text("RESTORE PURCHASE")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                }
+
+                Button {
+                    Haptics.tap()
+                    // Redeem code action (opens App Store code redemption if available)
+                    if let url = URL(string: "https://apps.apple.com/redeem") {
+                        openURL(url)
+                    }
+                } label: {
+                    Text("REDEEM CODE")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                }
+            }
+            .padding(.top, 2)
+
+            // Privacy & Terms
+            HStack(spacing: 12) {
+                Button("Terms of Use") { openURL(termsURL) }
+                Text("·")
+                Button("Privacy Policy") { openURL(privacyURL) }
+            }
+            .font(.system(size: 11, weight: .medium, design: .rounded))
+            .foregroundStyle(Theme.Colors.textTertiary)
+            .padding(.top, 2)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 10)
+        .padding(.bottom, 12)
+        .background(
+            Theme.Colors.background
+                .shadow(color: Color.black.opacity(0.06), radius: 10, y: -4)
+        )
+    }
+
+    private func executePurchase() {
+        guard !busy, let pkg = selectedPackage else { return }
+        Haptics.success()
+        Task {
+            busy = true
+            await purchases.purchase(pkg)
+            busy = false
+            if purchases.isPremium && source != "gate" { dismiss() }
         }
     }
 }

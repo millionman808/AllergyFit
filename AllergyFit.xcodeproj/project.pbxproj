@@ -30,6 +30,7 @@
 		366E7DE0CD7F19773EC76C56 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C63BE8C8482C61ACD9CCF8 /* Config.swift */; };
 		37EF3047980F19F78008A831 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5362C1AB2997D74FFD7C7339 /* ProfileView.swift */; };
 		3B355625587882BEA2F53368 /* LoopingAlphaPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3648F5C585663546EE3706A /* LoopingAlphaPlayerView.swift */; };
+		3D610D7958F4397193EA308D /* GardenTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF620F1AC1F2BAAA5C3A1EE2 /* GardenTheme.swift */; };
 		462DC3BDB54C052808A70ADD /* SaveAccountSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B921F8FDBFA7EB02E2CE7042 /* SaveAccountSheet.swift */; };
 		4AA0D4ECCE20E8B41FCADB4E /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D0C41123AB2F3D6474672D84 /* Supabase */; };
 		5000FE197B5AE7840D4F70C4 /* LaunchSplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D367FCBC0B19F539EAB973E5 /* LaunchSplashScreen.swift */; };
@@ -161,6 +162,7 @@
 		DD22CE2C1F6A6696B3AF5112 /* ClubTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubTheme.swift; sourceTree = "<group>"; };
 		DD8AC639C30F87C1A2C05028 /* drink_alpha.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = drink_alpha.mov; sourceTree = "<group>"; };
 		DEB40B07CADF21863ED0324E /* TodayStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayStore.swift; sourceTree = "<group>"; };
+		DF620F1AC1F2BAAA5C3A1EE2 /* GardenTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GardenTheme.swift; sourceTree = "<group>"; };
 		E3648F5C585663546EE3706A /* LoopingAlphaPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopingAlphaPlayerView.swift; sourceTree = "<group>"; };
 		E701777BF7009E9C766AF99E /* InsightsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsStore.swift; sourceTree = "<group>"; };
 		ECADE9B46A714426CE1D1F29 /* RecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipesView.swift; sourceTree = "<group>"; };
@@ -398,6 +400,7 @@
 			children = (
 				DD22CE2C1F6A6696B3AF5112 /* ClubTheme.swift */,
 				3568EFD1586B51A8314B7E39 /* Confetti.swift */,
+				DF620F1AC1F2BAAA5C3A1EE2 /* GardenTheme.swift */,
 				D367FCBC0B19F539EAB973E5 /* LaunchSplashScreen.swift */,
 				F7CE6FD848A3475B62047D6F /* OnboardingMotion.swift */,
 				328186B207C708F97059BB8F /* Skeleton.swift */,
@@ -558,6 +561,7 @@
 				C8DC921B692D148DFAEE7F42 /* FoodDetailView.swift in Sources */,
 				88B7F093737D7B6E3EE61508 /* FuelFriendStageView.swift in Sources */,
 				29C2FE8035C5470A16C654A4 /* FuelFriendStore.swift in Sources */,
+				3D610D7958F4397193EA308D /* GardenTheme.swift in Sources */,
 				A472F5802CA033B55A7B1E0C /* Haptics.swift in Sources */,
 				9CFFEF6F3A066A304D0F9DC1 /* HealthManager.swift in Sources */,
 				838DB15D4DDE4CBAD02C854F /* InsightsStore.swift in Sources */,
